@@ -223,3 +223,9 @@ p { line-height: 1.5; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+/* Authentication reuses the Phase 02 card, controls, spacing, and direction tokens. */
+.auth-card form { display: grid; gap: 1rem; text-align: start; }
+.auth-card { display: grid; gap: 1rem; }
+.auth-card h1, .auth-card p { margin-block: 0; }
+.auth-reset { display: grid; gap: 1rem; border-block-start: 1px solid var(--color-border); padding-block-start: 1.5rem; }
+.auth-temporary { display: block; overflow-wrap: anywhere; user-select: all; margin-block: 1rem; }

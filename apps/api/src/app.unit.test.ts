@@ -11,6 +11,7 @@ const database = {
   close: async () => undefined
 };
 const app = buildApp(config, database);
+app.get('/api/v1/private-probe', async () => ({ privateData: true }));
 
 describe('readiness endpoint', () => {
   afterAll(async () => { await app.close(); });
@@ -19,5 +20,15 @@ describe('readiness endpoint', () => {
     expect(response.statusCode).toBe(503);
     expect(response.json()).toMatchObject({ status: 'not_ready' });
     expect(response.body).not.toContain('postgresql://');
+  });
+  it('denies a route unless it is explicitly public', async () => {
+    const response = await app.inject('/api/v1/private-probe');
+    expect(response.statusCode).toBe(401); expect(response.json().code).toBe('UNAUTHORIZED');
+    expect(response.body).not.toContain('privateData');
+  });
+  it('refuses insecure production or non-HTTP development origins', () => {
+    expect(() => buildApp({ ...config, production: true }, database)).toThrow('HTTPS');
+    expect(() => buildApp({ ...config, appOrigin: 'ftp://localhost' }, database)).toThrow('HTTPS');
+    expect(() => buildApp({ ...config, appOrigin: 'http://nursery.example' }, database)).toThrow('HTTPS');
   });
 });

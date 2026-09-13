@@ -1,16 +1,13 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Link, Route, Routes } from 'react-router';
-import { LanguageSwitcher } from './layout/AppShell.js';
 import { useLocale } from './i18n/LocaleProvider.js';
+import { AuthProvider, useAuth } from './features/auth/AuthProvider.js';
+import { AccountScreen, AuthGate, LoginScreen, PasswordScreen, UnavailableScreen } from './features/auth/screens.js';
+import type { AuthClient } from './features/auth/client.js';
 
 const DevelopmentPreview = import.meta.env.DEV
   ? lazy(() => import('./features/design-system/ComponentPreview.js').then(({ ComponentPreview }) => ({ default: ComponentPreview })))
   : null;
-
-function Landing() {
-  const { t } = useLocale();
-  return <main className="landing"><div className="landing__language"><LanguageSwitcher /></div><section className="landing__card"><div className="brand-mark brand-mark--large" aria-hidden="true">ن</div><span className="eyebrow">{t('app.name')}</span><h1>{t('landing.title')}</h1><p>{t('landing.body')}</p>{import.meta.env.DEV && <Link className="button-link" to="/__preview">{t('landing.openPreview')}</Link>}</section></main>;
-}
 
 function NotFound() {
   const { t } = useLocale();
@@ -23,6 +20,20 @@ function PreviewRoute() {
   return <Suspense fallback={<main className="landing" role="status">{t('state.loading')}</main>}><DevelopmentPreview /></Suspense>;
 }
 
-export function App() {
-  return <Routes><Route path="/" element={<Landing />} /><Route path="/__preview/*" element={<PreviewRoute />} /><Route path="*" element={<NotFound />} /></Routes>;
+function AuthRoutes() {
+  const { session } = useAuth(); const { setLocale } = useLocale();
+  const userLocale = session?.account.locale;
+  useEffect(() => { if (userLocale) setLocale(userLocale); }, [userLocale, setLocale]);
+  return <Routes>
+    <Route path="/login" element={<LoginScreen />} />
+    <Route path="/session-expired" element={<LoginScreen expired />} />
+    <Route path="/" element={<AuthGate><AccountScreen /></AuthGate>} />
+    <Route path="/account" element={<AuthGate><AccountScreen /></AuthGate>} />
+    <Route path="/change-password" element={<AuthGate><PasswordScreen /></AuthGate>} />
+    {['parent', 'teacher', 'administration', 'support'].map((group) => <Route key={group} path={`/${group}/*`} element={<AuthGate><UnavailableScreen /></AuthGate>} />)}
+    <Route path="/__preview/*" element={<PreviewRoute />} /><Route path="*" element={<NotFound />} />
+  </Routes>;
+}
+export function App({ authClient }: { authClient?: AuthClient }) {
+  return <AuthProvider client={authClient}><AuthRoutes /></AuthProvider>;
 }

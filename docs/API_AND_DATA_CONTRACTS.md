@@ -14,6 +14,10 @@ REST action examples: POST /payments; POST /payments/:id/corrections; POST /chil
 
 ## Critical relational groups
 
+### Phase 03 implemented identity contract
+
+The runtime schemas live in `packages/contracts/src/index.ts`; routes, defaults, operator procedures, and revocation integration are documented in [AUTHENTICATION.md](AUTHENTICATION.md). Authentication responses return `data.account` (ID, normalized username, reserved kind, locale, forced-change flag, capability list and `policyReady: false`), `csrfToken`, `expiresAt`, and `idleExpiresAt`. The latter deadlines are technical session values, never child arrival/departure data. Strict input schemas reject unrecognized fields. Errors may include `publicMessage` only for the explicitly intended account contact copy, never an internal reason. Business authorization stays deny-by-default pending Phase 04.
+
 | Group | Records and essential fields |
 |---|---|
 | Installation | installation singleton; license dates/grace; purchased capacities/unit prices/agreed total; manual subscription renewal records; feature_settings/version; branding/version |

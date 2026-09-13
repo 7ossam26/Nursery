@@ -1,18 +1,18 @@
 # Project state
 
-Baseline: 2026-09-13. Phase 02 implementation is complete.
+Baseline: 2026-09-13. Phase 03 implementation is complete.
 
 ## Active state
 
-- Current phase: 02 — Bilingual design system and navigation — COMPLETE.
-- Current checkpoint: acceptance gate passed.
-- Last completed implementation phase: 02.
-- Next action: begin Phase 03 only on explicit user direction.
-- Runtime/dependency versions: exact pins and source verification are in `docs/DEPENDENCIES.md`; Node 24.19.0 and npm 11.1.0 installed locally. `npm audit --omit=dev` reports zero vulnerabilities after React Router 7.18.3.
-- Implemented commands: dev, build, lint, typecheck, test:unit, test:integration, test:e2e, db:migrate, db:seed:demo.
-- Application migrations/tests/build/deployment/backup/restore: Phase 01 baseline migration applied to local PostgreSQL 17.9, rerun idempotently, and real rollback integration passed. Build/lint/typecheck, unit readiness, scripted Vite startup smoke, no-op demo seed, and audit pass. Deployment/backup/restore remain later-phase work.
-- Phase 02 evidence: English/Egyptian Arabic catalogs, supplied-user/local preference resolution, RTL/LTR document direction, ISO date-only/Cairo date helpers, exact EGP display, semantic tokens and contrast validation, accessible shared components, role-grouped shells, responsive rules, and a development-only lazy component preview implemented. Final `npm run lint`, `npm run typecheck`, and `npm run build` passed across all workspaces; `npm run test:unit` passed 6 files/29 tests including bilingual DOM axe, modal-focus, contrast, and 360/768/1280 direction contracts; `npm run test:e2e` passed 1 scripted Vite fallback test; `npm audit --omit=dev` found zero vulnerabilities; production-bundle synthetic-record exclusion and `git diff --check` passed. No migration was added or required.
-- Known blocker: none. PostgreSQL 18 remains the production target; PostgreSQL 17.9 was used only for Phase 01 local verification.
+- Current phase: 03 — Authentication, sessions, and account security — COMPLETE.
+- Current checkpoint: acceptance gate passed; see [authentication evidence and operation](AUTHENTICATION.md) and [handoff](HANDOFF.md).
+- Last completed implementation phase: 03.
+- Next action: begin Phase 04 only on explicit user direction; inspect its prerequisites and named references first.
+- Implemented: immutable account kinds/single SYSTEM identity; one-time bootstrap/local recovery; scrypt passwords and hashed revocable sessions; expiry/rotation/logout; origin/CSRF protection, secure cookies, rate limits and safe errors; audited password/status changes; bilingual login/setup/account/reset/expired screens; saved locale; deny-by-default route boundary and revocation integration hooks.
+- Verification: workspace `npm run typecheck`, `npm run lint`, `npm run build` passed. Focused unit scripts passed 8 checks; PostgreSQL/API/operator scripts passed 12; scripted bilingual HTTP/DOM plus Vite startup passed 5. After the final stale-response fix, the web type/lint/build gate and all 4 bilingual flows passed again. Exact commands and limitations are in AUTHENTICATION.md.
+- Migration: `npm run db:migrate` applied `0001_authentication.sql` and reran cleanly with no reapplication. Only isolated test schemas received test accounts; they were removed. Existing `.env` and migration history were preserved; no deployment or real account bootstrap performed.
+- Runtime/dependencies: Node 24.19.0/npm 11.1.0; dependency versions unchanged in this phase. Local PostgreSQL 17.9 used for verification; PostgreSQL 18 remains the production target.
+- Known blocker: none. U24 script-only verification was followed; no browser automation/manual browser claim. General provisioning, capabilities/scopes and licensing remain later phases. No later phase was started.
 
 ## Phase ledger
 
@@ -20,7 +20,7 @@ Baseline: 2026-09-13. Phase 02 implementation is complete.
 |---|---|---|---|
 | 01 | Repository, tooling, and shared contracts | COMPLETE | Node 24.19.0/npm 11.1.0; workspace/contracts; local PostgreSQL 17.9 migration applied once and rerun idempotently; real transaction rollback, build, lint, typecheck, script tests, and audit passed. |
 | 02 | Bilingual design system and navigation | COMPLETE | Bilingual locale/theme/component/navigation system; workspace lint/type/build, 29 unit/component checks, Vite fallback smoke, audit, production-preview exclusion, and diff check passed. |
-| 03 | Authentication, sessions, and account security | NOT STARTED | None |
+| 03 | Authentication, sessions, and account security | COMPLETE | Authentication schema/services/UI; applied and idempotently rerun migration; workspace type/lint/build; 8 focused unit, 12 real PostgreSQL/API/command and 5 scripted UI/startup checks passed. See AUTHENTICATION.md. |
 | 04 | Branches, classrooms, and dynamic permissions | NOT STARTED | None |
 | 05 | Superadmin, subscriptions, slots, and nursery settings | NOT STARTED | None |
 | 06 | Children, guardians, onboarding, and documents | NOT STARTED | None |

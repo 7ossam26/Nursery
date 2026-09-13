@@ -66,4 +66,12 @@ Baseline 2026-09-13. U = explicit user decision; D = engineering/product default
 
 ## Change procedure
 
+### 2026-09-13 — Phase 03 authentication defaults (D29)
+
+R02/U03: normalize usernames with NFKC, trim outer whitespace, and locale-independent lowercase; accept 3–64 Unicode letters/numbers or `.`, `_`, `-` without internal whitespace. Passwords are 15–128 characters without trimming or composition rules. Use Node scrypt (N=131072, r=8, p=1, random 16-byte salt, 64-byte key), following the [OWASP password storage guidance](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
+
+Sessions have a 12-hour absolute limit and 30-minute sliding idle limit. Explicit rotation invalidates the prior token without extending the absolute limit; password changes issue a new session and revoke every previous session. Temporary credentials expire after 24 hours, can sign in once, and create a restricted 15-minute setup session. An abandoned setup requires another Superadmin reset (or local SYSTEM recovery). Login is limited to 10 attempts per normalized identity and 30 per direct peer IP per 15 minutes, shared in PostgreSQL. Password/reset attempts use the same limiter by actor ID. Proxy headers are untrusted until narrowly configured in the deployment phase.
+
+Bootstrap is single-use under a transaction lock and persistent marker; SYSTEM recovery updates the existing reserved account, never creates another. Both local commands consume bounded JSON through private stdin and never print credentials. Assisted reset requires the reserved SYSTEM identity and its current password, returns a random temporary password once, and does not activate or unblock the target. Public account messages are shown only after valid credentials or an existing session; internal status reasons are never public. General provisioning, block UI, roles, slots, and license policy remain their planned phases. Migration: `0001_authentication.sql`; API namespace: `/api/v1/auth`; current-account responses explicitly report `policyReady: false` and no unimplemented business capabilities.
+
 Append a dated decision with reason, affected requirement IDs, migrations/API impact, and affected phase files. Update canonical rules and acceptance fixtures together. Never silently replace an equal split with a proportional split, revive removed complaints/media, or turn manual blocking into automatic debt enforcement.

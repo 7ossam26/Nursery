@@ -1,44 +1,51 @@
 # Current handoff
 
-Updated: 2026-09-13 — Phase 02 complete.
+Updated: 2026-09-13 — Phase 03 complete.
 
-## Current task
+## Current task and next action
 
-Phase 02 is complete. Do not begin Phase 03 until the user explicitly requests it.
+Phase 03 is complete through its acceptance gate under U24 script-only verification. Stop here. Begin Phase 04 (branches, classrooms, dynamic permissions) only when explicitly requested. Then read AGENTS.md, PROJECT_STATE.md, the Phase 04 file, and only its named references; inspect current code/diff again. No Phase 04 work was performed.
 
-## Read next
+## Implemented behavior and defaults
 
-1. ../AGENTS.md
-2. PROJECT_STATE.md
-3. ../phases/PHASE_03_authentication_sessions.md when Phase 03 is requested
-4. Relevant Phase 03 reference sections only
+Accounts have immutable SYSTEM/STAFF/GUARDIAN kinds, normalized unique usernames, salted scrypt hashes, status/version and locale. A persistent bootstrap marker, transaction lock and unique SYSTEM constraint prevent a second unrestricted root. Sessions store only hashed random tokens. Login/logout/rotation/expiry, temporary credentials, forced password change, assisted reset, local SYSTEM recovery and status-based denial are transactional behavior.
 
-## Next executable action
+Defaults: 12-hour absolute and 30-minute idle sessions; rotation preserves the absolute deadline. Temporary credentials allow one login within 24 hours and create a restricted 15-minute setup session. Password change revokes every old session and issues a fresh one. Passwords contain 15–128 characters; username normalization is NFKC, outer trim and locale-independent lowercase, accepting 3–64 letters/numbers or `.`, `_`, `-`. Read D29 in DECISIONS.md and [AUTHENTICATION.md](AUTHENTICATION.md) for complete operation/security contracts.
 
-When requested, begin Phase 03 from its stated prerequisites. Preserve the Phase 02 design contracts, the local `.env`, and migration history.
+Operator commands: `npm run auth:bootstrap` consumes private stdin JSON with `username`/`password`; `npm run auth:recover-system` consumes only `password`, updates the existing marked root and revokes its sessions. They never print credentials and reject extra arguments/interactive stdin. No default credentials and no actual installation account were created. Follow the private-input procedure in AUTHENTICATION.md; preserve `.env`.
 
-## Confirmed latest decisions
+API authentication is global and deny-by-default, with exact origin/JSON/CSRF checks for mutations, HttpOnly/SameSite cookies (Secure and __Host prefixes on HTTPS), no-store/security headers, shared PostgreSQL rate limits, strict payloads and redacted audits/errors. Current-account DTOs expose only implemented capabilities and `policyReady: false`. Authenticated business route groups show denial pending Phase 04; no permissive role fallback exists.
 
-UI locale values are `en` and `ar-EG`; a supplied user preference wins over local storage, with English as fallback. Business values remain language-independent. Business dates persist as ISO date-only values, display as `dd/MM/yyyy` with Latin digits, and instants use `Africa/Cairo`. Money remains integer piastres and displays as exact Latin-digit EGP.
+The UI reuses Phase 02 controls, locale provider, tokens and language switcher. `/login`, `/session-expired`, `/account`, `/change-password` support English/Egyptian Arabic. Saved account locale wins on login. SYSTEM can generate a target account's temporary password after entering its current password; the result disappears on dismissal or leaving the account screen. Credentials/session tokens are never saved in browser storage. Vite proxies `/api` to the local API on port 3000.
 
-The bright brand pink uses dark `#111827` text; white text is reserved for the strong `#BE185D` action. Persistent theme settings and server capability filtering remain later-phase work.
+## Revocation integration for later phases
 
-## Evidence and open work
+`AuthService.authenticate` checks account status/version and session validity for each protected request. Consequential services repeat checks under account/session locks; multiple account IDs are locked in sorted order. `changeStatus` is an internal SYSTEM-authorized hook with a required reason, separate public message/history and revocation; no block/provisioning/seat UI or route was added. Ended temporary blocks permit fresh login without reviving old sessions or releasing slots.
 
-Changed files: root `package.json`/`package-lock.json`, `vitest.unit.config.ts`, `README.md`, `tests/e2e/startup.test.ts`; `packages/domain/src/index.ts` plus display tests; `packages/ui/src/index.ts` plus theme tests; and the web app entry, styles, bilingual catalogs/provider, component library, navigation metadata/shells, development preview, and component/responsive tests under `apps/web/src`. `docs/PROJECT_STATE.md` and this handoff contain the phase evidence.
+Password/status changes, revocations and audits commit atomically. The `auth_revoked` PostgreSQL channel sends an account UUID after commit. Future SSE/download code must call `assertSessionActive(token)` before each delivery and after revocation hints; it does not extend idle expiry. NOTIFY alone is not authorization. Phase 04 must compose capability/resource/installation checks and scoped cache invalidation with these hooks.
 
-Shared components: `Button`, `TextField`, `SelectField`, `DateField`, `ErrorSummary`, `Modal`, `Card`, `Skeleton`, `StatePanel`, `ResponsiveTable`, and labeled inline `Icon`. The modal uses native dialog behavior and explicitly restores focus. Tables use semantic desktop markup and a mobile definition-list card alternative. All controls target at least 44px and icons supplement text rather than replacing it.
+## Changed files
 
-Semantic token names: brand, brandSoft, peach, notice, text, textMuted, surface, surfaceSubtle, background, action/actionHover, success/successSurface, warning/warningSurface, error/errorSurface, info/infoSurface, border, focus, and support/supportSurface; also shared radius, shadow, motion, minimum-control, and maximum-content tokens. `contrastRatio`, `validatesTextContrast`, and `readableForeground` are reusable by the later persistent theme form. CSS-token alignment is tested.
+- API: `apps/api/src/app.ts`, `app.unit.test.ts`, `config.ts`, new `errors.ts`, `auth-command.ts`, and `modules/auth/{crypto,routes,service}.ts`.
+- Schema/contracts: `packages/db/src/migrations/0001_authentication.sql`; `packages/contracts/src/index.ts`, `auth.unit.test.ts`.
+- Web: `apps/web/src/App.tsx`, `styles.css`, `i18n/catalogs.ts`, `features/auth/{client.ts,AuthProvider.tsx,screens.tsx}` and `apps/web/vite.config.ts`.
+- Tests/tooling: `tests/helpers/auth.ts`, `tests/integration/{authentication,auth-command}.test.ts`, `tests/e2e/authentication.test.tsx`, `vitest.e2e.config.ts`, root `package.json` (two operator commands). No dependency/lockfile change.
+- Documentation: `README.md`, `docs/{AUTHENTICATION,API_AND_DATA_CONTRACTS,DECISIONS,PROJECT_STATE,HANDOFF}.md`.
 
-Navigation conventions: production-neutral route groups are `/parent/*`, `/teacher/*`, `/administration/*`, and `/support/*`. Parent and teacher narrow navigation is limited to five labeled destinations; administration is grouped into daily and management sections; support has a distinct indigo shell. `ParentShell`, `TeacherShell`, `AdministrationShell`, and `SupportShell` wrap the common `AppShell`. These are navigation/presentation contracts only; Phase 04 must hide and enforce destinations from server capabilities. The development preview adds `/__preview` as a path prefix and is lazy-imported only in development.
+## Commands and actual results
 
-Translation pattern: add each key to the typed English catalog and matching Egyptian Arabic `Record<MessageKey, string>`, then call `useLocale().t`. `LocaleProvider` updates `html[lang]`/`html[dir]`, accepts a per-user locale, and persists the local selection under `nursery.locale`. Keep persisted codes/slugs outside catalogs. Synthetic preview records live inside the development-only module rather than the production catalog.
+- `npm run db:migrate`: applied `0001_authentication.sql`; second run passed without reapplying. Local database only.
+- `npm run typecheck`; `npm run lint`; `npm run build`: passed across all workspaces.
+- `npm run test:unit -- apps/api/src/app.unit.test.ts packages/contracts/src/auth.unit.test.ts apps/web/src/i18n/catalogs.unit.test.ts`: 3 files / 8 tests passed.
+- `npm run test:integration -- tests/integration/authentication.test.ts tests/integration/auth-command.test.ts`: 2 files / 12 tests passed against real PostgreSQL. Includes concurrent bootstrap, invalid credentials, secure headers/CSRF, rotation/expiry/logout, reset/login races, status enforcement, concurrent rate limits, audit-failure rollback, temporary expiry, private-stdin command execution and existing-root recovery.
+- `npm run test:e2e -- tests/e2e/authentication.test.tsx tests/e2e/startup.test.ts`: 2 files / 5 tests passed. Four bilingual DOM flows use a real local TCP API and PostgreSQL, including reset, forced change, revoked sessions, safe blocked copy, expiry and axe; the fifth checks Vite fallback.
+- Final stale-response protection: `npm run typecheck -w @nursery/web`; `npm run lint -w @nursery/web`; `npm run build -w @nursery/web`; `npm run test:e2e -- tests/e2e/authentication.test.tsx`: all passed, 4 bilingual tests.
+- `git -c core.autocrlf=false diff --check`: passed. No unrelated suites, audit, deployment, backup or restore were run in Phase 03.
 
-Actual final passed checks: `npm run lint`; `npm run typecheck`; `npm run build`; `npm run test:unit` (6 files, 29 tests); `npm run test:e2e` (1 file, 1 scripted Vite history-fallback test); `npm audit --omit=dev` (zero vulnerabilities); production bundle scan for synthetic `Mariam Hassan`/`child-001` records; and `git diff --check`. The responsive repository checks cover 360px, 768px, and 1280px contracts in LTR and RTL, page overflow containment, mobile table cards, focus styles, 44px controls, and reduced motion. Bilingual DOM renders passed axe with color contrast handled by exact token-ratio tests. No browser automation or screenshots were used because U24 prohibits them. Interim test-harness failures (a TypeScript import shape and Vite teardown after transformed CSS requests) were fixed; the final gate above passed.
+Interim failures were test-harness issues: jsdom file URL resolution, waiting for fields after loading, and a substring selector matching both new-password fields. They were corrected and rerun successfully. Four empty schemas from the initial fixture setup failure were explicitly inspected and removed without CASCADE; fixture failure cleanup now removes its own schema. All later test schemas were cleaned normally. Fastify's deprecated logging flag was replaced with its installed LogController API. Final review added stale-response protection so an older current-account request cannot replace a newer CSRF token.
 
-Migration status: no migration was added or required. Database integration/concurrency tests were not run because Phase 02 adds no persistence, transaction, scope, quota, or billing behavior. Nothing was deployed.
+## Remaining limitations
 
-Remaining limitations: authentication-backed profile persistence is Phase 03+, capability enforcement is Phase 04, and persistent nursery theme editing/audit is Phase 05. Nuanced Egyptian Arabic copy still requires the planned tech-lead manual review. PostgreSQL 18 remains the production target; the existing local PostgreSQL 17.9 evidence belongs to Phase 01.
+Local PostgreSQL is 17.9; PostgreSQL 18 remains the production target. U24 prohibits browser automation, so evidence is scripted DOM/HTTP with a cookie/origin adapter, not an actual-browser or deployed-HTTPS claim. No real account was bootstrapped and nothing was deployed. Nuanced Egyptian Arabic copy still needs the planned tech-lead review.
 
-Next action: on explicit request, read Phase 03 and its named references, verify prerequisites from the code/diff, and implement authentication only through its gate.
+General provisioning, seat reservations, roles/scopes and installation licensing remain their planned phases. Proxy headers are intentionally untrusted; deployment must add a narrow trust configuration before relying on per-client IP limits behind a proxy, and must configure security headers for the served web document. Later streams/downloads must use the documented revalidation hook. No unresolved Phase 03 gate blocker remains.
