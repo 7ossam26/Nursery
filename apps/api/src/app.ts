@@ -7,6 +7,7 @@ import { installAuthentication } from './modules/auth/routes.js';
 import { installOrganization } from './modules/organization/routes.js';
 import { installLicensing } from './modules/licensing/routes.js';
 import { installChildren } from './modules/children/routes.js';
+import { installSafety } from './modules/safety/routes.js';
 
 export { SafeError } from './errors.js';
 type DatabaseLifecycle = Pick<Database, 'checkConnection' | 'close'>;
@@ -20,6 +21,7 @@ export function buildApp(config: AppConfig, database: DatabaseLifecycle = create
   installOrganization(app);
   installLicensing(app);
   installChildren(app,config);
+  installSafety(app);
   app.get('/api/v1/health', { config: { public: true } }, async (request) => ({ status: 'ok', requestId: request.id }));
   app.get('/api/v1/readiness', { config: { public: true } }, async (request, reply) => {
     try { await database.checkConnection(); return { status: 'ready', requestId: request.id }; }

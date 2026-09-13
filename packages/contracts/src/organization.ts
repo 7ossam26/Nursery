@@ -4,7 +4,8 @@ import type { CurrentAccount } from './index.js';
 export const capabilityKeys = [
   'organization.read', 'organization.manage', 'users.assign_roles', 'roles.define', 'grants.manage', 'accounts.reset_password', 'support.access', 'finance.correct',
   'licensing.manage', 'seats.release', 'branding.manage', 'modules.manage', 'users.manage_staff', 'users.create_parent', 'parents.block',
-  'children.read', 'children.manage', 'guardians.manage', 'documents.manage'
+  'children.read', 'children.manage', 'guardians.manage', 'documents.manage',
+  'health.read', 'health.manage', 'pickup.record', 'pickup.manage', 'incidents.read', 'incidents.manage'
 ] as const;
 export type Capability = typeof capabilityKeys[number];
 export const scopeModeSchema = z.enum(['BRANCH', 'CLASSROOM']);

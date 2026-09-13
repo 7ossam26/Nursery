@@ -73,7 +73,7 @@ Daily learning depends on configured enabled checkpoints. Attendance/exams/homew
 
 Re-enabling a feature restores existing history. New daily snapshots use the applicable configuration version. For finance re-enable, show missing service periods for explicit admin catch-up approval; do not silently invoice periods while the module was intentionally off.
 
-Existing health data on disable remains accessible through an authorized staff emergency-information panel and audit history, as documented D26/R08; parents lose the disabled optional section. Make this effect explicit in the disable action. No new health-entry tasks are generated.
+Existing health data on disable remains accessible through an authorized staff emergency-information panel and audit history, as documented D26/R08; parents lose the disabled optional section. Make this effect explicit in the disable action. No new health-entry tasks are generated. Disabling authorized pickup or incidents (D33) likewise stops new authorizations, restrictions, releases, reports and follow-ups with a distinct MODULE_DISABLED response while authorized staff keep reading existing history; parent sections disappear.
 
 ## Support safety
 

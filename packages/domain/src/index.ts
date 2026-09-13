@@ -96,3 +96,21 @@ export const bestForeground = (background: string, candidates: readonly string[]
   if (candidates.length === 0) throw new RangeError('At least one candidate foreground is required.');
   return candidates.map((foreground) => ({ foreground, ratio: contrastRatio(foreground, background) })).sort((a, b) => b.ratio - a.ratio)[0];
 };
+
+// WhatsApp deep links need digits only. Egyptian local numbers start with 0 (mobile 01x, landline area codes);
+// a leading '+' or '00' marks an explicit international prefix. Returns null when digits cannot form a valid number.
+export const normalizeWhatsAppNumber = (mobile: string, defaultCountryCode = '20'): string | null => {
+  const trimmed = mobile.trim();
+  if (!/^\+?[0-9 ()-]+$/.test(trimmed)) return null;
+  let digits = trimmed.replace(/\D/g, '');
+  if (!trimmed.startsWith('+')) {
+    if (digits.startsWith('00')) digits = digits.slice(2);
+    else if (digits.startsWith('0')) digits = defaultCountryCode + digits.slice(1);
+    else if (!digits.startsWith(defaultCountryCode)) digits = defaultCountryCode + digits;
+  }
+  return digits.length >= 8 && digits.length <= 15 && !digits.startsWith('0') ? digits : null;
+};
+export const whatsAppLink = (normalizedNumber: string): string => {
+  if (!/^[1-9][0-9]{7,14}$/.test(normalizedNumber)) throw new RangeError('Expected a normalized WhatsApp number.');
+  return `https://wa.me/${normalizedNumber}`;
+};

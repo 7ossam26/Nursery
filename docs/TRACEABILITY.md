@@ -13,7 +13,7 @@ This maps the consolidated V1 to implementation phases and consequential checks.
 | R05 Family onboarding, generic files, classrooms, lifecycle | 04, 06, 14, 15, 17 | A01–A06, A13, A21, A37 |
 | R06 Configurable live daily checkpoints and immutable history | 08, 09, 12 | A08–A12, A31 |
 | R07 Attendance, exam grades/types, teacher-managed homework | 09–11 | A02, A08–A11 |
-| R08 Limited health, authorized pickup, incidents | 07, 12 | A01, A03, A33, A37 |
+| R08 Limited health, authorized pickup, incidents | 07 (implemented, see SAFETY.md), 12 | A01, A03, A31, A33, A37 |
 | R09 Announcements, notices, acknowledgments, WhatsApp links | 07, 12, 15, 18 | A12, A32, A34 |
 | R10 Three billing arrangements and monthly charge generation | 13, 14 | A13–A17, A29 |
 | R11 Agreed tuition discount, collections, reminders, manual block | 14, 15, 22 | A06, A13–A20, A34, A36 |

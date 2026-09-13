@@ -1,16 +1,16 @@
 # Project state
 
-Baseline: 2026-09-13. Phase 06 is complete.
+Baseline: 2026-09-13. Phase 07 is complete (2026-09-14).
 
 ## Active state
 
-- Current phase: 06 — Children, guardians, onboarding, and documents — COMPLETE; acceptance gate satisfied.
-- Delivered: atomic family onboarding using existing quota provisioning; independent guardian links/permissions; scoped child/profile/contact administration; lifecycle/classroom history; private validated administrative documents and conservative cleanup; bilingual staff and guardian sibling screens.
-- Evidence: 28/28 focused PostgreSQL integration/migration/policy checks, 41/41 unit checks, 3/3 bilingual DOM/HTTP checks; workspace typecheck/lint/build passed. Final web-only check and DOM rerun passed after credential clearing on policy errors. Both full and production audit found 0 vulnerabilities; diff check passed.
-- Last completed phase: 06. Next: Phase 07 — Health notes, authorized pickup, and incidents — only when requested. Stop; no later-phase implementation.
-- Runtime: Node 24.19.0/npm 11.1.0, isolated PostgreSQL 18.6. Disposable Phase 06 cluster stopped; existing service/data untouched, no .env or deployment. Existing unrelated line-ending changes preserved.
-- Migration/defaults: apply 0004 before use; private storage configuration required; four new delegable capabilities require explicit assignment. D32 and API contracts document defaults/boundaries. No financial/transport implementation or public document files.
-- Details: [CHILDREN_AND_DOCUMENTS.md](CHILDREN_AND_DOCUMENTS.md); precise next-session record in [HANDOFF.md](HANDOFF.md). Historical Phase 05 evidence/limitations remain in LICENSING_AND_SETTINGS.md.
+- Current phase: 07 — Health notes, authorized pickup, and incidents — COMPLETE; acceptance gate satisfied.
+- Delivered: health notes/allergies/alerts/emergency contacts with a retained staff emergency view (D26); parent-managed authorized pickup people with date validity and one-day authorization; management restrictions and prohibited collectors with private notes; staff release recording requiring a permitted collector plus a confirmed call to a pickup-permitted guardian (date-only, append-only, no clock fields); incidents with durable append-only notification events for Phase 12; normalized user-initiated WhatsApp links; PICKUP/INCIDENTS module keys with MODULE_DISABLED gating; bilingual staff and guardian panels.
+- Evidence: unit 47/47; full integration 45/45 on real PostgreSQL (safety 4 incl. A33/A01/A03/A37/A31 and event contract; migration upgrade 0005 from Phase 03/05 schemas); e2e safety 2/2 and children 3/3 in isolation; full e2e 11/13 where the 2 failures are the pre-existing authentication reset timing assertion (fails identically on the pristine Phase 06 tree). Workspace typecheck/lint/build, both audits (0 vulnerabilities) and diff check passed.
+- Runtime: pinned Node 24.19.0/npm 11.1.0 (%TEMP%/nursery-phase07-tools); disposable PostgreSQL 18.4 cluster %TEMP%/nursery-phase07-pg on 127.0.0.1:55407 was found running, died once mid-run (restarted via pg_ctl, WAL redo) and is left running; system PostgreSQL service untouched; no .env or deployment.
+- Migration/defaults: apply 0005 after 0004; six new delegable capabilities need explicit role assignment; PICKUP/INCIDENTS module rows are inserted enabled. D33 records defaults; test-fixture-only change closes lingering keep-alive sockets before app close.
+- Last completed phase: 07. Next: Phase 08 — Versioned checkpoints and publication engine — only when requested. Stop; no later-phase implementation.
+- Details: [SAFETY.md](SAFETY.md); precise next-session record in [HANDOFF.md](HANDOFF.md). Phase 06 details remain in CHILDREN_AND_DOCUMENTS.md.
 
 ## Phase ledger
 
@@ -22,7 +22,7 @@ Baseline: 2026-09-13. Phase 06 is complete.
 | 04 | Branches, classrooms, and dynamic permissions | COMPLETE | Organization/policy/UI; 9 PostgreSQL/API policy tests, 1 migration upgrade/rerun, 12 auth regression, 7 bilingual DOM/HTTP, 8 unit checks; workspace type/lint/build passed. See ORGANIZATION_AND_POLICY.md. |
 | 05 | Superadmin, subscriptions, slots, and nursery settings | COMPLETE | Licensing/seats/settings service and UI; 7 licensing PostgreSQL/API tests plus 30/30 full integration regression, 39/39 unit, 4/4 e2e (organization+startup); workspace type/lint/build passed. See LICENSING_AND_SETTINGS.md. |
 | 06 | Children, guardians, onboarding, and documents | COMPLETE | 10 children + 7 licensing + 9 organization + 2 migration PostgreSQL checks (28/28); unit 41/41; bilingual DOM/HTTP 3/3; workspace type/lint/build and audit passed. See CHILDREN_AND_DOCUMENTS.md. |
-| 07 | Health notes, authorized pickup, and incidents | NOT STARTED | None |
+| 07 | Health notes, authorized pickup, and incidents | COMPLETE | Safety 4 + all suites 45/45 PostgreSQL checks (migration 0005 upgrade/rerun included); unit 47/47; bilingual DOM/HTTP safety 2/2, children 3/3; workspace type/lint/build and audit passed. Pre-existing auth e2e timing failure unchanged. See SAFETY.md. |
 | 08 | Versioned checkpoints and publication engine | NOT STARTED | None |
 | 09 | Attendance and daily classroom reports | NOT STARTED | None |
 | 10 | Exams, grades, and corrections | NOT STARTED | None |

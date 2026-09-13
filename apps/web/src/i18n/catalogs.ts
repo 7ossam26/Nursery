@@ -1,6 +1,7 @@
 import { organizationEnglish, organizationArabic } from '../features/organization/copy.js';
 import { childrenEnglish, childrenArabic } from '../features/children/copy.js';
 import { licensingEnglish, licensingArabic } from '../features/licensing/copy.js';
+import { safetyEnglish, safetyArabic } from '../features/safety/copy.js';
 export const supportedLocales = ['en', 'ar-EG'] as const;
 export type Locale = (typeof supportedLocales)[number];
 
@@ -8,6 +9,7 @@ const en = {
   ...organizationEnglish,
   ...childrenEnglish,
   ...licensingEnglish,
+  ...safetyEnglish,
   'auth.signIn': 'Sign in',
   'auth.username': 'Username',
   'auth.password': 'Password',
@@ -136,6 +138,7 @@ const ar: Record<MessageKey, string> = {
   ...organizationArabic,
   ...childrenArabic,
   ...licensingArabic,
+  ...safetyArabic,
   'auth.signIn': 'تسجيل الدخول',
   'auth.username': 'اسم المستخدم',
   'auth.password': 'كلمة السر',

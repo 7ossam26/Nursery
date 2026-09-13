@@ -112,7 +112,7 @@ export type NurserySettings = NurserySettingsInput & { version: number; updatedA
 export const saveNurserySettingsSchema = z.object({ expectedVersion: versionSchema, value: nurserySettingsInputSchema }).strict();
 export type Branding = { name: string; logoPath: string | null; theme: ThemeTokens };
 
-export const moduleKeys = ['FINANCE', 'ATTENDANCE', 'EXAMS', 'HOMEWORK', 'HEALTH'] as const;
+export const moduleKeys = ['FINANCE', 'ATTENDANCE', 'EXAMS', 'HOMEWORK', 'HEALTH', 'PICKUP', 'INCIDENTS'] as const;
 export const moduleKeySchema = z.enum(moduleKeys);
 export type ModuleKey = z.infer<typeof moduleKeySchema>;
 export type ModuleSetting = { moduleKey: ModuleKey; enabled: boolean; version: number; updatedAt: string };
@@ -126,7 +126,9 @@ const moduleImpacts: Record<ModuleKey, string[]> = {
   ATTENDANCE: ['Removes the attendance checkpoint from today\'s daily bar and stops new attendance tasks.', 'Published attendance history is retained.'],
   EXAMS: ['Removes the exam checkpoint from today\'s daily bar and stops new exam tasks.', 'Published exam history is retained.'],
   HOMEWORK: ['Removes the homework checkpoint from today\'s daily bar and stops new homework tasks.', 'Published homework history is retained.'],
-  HEALTH: ['Hides the parent health section and stops new health-entry tasks.', 'Existing emergency information remains in the restricted staff emergency panel (D26).']
+  HEALTH: ['Hides the parent health section and stops new health-entry tasks.', 'Existing emergency information remains in the restricted staff emergency panel (D26).'],
+  PICKUP: ['Stops new authorized-person entries, restrictions and release recording for every branch.', 'Existing authorizations and date-only release history remain readable to authorized staff.'],
+  INCIDENTS: ['Stops new incident reports and follow-up edits; parents lose the incident section.', 'Existing incident records and their notification events are retained for authorized staff.']
 };
 export function moduleChangeImpacts(moduleKey: ModuleKey, enabled: boolean, currentlyEnabled: boolean): ModuleImpactPreview {
   const requiresCatchupAcknowledgement = moduleKey === 'FINANCE' && enabled && !currentlyEnabled;

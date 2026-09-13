@@ -4,6 +4,7 @@ export * from './organization.js';
 export * from './identity.js';
 export * from './licensing.js';
 export * from './children.js';
+export * from './safety.js';
 import { usernameSchema, passwordSchema } from './identity.js';
 import { licenseStatusSchema } from './licensing.js';
 
@@ -11,7 +12,7 @@ export const errorCodeSchema = z.enum([
   'VALIDATION_ERROR', 'NOT_FOUND', 'UNAUTHORIZED', 'FORBIDDEN', 'DATABASE_UNAVAILABLE', 'INTERNAL_ERROR',
   'IDEMPOTENCY_CONFLICT', 'STALE_VERSION', 'INVALID_CREDENTIALS', 'SESSION_EXPIRED', 'ACCOUNT_BLOCKED',
   'ACCOUNT_DISABLED', 'PASSWORD_CHANGE_REQUIRED', 'CSRF_REJECTED', 'RATE_LIMITED', 'BOOTSTRAP_COMPLETE',
-  'LICENSE_SUSPENDED'
+  'LICENSE_SUSPENDED', 'MODULE_DISABLED'
 ]);
 export type ErrorCode = z.infer<typeof errorCodeSchema>;
 

@@ -1,37 +1,17 @@
 import { useEffect, useRef, useState, type ReactNode, type FormEvent } from 'react';
+import { errorKey, useScoped } from './scoped.js';
+import { ChildSafetyPanel, GuardianSafetyPanel } from '../safety/screens.js';
 import { Link, useParams } from 'react-router';
 import { onboardingInputSchema, defaultLinkPermissions, MAX_DOCUMENT_BYTES, type Child, type ChildDetail, type ChildrenOptions, type GuardianOption, type GuardianLink, type GuardianChild, type GuardianChildDetail, type LinkPermissions, type OnboardingInput, type OnboardingResult } from '@nursery/contracts';
 import { Button, SelectField, TextField } from '../../components/controls.js';
 import { Card } from '../../components/surfaces.js';
 import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
-import { catalogs, type MessageKey } from '../../i18n/catalogs.js';
+import { type MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
 import { formatDateOnly } from '@nursery/domain';
-import { AuthError } from '../auth/client.js';
 
-const errorKey = (error: unknown): MessageKey => error instanceof AuthError && error.detail.messageKey in catalogs.en ? error.detail.messageKey as MessageKey : 'auth.networkError';
 function Frame({ children }: { children: ReactNode }) { const { t } = useLocale(); return <main className="organization-page"><header><LanguageSwitcher /><h1>{t('children.title')}</h1><Link to="/account">{t('auth.account')}</Link></header>{children}</main>; }
-// Fresh scoped reads only. Hidden tabs/focus clear records before revalidation; failures drop
-// visible data. No business records or initial passwords are persisted in browser storage.
-function useScoped<T>(path: string) {
-  const auth = useAuth(); const authRef = useRef(auth); authRef.current = auth;
-  const [data,setData] = useState<T | null>(null); const [error,setError] = useState<MessageKey | null>(null); const [revision,setRevision] = useState(0);
-  useEffect(() => {
-    let alive = true; let generation = 0; let pending = false;
-    async function read() {
-      if (!alive || pending || document.visibilityState === 'hidden') return; pending = true; const started = generation;
-      try { const next = await auth.client.business<T>(path); if (alive && started === generation) { setData(next); setError(null); } }
-      catch (caught) { if (alive && started === generation) { setData(null); setError(errorKey(caught)); authRef.current.handleError(caught); } }
-      finally { pending = false; }
-    }
-    const focus = () => { generation++; setData(null); if (!pending) void read(); };
-    setData(null); void read(); const timer = window.setInterval(() => { void read(); },5000);
-    window.addEventListener('focus',focus); document.addEventListener('visibilitychange',focus);
-    return () => { alive = false; generation++; clearInterval(timer); window.removeEventListener('focus',focus); document.removeEventListener('visibilitychange',focus); };
-  }, [auth.client,path,revision]);
-  return { data,error,reload: () => setRevision((v) => v+1) };
-}
 function Permissions({ value,onChange }: { value: LinkPermissions; onChange: (v: LinkPermissions) => void }) {
   const { t } = useLocale(); return <fieldset className="organization-choices"><legend>{t('children.guardians')}</legend>{(['read','finance','pickup','notify'] as const).map((key) => <label key={key}><input type="checkbox" checked={value[key]} onChange={(e) => onChange({ ...value,[key]: e.target.checked })} />{t(`children.${key}`)}</label>)}</fieldset>;
 }
@@ -171,7 +151,7 @@ function ChildEditor({ detail,options,reload }: { detail: ChildDetail; options: 
 }
 export function ChildDetailScreen() {
   const { id } = useParams(); const { t } = useLocale(); const state = useScoped<ChildDetail>(`children/${encodeURIComponent(id ?? '')}`); const options = useScoped<ChildrenOptions>('children/options');
-  return <Frame><Link to="/administration/children">{t('children.back')}</Link>{(state.error || options.error) && <p role="alert">{t(state.error ?? options.error!)}</p>}{state.data && options.data ? <ChildEditor key={`${state.data.child.id}:${state.data.child.version}`} detail={state.data} options={options.data} reload={() => { state.reload(); options.reload(); }} /> : <p role="status">{t('state.loading')}</p>}</Frame>;
+  return <Frame><Link to="/administration/children">{t('children.back')}</Link>{(state.error || options.error) && <p role="alert">{t(state.error ?? options.error!)}</p>}{state.data && options.data ? <><ChildEditor key={`${state.data.child.id}:${state.data.child.version}`} detail={state.data} options={options.data} reload={() => { state.reload(); options.reload(); }} /><ChildSafetyPanel childId={state.data.child.id} /></> : <p role="status">{t('state.loading')}</p>}</Frame>;
 }
 export function GuardianChildrenScreen() {
   const { t } = useLocale(); const state = useScoped<GuardianChild[]>('parent/children');
@@ -179,6 +159,6 @@ export function GuardianChildrenScreen() {
 }
 export function GuardianChildScreen() {
   const { id } = useParams(); const { t } = useLocale(); const state = useScoped<GuardianChildDetail>(`parent/children/${encodeURIComponent(id ?? '')}`);
-  return <Frame><Link to="/parent/children">{t('children.back')}</Link>{state.error && <p role="alert">{t(state.error)}</p>}{state.data ? <Card title={state.data.child.fullName}><p>{formatDateOnly(state.data.child.birthDate)}</p></Card> : <p role="status">{t('state.loading')}</p>}</Frame>;
+  return <Frame><Link to="/parent/children">{t('children.back')}</Link>{state.error && <p role="alert">{t(state.error)}</p>}{state.data ? <><Card title={state.data.child.fullName}><p>{formatDateOnly(state.data.child.birthDate)}</p></Card><GuardianSafetyPanel childId={state.data.child.id} /></> : <p role="status">{t('state.loading')}</p>}</Frame>;
 }
 

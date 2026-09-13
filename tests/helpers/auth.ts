@@ -29,6 +29,9 @@ export async function authFixture(https = true) {
     return { id, username, password: secret };
   }
   return { app, database, config, account, secret, async close() {
+    // Scripted DOM pollers can leave a keep-alive socket mid-request at teardown; Fastify's 'idle' force-close then waits the
+    // full 72s keepAliveTimeout for it. Disposable fixtures destroy remaining sockets first; production shutdown is unchanged.
+    app.server.closeAllConnections();
     await app.close();
     await rm(privateFilesDir,{ recursive: true,force: true });
     if (!/^auth_test_[a-f0-9]{32}$/.test(schema)) throw new Error('Invalid test schema');
