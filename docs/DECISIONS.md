@@ -29,6 +29,7 @@ Baseline 2026-09-13. U = explicit user decision; D = engineering/product default
 | U21 | Initial imports: parents/children, opening unpaid child balances, employees/salaries |
 | U22 | Complaints removed entirely; other exclusions are listed in R17 |
 | U23 | Implement via separate phase files and per-phase prompts with model guidance and durable handoffs |
+| U24 | All phase verification uses repository script test files only; do not use Playwright or browser automation unless the user explicitly reverses this instruction. |
 
 ## Defaults that make the plan executable
 

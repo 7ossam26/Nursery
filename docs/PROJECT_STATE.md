@@ -1,23 +1,23 @@
 # Project state
 
-Baseline: 2026-09-13. Planning package prepared. Application repository/tooling has not been implemented.
+Baseline: 2026-09-13. Phase 01 implementation is complete.
 
 ## Active state
 
-- Current phase: 01 — Repository, tooling, and shared contracts.
-- Current checkpoint: not started.
-- Last completed implementation phase: none.
-- Next action: execute Phase 01 using Terra / Medium.
-- Runtime/dependency versions: selected major lines in ARCHITECTURE.md; exact compatible versions not yet installed/verified in an application.
-- Implemented commands: none. Command names in the plan are targets for Phase 01.
-- Application migrations/tests/build/deployment/backup/restore: not run.
-- Known blockers: none for starting local implementation. Real production domain, secrets, backup destination, and server sizing are deployment-time inputs.
+- Current phase: 01 — Repository, tooling, and shared contracts — COMPLETE.
+- Current checkpoint: acceptance gate passed.
+- Last completed implementation phase: 01.
+- Next action: begin Phase 02 only on explicit user direction.
+- Runtime/dependency versions: exact pins and source verification are in `docs/DEPENDENCIES.md`; Node 24.19.0 and npm 11.1.0 installed locally. `npm audit --omit=dev` reports zero vulnerabilities after React Router 7.18.3.
+- Implemented commands: dev, build, lint, typecheck, test:unit, test:integration, test:e2e, db:migrate, db:seed:demo.
+- Application migrations/tests/build/deployment/backup/restore: Phase 01 baseline migration applied to local PostgreSQL 17.9, rerun idempotently, and real rollback integration passed. Build/lint/typecheck, unit readiness, scripted Vite startup smoke, no-op demo seed, and audit pass. Deployment/backup/restore remain later-phase work.
+- Known blocker: none for Phase 01. PostgreSQL 18 remains the production target; PostgreSQL 17.9 was used only for local verification.
 
 ## Phase ledger
 
 | Phase | Topic | Status | Evidence |
 |---|---|---|---|
-| 01 | Repository, tooling, and shared contracts | NOT STARTED | None |
+| 01 | Repository, tooling, and shared contracts | COMPLETE | Node 24.19.0/npm 11.1.0; workspace/contracts; local PostgreSQL 17.9 migration applied once and rerun idempotently; real transaction rollback, build, lint, typecheck, script tests, and audit passed. |
 | 02 | Bilingual design system and navigation | NOT STARTED | None |
 | 03 | Authentication, sessions, and account security | NOT STARTED | None |
 | 04 | Branches, classrooms, and dynamic permissions | NOT STARTED | None |

@@ -14,6 +14,7 @@ This repository implements the nursery product defined in docs/PRODUCT_REQUIREME
 8. Report actual commands and results; distinguish not run, blocked, failed, and passed. Never invent test, deployment, or performance evidence.
 9. At a context boundary update docs/PROJECT_STATE.md and docs/HANDOFF.md before continuing. Keep their active summaries short; link detailed evidence.
 10. Do not perform later phases, introduce parallel agents, change model settings, or deploy to a live nursery as a side effect of a phase.
+11. Use repository script test files for phase verification. Do not use Playwright or browser automation unless the user explicitly reverses this instruction.
 
 ## Invariants
 
