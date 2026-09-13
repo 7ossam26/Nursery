@@ -3,6 +3,7 @@ import { type Database, type Transaction } from '@nursery/db';
 import { type CurrentAccount, usernameSchema, passwordSchema } from '@nursery/contracts';
 import { SafeError } from '../../errors.js';
 import { hashPassword, verifyPassword, randomToken, tokenHash, keyedHash } from './crypto.js';
+import { loadPolicy } from '../organization/policy.js';
 
 export const AUTH_DEFAULTS = { absoluteMs: 12 * 60 * 60_000, idleMs: 30 * 60_000, setupSessionMs: 15 * 60_000, temporaryMs: 24 * 60 * 60_000, rateWindowMs: 15 * 60_000 } as const;
 type Status = 'ACTIVE' | 'BLOCKED' | 'DISABLED' | 'ARCHIVED' | 'RELEASED';
@@ -19,9 +20,16 @@ export class AuthService {
   private async audit(tx: Transaction, event: string, actor?: string, target?: string) {
     await tx.query('insert into auth_audit_events(id,event,actor_id,target_id) values($1,$2,$3,$4)', [randomUUID(), event, actor ?? null, target ?? null]);
   }
-  private project(account: Account): CurrentAccount {
-    return { id: account.id, username: account.username_normalized, kind: account.kind, locale: account.locale, mustChangePassword: account.must_change_password,
-      capabilities: account.kind === 'SYSTEM' && !account.must_change_password ? ['accounts.reset_password'] : [], policyReady: false };
+  private async project(tx: Transaction, account: Account): Promise<CurrentAccount> {
+    return (await loadPolicy(tx, { id: account.id, username: account.username_normalized, kind: account.kind, locale: account.locale, mustChangePassword: account.must_change_password,
+      capabilities: [], policyReady: false })).account;
+  }
+  // Domain services hold their policy lock first, then sorted account locks, then session locks.
+  async inTransaction(tx: Transaction, token: string, targetIds: string[] = []): Promise<CurrentAccount> {
+    const found = (await tx.query<Session>('select * from sessions where token_hash=$1', [tokenHash(token)])).rows[0];
+    if (!found) throw expired();
+    await tx.query('select id from accounts where id=any($1::uuid[]) order by id for update', [[found.account_id, ...targetIds]]);
+    return this.project(tx, (await this.checkSession(tx, token)).account);
   }
   private enforceStatus(account: Account) {
     const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
@@ -51,7 +59,7 @@ export class AuthService {
     const expiry = absoluteExpiry ?? new Date(now + (account.must_change_password ? AUTH_DEFAULTS.setupSessionMs : AUTH_DEFAULTS.absoluteMs));
     const idleExpiry = new Date(Math.min(expiry.getTime(), now + AUTH_DEFAULTS.idleMs));
     await tx.query('insert into sessions(id,account_id,token_hash,account_version,expires_at,idle_expires_at) values($1,$2,$3,$4,$5,$6)', [id, account.id, tokenHash(token), account.version, expiry, idleExpiry]);
-    return { token, sessionId: id, expiresAt: expiry.toISOString(), idleExpiresAt: idleExpiry.toISOString(), account: this.project(account) };
+    return { token, sessionId: id, expiresAt: expiry.toISOString(), idleExpiresAt: idleExpiry.toISOString(), account: await this.project(tx, account) };
   }
   private async revoke(tx: Transaction, accountId: string) {
     await tx.query('update sessions set revoked_at=coalesce(revoked_at,now()) where account_id=$1', [accountId]);
@@ -122,12 +130,12 @@ export class AuthService {
       const { account, session } = await this.checkSession(tx, token, allowPasswordChange);
       const idleExpiry = new Date(Math.min(session.expires_at.getTime(), Date.now() + AUTH_DEFAULTS.idleMs));
       await tx.query('update sessions set idle_expires_at=$2 where id=$1', [session.id, idleExpiry]);
-      return { account: this.project(account), sessionId: session.id, expiresAt: session.expires_at.toISOString(), idleExpiresAt: idleExpiry.toISOString() };
+      return { account: await this.project(tx, account), sessionId: session.id, expiresAt: session.expires_at.toISOString(), idleExpiresAt: idleExpiry.toISOString() };
     });
   }
   // Downloads/SSE must call this before delivering content; does not extend idle lifetime.
   async assertSessionActive(token: string): Promise<CurrentAccount> {
-    return this.database.transaction(async (tx) => this.project((await this.checkSession(tx, token)).account));
+    return this.database.transaction(async (tx) => this.project(tx, (await this.checkSession(tx, token)).account));
   }
   async rotate(token: string): Promise<IssuedSession> {
     return this.database.transaction(async (tx) => {

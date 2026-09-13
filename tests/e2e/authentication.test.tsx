@@ -10,23 +10,8 @@ import { AuthClient } from '../../apps/web/src/features/auth/client.js';
 import { App } from '../../apps/web/src/App.js';
 import { LocaleProvider } from '../../apps/web/src/i18n/LocaleProvider.js';
 import { translate, type Locale } from '../../apps/web/src/i18n/catalogs.js';
+import { httpClient } from '../helpers/http-client.js';
 
-// Real TCP API + PostgreSQL. This adapter supplies the cookie/origin behavior that jsdom lacks.
-function httpClient(origin: string, appOrigin: string) {
-  const jar = new Map<string, string>();
-  const transport: typeof fetch = async (path, options = {}) => {
-    const headers = new Headers(options.headers);
-    headers.set('cookie', [...jar].map(([name, value]) => `${name}=${value}`).join('; '));
-    if (options.method !== 'GET') headers.set('origin', appOrigin);
-    const response = await fetch(`${origin}${String(path)}`, { ...options, headers });
-    for (const entry of response.headers.getSetCookie()) {
-      const [pair] = entry.split(';'); const split = pair.indexOf('='); const name = pair.slice(0, split); const value = pair.slice(split + 1);
-      if (value) jar.set(name, value); else jar.delete(name);
-    }
-    return response;
-  };
-  return new AuthClient(transport);
-}
 describe('scripted bilingual authentication flows against the real API', () => {
   let fixture: Awaited<ReturnType<typeof authFixture>>;
   let origin: string;

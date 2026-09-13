@@ -4,6 +4,7 @@ import { useLocale } from './i18n/LocaleProvider.js';
 import { AuthProvider, useAuth } from './features/auth/AuthProvider.js';
 import { AccountScreen, AuthGate, LoginScreen, PasswordScreen, UnavailableScreen } from './features/auth/screens.js';
 import type { AuthClient } from './features/auth/client.js';
+import { OrganizationScreen } from './features/organization/screen.js';
 
 const DevelopmentPreview = import.meta.env.DEV
   ? lazy(() => import('./features/design-system/ComponentPreview.js').then(({ ComponentPreview }) => ({ default: ComponentPreview })))
@@ -30,6 +31,7 @@ function AuthRoutes() {
     <Route path="/" element={<AuthGate><AccountScreen /></AuthGate>} />
     <Route path="/account" element={<AuthGate><AccountScreen /></AuthGate>} />
     <Route path="/change-password" element={<AuthGate><PasswordScreen /></AuthGate>} />
+    <Route path="/administration/organization" element={<AuthGate><OrganizationScreen /></AuthGate>} />
     {['parent', 'teacher', 'administration', 'support'].map((group) => <Route key={group} path={`/${group}/*`} element={<AuthGate><UnavailableScreen /></AuthGate>} />)}
     <Route path="/__preview/*" element={<PreviewRoute />} /><Route path="*" element={<NotFound />} />
   </Routes>;

@@ -1,0 +1,75 @@
+// @vitest-environment jsdom
+import React from 'react';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router';
+import axe from 'axe-core';
+import { organizationFixture, templateRoles } from '../helpers/organization.js';
+import { httpClient } from '../helpers/http-client.js';
+import { App } from '../../apps/web/src/App.js';
+import { LocaleProvider } from '../../apps/web/src/i18n/LocaleProvider.js';
+import { translate, type Locale } from '../../apps/web/src/i18n/catalogs.js';
+import type { AuthClient } from '../../apps/web/src/features/auth/client.js';
+
+describe('Phase 04 bilingual scripted DOM / HTTP / PostgreSQL', () => {
+  let f: Awaited<ReturnType<typeof organizationFixture>>; let origin: string;
+  beforeEach(async () => { window.localStorage.clear(); f = await organizationFixture(false); origin = await f.app.listen({ host: '127.0.0.1',port: 0 }); },30000);
+  afterEach(async () => { cleanup(); await f?.close(); });
+  function mount(client: AuthClient,locale: Locale) { return render(<MemoryRouter initialEntries={['/administration/organization']}><LocaleProvider userLocale={locale}><App authClient={client} /></LocaleProvider></MemoryRouter>); }
+  it.each(['en','ar-EG'] as const)('creates organization records and edits roles and multi-scope assignments in %s',async (locale) => {
+    const t = (key: Parameters<typeof translate>[1]) => translate(locale,key); const user = userEvent.setup();
+    const staff = await f.staff([templateRoles.teacher],[f.a.id],[f.classes[0].id],'CLASSROOM','ui-teacher');
+    await f.app.auth.setLocale(f.root.token,locale);
+    const client = httpClient(origin,f.config.appOrigin); await client.login('organization-system',f.password); const view = mount(client,locale);
+    await screen.findByRole('heading',{ name: 'Branch A' });
+    await user.click(screen.getByRole('button',{ name: t('organization.new') }));
+    await user.type(screen.getByLabelText(t('organization.name'),{ exact: false }),'Branch D');
+    await user.type(screen.getByLabelText(t('organization.code'),{ exact: false }),'D');
+    await user.click(screen.getByRole('button',{ name: t('organization.save') }));
+    await screen.findByRole('heading',{ name: 'Branch D' });
+    await user.click(screen.getByRole('button',{ name: t('organization.age-groups'),exact: true }));
+    await user.click(await screen.findByRole('button',{ name: t('organization.new') }));
+    await user.type(screen.getByLabelText(t('organization.name'),{ exact: false }),'Early years');
+    await user.type(screen.getByLabelText(t('organization.code'),{ exact: false }),'EARLY');
+    await user.click(screen.getByRole('button',{ name: t('organization.save') })); await screen.findByRole('heading',{ name: 'Early years' });
+    await user.click(screen.getByRole('button',{ name: t('organization.classrooms'),exact: true }));
+    await user.click(await screen.findByRole('button',{ name: t('organization.new') }));
+    await user.type(screen.getByLabelText(t('organization.name'),{ exact: false }),'New classroom'); await user.type(screen.getByLabelText(t('organization.code'),{ exact: false }),'NEW');
+    await user.selectOptions(screen.getByRole('combobox',{ name: t('organization.branch'),exact: true }),f.b.id);
+    await user.selectOptions(screen.getByLabelText(t('organization.ageGroup')),(await f.service.context(f.root.token)).ageGroups[0].id);
+    await user.click(screen.getByRole('button',{ name: t('organization.save') })); await screen.findByRole('heading',{ name: 'New classroom' });
+    await user.click(screen.getByRole('button',{ name: t('organization.roles'),exact: true })); await user.click(await screen.findByRole('button',{ name: t('organization.new') }));
+    await user.type(screen.getByLabelText(t('organization.name'),{ exact: false }),'Custom observer');
+    await user.click(screen.getByLabelText(t('organization.cap.organization.read')));
+    expect(screen.queryByLabelText(t('organization.cap.roles.define'))).toBeNull();
+    await user.click(screen.getByRole('button',{ name: t('organization.save') }));
+    const roleHeading = await screen.findByRole('heading',{ name: 'Custom observer' });
+    await user.click(within(roleHeading.closest('section')!).getByRole('button',{ name: t('organization.edit') }));
+    await user.clear(screen.getByLabelText(t('organization.name'),{ exact: false })); await user.type(screen.getByLabelText(t('organization.name'),{ exact: false }),'Renamed observer');
+    await user.click(screen.getByRole('button',{ name: t('organization.save') })); await screen.findByRole('heading',{ name: 'Renamed observer' });
+    await user.click(screen.getByRole('button',{ name: t('organization.staff'),exact: true }));
+    const heading = await screen.findByRole('heading',{ name: 'ui-teacher' }); await user.click(within(heading.closest('section')!).getByRole('button',{ name: t('organization.edit') }));
+    const form = screen.getByRole('group',{ name: t('organization.staff'),exact: true });
+    await user.click(within(form).getByLabelText('Branch B'));
+    await user.click(within(form).getByLabelText('B / Class 4'));
+    expect((await axe.run(view.container,{ rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
+    await user.click(within(form).getByRole('button',{ name: t('organization.save') }));
+    await screen.findByRole('heading',{ name: 'ui-teacher' });
+    await waitFor(async () => { const assigned = (await f.service.staffList(f.root.token,{})).items.find((s) => s.id === staff.id)!; expect(assigned.branchIds.sort()).toEqual([f.a.id,f.b.id].sort()); expect(assigned.classroomIds.sort()).toEqual([f.classes[0].id,f.classes[3].id].sort()); });
+    expect(document.documentElement.dir).toBe(locale === 'en' ? 'ltr' : 'rtl');
+  });
+  it('teacher UI shows only assigned classes and drops old data on revalidation of an existing session',async () => {
+    const staff = await f.staff([templateRoles.teacher],[f.a.id],[f.classes[0].id,f.classes[1].id],'CLASSROOM','scoped-teacher');
+    const client = httpClient(origin,f.config.appOrigin); await client.login(staff.username,staff.password); const view = mount(client,'en');
+    await screen.findByRole('heading',{ name: 'Branch A' });
+    expect(screen.queryByRole('option',{ name: /Branch B/ })).toBeNull(); expect(screen.queryByRole('button',{ name: 'Roles',exact: true })).toBeNull();
+    await userEvent.setup().click(screen.getByRole('button',{ name: 'Classrooms',exact: true }));
+    await screen.findByRole('heading',{ name: 'Class 1' }); expect(screen.queryByRole('heading',{ name: 'Class 3' })).toBeNull();
+    await f.service.assign(f.root.token,staff.id,{ expectedVersion: 2,roleIds: [templateRoles.teacher],branchIds: [f.b.id],classroomIds: [f.classes[3].id],scopeMode: 'CLASSROOM' });
+    fireEvent.focus(window);
+    await screen.findByRole('heading',{ name: 'Class 4' }); expect(screen.queryByRole('heading',{ name: 'Class 1' })).toBeNull(); expect(view.container.textContent).not.toContain('Branch A');
+    await f.service.assign(f.root.token,staff.id,{ expectedVersion: 3,roleIds: [],branchIds: [],classroomIds: [],scopeMode: 'CLASSROOM' });
+    fireEvent.focus(window); await screen.findByRole('alert'); expect(view.container.textContent).not.toContain('Class 4');
+  });
+});

@@ -94,6 +94,7 @@ export function AccountScreen() {
       catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } finally { setBusy(false); }
     }}><option value="en">English</option><option value="ar-EG">العربية</option></SelectField>
     <Link to="/change-password">{t('auth.changePassword')}</Link><LogoutButton />
+    {auth.session!.account.capabilities.includes('organization.read') && <Link to="/administration/organization">{t('organization.title')}</Link>}
     {auth.session!.account.capabilities.includes('accounts.reset_password') && <ResetForm />}
   </Frame>;
 }

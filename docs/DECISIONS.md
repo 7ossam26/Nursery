@@ -66,6 +66,14 @@ Baseline 2026-09-13. U = explicit user decision; D = engineering/product default
 
 ## Change procedure
 
+### 2026-09-13 — Phase 04 scope and delegation defaults (D30)
+
+R02/R03/R05/U02: scope mode is explicit account data (`BRANCH` or `CLASSROOM`), independent of editable role names. Existing staff default to CLASSROOM with no assignments. Capabilities union across roles; classroom restrictions never disappear merely because a second role is attached. SYSTEM controls role definitions, per-account delegated assignable role IDs, and the separate sensitive-financial-edit entitlement. Reserved capabilities cannot be attached to editable roles.
+
+Delegated staff administrators require BRANCH scope and authority over every existing/requested target branch. Both existing and requested roles must be explicitly delegated and their capabilities must remain a subset of the actor's capabilities. Staff cannot edit themselves, unassigned accounts, partly inaccessible accounts, or sensitive-entitled accounts. SYSTEM performs initial scope assignment. General account creation remains Phase 05/06 and must reserve slots through its domain service; this phase adds no provisioning shortcut.
+
+Authorized branch creation assigns only the newly created branch to its creator. Staff may add age-group options; SYSTEM alone edits existing shared age groups because such edits affect all branches. Classroom branch identity stays immutable; staff assignment moves preserve original audit ownership. Capacity is advisory and no child occupancy is fabricated before Phase 06. Strict version checks protect mutable records/assignments. Transactional policy locks and a global revision invalidate current access, with five-second in-memory UI revalidation and immediate server checks. See ORGANIZATION_AND_POLICY.md for services, route contracts, permission fixtures, and migration `0002_organization_policy.sql`. No later-phase financial or guardian actions are enabled by the capability catalog.
+
 ### 2026-09-13 — Phase 03 authentication defaults (D29)
 
 R02/U03: normalize usernames with NFKC, trim outer whitespace, and locale-independent lowercase; accept 3–64 Unicode letters/numbers or `.`, `_`, `-` without internal whitespace. Passwords are 15–128 characters without trimming or composition rules. Use Node scrypt (N=131072, r=8, p=1, random 16-byte salt, 64-byte key), following the [OWASP password storage guidance](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).

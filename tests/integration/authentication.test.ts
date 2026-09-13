@@ -27,7 +27,7 @@ describe('authentication API with real PostgreSQL', () => {
     const signed = await login(name.toUpperCase(), fixture.secret);
     expect(signed.statusCode).toBe(200);
     const setup = session(signed);
-    expect(signed.json().data.account).toMatchObject({ mustChangePassword: true, capabilities: [], policyReady: false });
+    expect(signed.json().data.account).toMatchObject({ mustChangePassword: true, capabilities: [], policyReady: true });
     expect((await mutate(setup, 'rotate')).json().code).toBe('PASSWORD_CHANGE_REQUIRED');
     expect((await login(name, fixture.secret)).json().code).toBe('INVALID_CREDENTIALS');
     const changed = await mutate(setup, 'password', { currentPassword: fixture.secret, newPassword: rootPassword });

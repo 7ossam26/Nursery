@@ -8,7 +8,7 @@ describe('private-stdin authentication operator commands', () => {
   afterAll(async () => { await fixture?.close(); });
   function run(mode: string, payload: unknown): Promise<{ code: number | null; output: string }> {
     return new Promise((resolve, reject) => {
-      const child = spawn(process.execPath, ['--import', 'tsx', 'apps/api/src/auth-command.ts', mode], { windowsHide: true, env: { ...process.env, DATABASE_URL: fixture.config.databaseUrl, INSTALLATION_ID: fixture.config.installationId }, stdio: ['pipe', 'pipe', 'pipe'] });
+      const child = spawn(process.execPath, ['--import', 'tsx', 'apps/api/src/auth-command.ts', mode], { windowsHide: true, env: { ...process.env, DATABASE_URL: fixture.config.databaseUrl, INSTALLATION_ID: fixture.config.installationId, APP_ORIGIN: fixture.config.appOrigin, SESSION_SECRET: fixture.config.sessionSecret, BUSINESS_TIMEZONE: fixture.config.businessTimezone, PRIVATE_FILES_DIR: fixture.config.privateFilesDir, SUPPORT_CONTACT: fixture.config.supportContact, BACKUP_TARGET: fixture.config.backupTarget }, stdio: ['pipe', 'pipe', 'pipe'] });
       let output = ''; child.stdout.on('data', (chunk) => { output += String(chunk); }); child.stderr.on('data', (chunk) => { output += String(chunk); });
       child.on('error', reject); child.on('close', (code) => resolve({ code, output }));
       child.stdin.end(JSON.stringify(payload));

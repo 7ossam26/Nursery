@@ -16,7 +16,11 @@ REST action examples: POST /payments; POST /payments/:id/corrections; POST /chil
 
 ### Phase 03 implemented identity contract
 
-The runtime schemas live in `packages/contracts/src/index.ts`; routes, defaults, operator procedures, and revocation integration are documented in [AUTHENTICATION.md](AUTHENTICATION.md). Authentication responses return `data.account` (ID, normalized username, reserved kind, locale, forced-change flag, capability list and `policyReady: false`), `csrfToken`, `expiresAt`, and `idleExpiresAt`. The latter deadlines are technical session values, never child arrival/departure data. Strict input schemas reject unrecognized fields. Errors may include `publicMessage` only for the explicitly intended account contact copy, never an internal reason. Business authorization stays deny-by-default pending Phase 04.
+The runtime schemas live in `packages/contracts/src/index.ts`; routes, defaults, operator procedures, and revocation integration are documented in [AUTHENTICATION.md](AUTHENTICATION.md). Authentication responses return `data.account` (ID, normalized username, reserved kind, locale, forced-change flag, capability list), `csrfToken`, `expiresAt`, and `idleExpiresAt`. Phase 04 supersedes the former `policyReady: false` placeholder with `policyReady: true` and current `scope` (revision, mode, branch/classroom IDs); see [organization and policy contracts](ORGANIZATION_AND_POLICY.md). The latter deadlines are technical session values, never child arrival/departure data. Strict input schemas reject unrecognized fields. Errors may include `publicMessage` only for the explicitly intended account contact copy, never an internal reason. Unimplemented business actions remain unavailable.
+
+### Phase 04 organization and permission contract
+
+`packages/contracts/src/organization.ts` defines strict organization/role/assignment payloads, bounded query inputs, and advisory capacity warnings. `/api/v1/organization` provides scoped lists/details, versioned organization edits, SYSTEM role-definition/delegation/grant controls and delegated staff assignments. The transaction, SQL scope, future resource-delivery and support helpers are documented in [ORGANIZATION_AND_POLICY.md](ORGANIZATION_AND_POLICY.md). Migration `0002_organization_policy.sql` enforces composite classroom/branch assignment foreign keys, unique codes and append-only audit snapshots. D30 defines the role-independent scope mode and anti-escalation defaults.
 
 | Group | Records and essential fields |
 |---|---|

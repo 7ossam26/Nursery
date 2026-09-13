@@ -1,0 +1,32 @@
+export const organizationEnglish = {
+  'organization.title': 'Organization and access', 'organization.branches': 'Branches', 'organization.classrooms': 'Classrooms', 'organization.age-groups': 'Age groups', 'organization.roles': 'Roles', 'organization.staff': 'Staff assignments',
+  'organization.scope': 'Selected branch scope', 'organization.all': 'All assigned branches', 'organization.new': 'Add new', 'organization.edit': 'Edit', 'organization.save': 'Save', 'organization.cancel': 'Cancel',
+  'organization.code': 'Code', 'organization.name': 'Name', 'organization.branch': 'Branch', 'organization.ageGroup': 'Age group', 'organization.none': 'None', 'organization.capacity': 'Capacity',
+  'organization.minMonths': 'Minimum age (months)', 'organization.maxMonths': 'Maximum age (months)', 'organization.capabilities': 'Capabilities', 'organization.mode': 'Scope mode',
+  'organization.branchMode': 'All classrooms in assigned branches', 'organization.classroomMode': 'Assigned classrooms only', 'organization.delegation': 'Roles this staff member may assign',
+  'organization.sensitive': 'Sensitive financial edit entitlement', 'organization.sensitiveHelp': 'Superadmin controlled. A future correction also requires its capability and resource scope.',
+  'organization.capacityHelp': 'Capacity is a warning threshold. Authorized placements are not silently rejected.', 'organization.assignmentHelp': 'Only available branches, classrooms, and delegated roles can be selected. Changes apply to existing sessions.',
+  'organization.total': 'Matching records: {count}', 'organization.previous': 'Previous page', 'organization.next': 'Next page', 'organization.saved': 'Changes saved.',
+  'organization.stale': 'This record changed. Refresh and review it before saving again.', 'organization.conflict': 'Check codes, names, and linked records. A value may already exist.',
+  'organization.fixedBranch': 'A classroom keeps its original branch. Change staff assignments to move their access.', 'organization.refresh': 'Refresh', 'organization.changed': 'Access or organization settings changed. The screen has been refreshed.',
+  'organization.reserved': 'Reserved for Superadmin', 'organization.future': 'Future financial correction permission',
+  'organization.cap.organization.read': 'View organization', 'organization.cap.organization.manage': 'Manage organization', 'organization.cap.users.assign_roles': 'Assign delegated staff roles',
+  'organization.cap.roles.define': 'Define roles and delegation', 'organization.cap.grants.manage': 'Manage sensitive entitlement', 'organization.cap.accounts.reset_password': 'Reset account passwords',
+  'organization.cap.support.access': 'Audited support access', 'organization.cap.finance.correct': 'Financial corrections (future module)'
+} as const;
+export const organizationArabic: Record<keyof typeof organizationEnglish,string> = {
+  'organization.title': 'تنظيم الحضانة والصلاحيات', 'organization.branches': 'الفروع', 'organization.classrooms': 'الفصول', 'organization.age-groups': 'الفئات العمرية', 'organization.roles': 'الأدوار', 'organization.staff': 'تعيينات الموظفين',
+  'organization.scope': 'نطاق الفروع المعروض', 'organization.all': 'كل الفروع المسموح بها', 'organization.new': 'إضافة جديد', 'organization.edit': 'تعديل', 'organization.save': 'حفظ', 'organization.cancel': 'إلغاء',
+  'organization.code': 'الكود', 'organization.name': 'الاسم', 'organization.branch': 'الفرع', 'organization.ageGroup': 'الفئة العمرية', 'organization.none': 'بدون', 'organization.capacity': 'سعة الفصل',
+  'organization.minMonths': 'أقل عمر (بالشهور)', 'organization.maxMonths': 'أكبر عمر (بالشهور)', 'organization.capabilities': 'الصلاحيات', 'organization.mode': 'نطاق الوصول',
+  'organization.branchMode': 'كل الفصول في الفروع المسموح بها', 'organization.classroomMode': 'الفصول المعيّنة بس', 'organization.delegation': 'الأدوار اللي الموظف يقدر يعيّنها',
+  'organization.sensitive': 'السماح بالتعديل المالي الحساس', 'organization.sensitiveHelp': 'يتحكم فيه مسؤول النظام فقط. أي تصحيح مالي لاحق محتاج كمان الصلاحية ونطاق الوصول المناسب.',
+  'organization.capacityHelp': 'السعة بتظهر تنبيه عند تجاوزها. مش بتمنع التسكين المسموح به تلقائيًا.', 'organization.assignmentHelp': 'اختار من الفروع والفصول والأدوار المتاحة بس. التغيير بيسري على الجلسات المفتوحة.',
+  'organization.total': 'عدد النتائج: {count}', 'organization.previous': 'الصفحة السابقة', 'organization.next': 'الصفحة التالية', 'organization.saved': 'تم حفظ التغييرات.',
+  'organization.stale': 'البيانات اتغيرت. حدّث الصفحة وراجعها قبل الحفظ تاني.', 'organization.conflict': 'راجع الأكواد والأسماء والبيانات المرتبطة. ممكن القيمة موجودة بالفعل.',
+  'organization.fixedBranch': 'الفصل بيفضل تابع لفرعه الأصلي. غيّر تعيينات الموظف علشان تنقل نطاق وصوله.', 'organization.refresh': 'تحديث', 'organization.changed': 'الصلاحيات أو إعدادات الحضانة اتغيرت. تم تحديث الشاشة.',
+  'organization.reserved': 'لمسؤول النظام فقط', 'organization.future': 'صلاحية تصحيح مالي لوحدة لاحقة',
+  'organization.cap.organization.read': 'عرض تنظيم الحضانة', 'organization.cap.organization.manage': 'إدارة تنظيم الحضانة', 'organization.cap.users.assign_roles': 'تعيين الأدوار المفوّضة للموظفين',
+  'organization.cap.roles.define': 'تعريف الأدوار والتفويض', 'organization.cap.grants.manage': 'إدارة السماح بالتعديل الحساس', 'organization.cap.accounts.reset_password': 'إعادة تعيين كلمات المرور',
+  'organization.cap.support.access': 'وصول الدعم المسجّل', 'organization.cap.finance.correct': 'تصحيحات مالية (وحدة لاحقة)'
+};

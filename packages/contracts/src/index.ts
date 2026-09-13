@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { policyScopeSchema } from './organization.js';
+export * from './organization.js';
 
 export const errorCodeSchema = z.enum([
   'VALIDATION_ERROR', 'NOT_FOUND', 'UNAUTHORIZED', 'FORBIDDEN', 'DATABASE_UNAVAILABLE', 'INTERNAL_ERROR',
@@ -32,7 +34,7 @@ export const localeSchema = z.object({ locale: z.enum(['en', 'ar-EG']) }).strict
 export const currentAccountSchema = z.object({
   id: z.uuid(), username: z.string(), kind: z.enum(['SYSTEM', 'STAFF', 'GUARDIAN']),
   locale: z.enum(['en', 'ar-EG']), mustChangePassword: z.boolean(),
-  capabilities: z.array(z.string()), policyReady: z.literal(false)
+  capabilities: z.array(z.string()), policyReady: z.boolean(), scope: policyScopeSchema.optional()
 });
 export type CurrentAccount = z.infer<typeof currentAccountSchema>;
 export const authResponseSchema = z.object({ data: z.object({ account: currentAccountSchema, csrfToken: z.string(), expiresAt: z.iso.datetime(), idleExpiresAt: z.iso.datetime() }) });
