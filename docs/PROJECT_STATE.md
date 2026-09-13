@@ -1,17 +1,17 @@
 # Project state
 
-Baseline: 2026-09-13. Phase 04 implementation is complete.
+Baseline: 2026-09-13. Phase 05 implementation is complete.
 
 ## Active state
 
-- Current phase: 04 — Branches, classrooms, and dynamic permissions — COMPLETE.
-- Current checkpoint: acceptance gate passed; see [organization/policy evidence](ORGANIZATION_AND_POLICY.md) and [handoff](HANDOFF.md).
-- Last completed phase: 04. Next phase: 05 — Superadmin, subscriptions, slots, and nursery settings. Stop here; Phase 05 was not started.
-- Implemented: coded branches/classrooms/age groups; advisory capacity; editable templates/stable capabilities; explicit account scope mode; transactional central policy; SYSTEM role/delegation/sensitive-grant controls; constrained staff assignment UI; scoped list/detail/aggregate and future resource/support helpers; live session scope changes and in-memory UI invalidation.
-- Verification: workspace typecheck/lint/build passed. Final Phase 04 PostgreSQL/API script passed 9 tests; migration upgrade/rerun passed 1; authentication regression passed 12; bilingual DOM/HTTP passed 7; focused unit checks passed 8. API type/lint/build passed again after the final bounded request-size correction. Exact commands, interim failures, and limits are in ORGANIZATION_AND_POLICY.md.
-- Environment: dependencies restored with npm ci; no package/lockfile changes. Pinned Node 24.19.0/npm 11.1.0 and isolated PostgreSQL 18.6 were used. Test cluster stopped after verification; final diff check passed. This checkout had no .env. Existing PostgreSQL service and nursery databases were not modified; no deployment or real account provisioning.
-- Migration: 0002_organization_policy.sql verified against an actual Phase 03 schema via the repository runner; second run applied nothing. Existing identities remained unchanged and staff defaulted to no roles/branches with CLASSROOM scope. Test schemas cleaned by fixtures.
-- Decisions/contracts: D30 in DECISIONS.md and API_AND_DATA_CONTRACTS.md. No unresolved gate blocker. U24 script-only verification followed; no actual-browser visual or production performance claim. Guardian links, licensing, provisioning and financial operations remain later phases.
+- Current phase: 05 — Superadmin, subscriptions, slots, and nursery settings — COMPLETE.
+- Current checkpoint: acceptance gate passed; see [licensing/settings evidence](LICENSING_AND_SETTINGS.md) and [handoff](HANDOFF.md).
+- Last completed phase: 05. Next phase: 06 — Children, guardians, onboarding, and documents. Stop here; Phase 06 was not started.
+- Implemented: atomic seat reservation/release/restore with a real Postgres row lock (not a coarse advisory lock); staff/parent provisioning that reserves a seat and creates the account in one transaction; deactivate/reactivate (staff) and block/unblock (parent) that never touch reservations and refuse a `RELEASED` target; manual monthly/yearly license limits with grace/suspension enforced Cairo-date-wise inside the existing policy load (blocking every non-SYSTEM request once suspended, never SYSTEM); purchased-capacity commercial estimate and an isolated manual renewal-payment ledger; nursery-wide module settings (no branch dimension) with a finance re-enable catch-up preview/acknowledgement gate; Superadmin-only branding/theme with WCAG contrast validation on both server and client; an audited Superadmin support-context endpoint; new `/administration/settings` and `/support/licenses` screens.
+- Verification: workspace typecheck/lint/build passed. New `tests/integration/licensing.test.ts` passed 7/7 on real PostgreSQL (seat race, release/restore, grace/suspend/renew, module catch-up workflow, contrast gate, delegated-capability boundaries). Full `test:integration` passed 30/30 across 6 files. `test:unit` passed 39/39 (new Cairo-date/contrast domain checks). `test:e2e` passed for organization (3) and startup (1) after fixing a real regression (see below); `authentication.test.tsx` has 2/8 failing reproducibly on an unmodified Phase 04 checkout too (confirmed via `git stash`) — a pre-existing scrypt/CPU-timing sensitivity in this sandbox, not a Phase 05 regression. Exact commands and full detail are in LICENSING_AND_SETTINGS.md.
+- Environment: dependencies were not installed at checkout; `npm install` (not `ci`) was used because `@nursery/domain` was added as a dependency of `@nursery/contracts` and `@nursery/api`, updating the lockfile. System Node 25.2.1/npm 11.6.2 were used as-is; the pinned 24.19.0/11.1.0 toolchain was not separately installed this session (recorded as a deviation). An isolated PostgreSQL 18.4 cluster was created under `%TEMP%/nursery-phase05-pg` on 127.0.0.1:55405; the existing system PostgreSQL 18 install was not otherwise touched. A local `.env` was created pointing at that isolated cluster (gitignored, not committed).
+- Migration: 0003_licensing_settings.sql applied cleanly to the existing Phase 04 schema via the repository runner and reran idempotently (0 applied). It only adds new tables and capability/module rows; no existing table is altered.
+- Decisions/contracts: D31 in DECISIONS.md and API_AND_DATA_CONTRACTS.md. No unresolved gate blocker. U24 script-only verification followed; no actual-browser visual or production performance claim. Guardian links, children/documents, and financial modules remain later phases. Two real bugs were found and fixed during this phase's own testing (see LICENSING_AND_SETTINGS.md): missing `temporary_expires_at` on provisioned accounts, and a seat-reservation bypass in ordinary reactivate/unblock.
 
 ## Phase ledger
 
@@ -21,7 +21,7 @@ Baseline: 2026-09-13. Phase 04 implementation is complete.
 | 02 | Bilingual design system and navigation | COMPLETE | Bilingual locale/theme/component/navigation system; workspace lint/type/build, 29 unit/component checks, Vite fallback smoke, audit, production-preview exclusion, and diff check passed. |
 | 03 | Authentication, sessions, and account security | COMPLETE | Authentication schema/services/UI; applied and idempotently rerun migration; workspace type/lint/build; 8 focused unit, 12 real PostgreSQL/API/command and 5 scripted UI/startup checks passed. See AUTHENTICATION.md. |
 | 04 | Branches, classrooms, and dynamic permissions | COMPLETE | Organization/policy/UI; 9 PostgreSQL/API policy tests, 1 migration upgrade/rerun, 12 auth regression, 7 bilingual DOM/HTTP, 8 unit checks; workspace type/lint/build passed. See ORGANIZATION_AND_POLICY.md. |
-| 05 | Superadmin, subscriptions, slots, and nursery settings | NOT STARTED | None |
+| 05 | Superadmin, subscriptions, slots, and nursery settings | COMPLETE | Licensing/seats/settings service and UI; 7 licensing PostgreSQL/API tests plus 30/30 full integration regression, 39/39 unit, 4/4 e2e (organization+startup); workspace type/lint/build passed. See LICENSING_AND_SETTINGS.md. |
 | 06 | Children, guardians, onboarding, and documents | NOT STARTED | None |
 | 07 | Health notes, authorized pickup, and incidents | NOT STARTED | None |
 | 08 | Versioned checkpoints and publication engine | NOT STARTED | None |

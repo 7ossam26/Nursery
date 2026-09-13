@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import type { CurrentAccount } from './index.js';
 
-export const capabilityKeys = ['organization.read', 'organization.manage', 'users.assign_roles', 'roles.define', 'grants.manage', 'accounts.reset_password', 'support.access', 'finance.correct'] as const;
+export const capabilityKeys = [
+  'organization.read', 'organization.manage', 'users.assign_roles', 'roles.define', 'grants.manage', 'accounts.reset_password', 'support.access', 'finance.correct',
+  'licensing.manage', 'seats.release', 'branding.manage', 'modules.manage', 'users.manage_staff', 'users.create_parent', 'parents.block'
+] as const;
 export type Capability = typeof capabilityKeys[number];
 export const scopeModeSchema = z.enum(['BRANCH', 'CLASSROOM']);
 const ids = z.array(z.uuid()).max(100).refine((value) => new Set(value).size === value.length);

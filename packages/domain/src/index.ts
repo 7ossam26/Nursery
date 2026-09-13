@@ -48,3 +48,51 @@ export const formatEgp = (value: Piastres): string => {
   const groupedPounds = pounds.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return `${negative ? '-' : ''}EGP ${groupedPounds}.${remainder}`;
 };
+
+// ISO date-only (yyyy-MM-dd) strings compare correctly with plain string comparison.
+export const cairoIsoDate = (instant: Date | string | number = new Date()): string => {
+  const date = instant instanceof Date ? instant : new Date(instant);
+  if (Number.isNaN(date.getTime())) throw new RangeError('Expected a valid instant.');
+  return new Intl.DateTimeFormat('en-CA', { timeZone: BUSINESS_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+};
+
+export const addIsoDays = (isoDate: string, days: number): string => {
+  const match = ISO_DATE_ONLY.exec(isoDate);
+  if (!match || !isCalendarDate(Number(match[1]), Number(match[2]), Number(match[3]))) throw new RangeError('Expected a valid ISO date-only value (yyyy-MM-dd).');
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  date.setUTCDate(date.getUTCDate() + days);
+  return `${date.getUTCFullYear()}`.padStart(4, '0') + '-' + `${date.getUTCMonth() + 1}`.padStart(2, '0') + '-' + `${date.getUTCDate()}`.padStart(2, '0');
+};
+
+export type SubscriptionAccessStatus = 'ACTIVE' | 'GRACE' | 'SUSPENDED';
+// Pure Cairo-date boundary: valid_until is inclusive, grace extends access, then normal use is suspended.
+export const subscriptionAccessStatus = (today: string, validUntil: string, graceDays: number): SubscriptionAccessStatus => {
+  if (today <= validUntil) return 'ACTIVE';
+  return today <= addIsoDays(validUntil, graceDays) ? 'GRACE' : 'SUSPENDED';
+};
+
+const srgbChannel = (value: number): number => {
+  const channel = value / 255;
+  return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+};
+const relativeLuminance = (hex: string): number => {
+  const match = /^#([0-9a-fA-F]{6})$/.exec(hex);
+  if (!match) throw new RangeError('Expected a 6-digit hex color.');
+  const value = match[1];
+  const r = srgbChannel(parseInt(value.slice(0, 2), 16));
+  const g = srgbChannel(parseInt(value.slice(2, 4), 16));
+  const b = srgbChannel(parseInt(value.slice(4, 6), 16));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+// WCAG 2.x contrast ratio between two sRGB hex colors, order-independent.
+export const contrastRatio = (hexA: string, hexB: string): number => {
+  const a = relativeLuminance(hexA) + 0.05;
+  const b = relativeLuminance(hexB) + 0.05;
+  return a > b ? a / b : b / a;
+};
+export const MINIMUM_TEXT_CONTRAST = 4.5;
+// Picks whichever candidate foreground reads best on a background, for derived button/badge text.
+export const bestForeground = (background: string, candidates: readonly string[]): { foreground: string; ratio: number } => {
+  if (candidates.length === 0) throw new RangeError('At least one candidate foreground is required.');
+  return candidates.map((foreground) => ({ foreground, ratio: contrastRatio(foreground, background) })).sort((a, b) => b.ratio - a.ratio)[0];
+};

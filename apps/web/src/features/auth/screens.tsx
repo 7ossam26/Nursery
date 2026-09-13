@@ -18,6 +18,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const auth = useAuth(); const { t } = useLocale();
   if (auth.loading) return <Frame title="auth.signIn"><p role="status">{t('state.loading')}</p></Frame>;
   if (auth.blocked) return <Frame title="auth.contactNursery"><p role="alert">{auth.publicMessage || t('auth.contactNursery')}</p><Button onClick={auth.signedOut}>{t('auth.backToLogin')}</Button></Frame>;
+  if (auth.suspended) return <Frame title="licensing.suspendedTitle"><p role="alert">{t('licensing.suspendedBody')}</p><Button onClick={auth.signedOut}>{t('auth.backToLogin')}</Button></Frame>;
   if (!auth.session) return <Navigate to={auth.expired ? '/session-expired' : '/login'} replace />;
   if (auth.session.account.mustChangePassword) return <PasswordScreen forced />;
   return children;
@@ -95,7 +96,10 @@ export function AccountScreen() {
     }}><option value="en">English</option><option value="ar-EG">العربية</option></SelectField>
     <Link to="/change-password">{t('auth.changePassword')}</Link><LogoutButton />
     {auth.session!.account.capabilities.includes('organization.read') && <Link to="/administration/organization">{t('organization.title')}</Link>}
+    {(['branding.manage', 'modules.manage', 'users.manage_staff', 'users.create_parent', 'parents.block'] as const).some((key) => auth.session!.account.capabilities.includes(key)) && <Link to="/administration/settings">{t('licensing.settingsTitle')}</Link>}
+    {(['licensing.manage', 'seats.release', 'support.access'] as const).some((key) => auth.session!.account.capabilities.includes(key)) && <Link to="/support/licenses">{t('licensing.title')}</Link>}
     {auth.session!.account.capabilities.includes('accounts.reset_password') && <ResetForm />}
+    {auth.session!.account.licenseStatus === 'GRACE' && <p role="status">{t('licensing.graceWarning')}</p>}
   </Frame>;
 }
 export function UnavailableScreen() { const { t } = useLocale(); return <Frame title="state.noPermissionTitle"><p>{t('state.noPermissionBody')}</p><Link to="/account">{t('auth.account')}</Link></Frame>; }

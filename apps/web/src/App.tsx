@@ -5,6 +5,8 @@ import { AuthProvider, useAuth } from './features/auth/AuthProvider.js';
 import { AccountScreen, AuthGate, LoginScreen, PasswordScreen, UnavailableScreen } from './features/auth/screens.js';
 import type { AuthClient } from './features/auth/client.js';
 import { OrganizationScreen } from './features/organization/screen.js';
+import { BrandingProvider } from './features/licensing/BrandingProvider.js';
+import { LicensingScreen, SettingsScreen } from './features/licensing/screen.js';
 
 const DevelopmentPreview = import.meta.env.DEV
   ? lazy(() => import('./features/design-system/ComponentPreview.js').then(({ ComponentPreview }) => ({ default: ComponentPreview })))
@@ -32,10 +34,12 @@ function AuthRoutes() {
     <Route path="/account" element={<AuthGate><AccountScreen /></AuthGate>} />
     <Route path="/change-password" element={<AuthGate><PasswordScreen /></AuthGate>} />
     <Route path="/administration/organization" element={<AuthGate><OrganizationScreen /></AuthGate>} />
+    <Route path="/administration/settings" element={<AuthGate><SettingsScreen /></AuthGate>} />
+    <Route path="/support/licenses" element={<AuthGate><LicensingScreen /></AuthGate>} />
     {['parent', 'teacher', 'administration', 'support'].map((group) => <Route key={group} path={`/${group}/*`} element={<AuthGate><UnavailableScreen /></AuthGate>} />)}
     <Route path="/__preview/*" element={<PreviewRoute />} /><Route path="*" element={<NotFound />} />
   </Routes>;
 }
 export function App({ authClient }: { authClient?: AuthClient }) {
-  return <AuthProvider client={authClient}><AuthRoutes /></AuthProvider>;
+  return <BrandingProvider><AuthProvider client={authClient}><AuthRoutes /></AuthProvider></BrandingProvider>;
 }

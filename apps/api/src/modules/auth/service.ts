@@ -195,6 +195,17 @@ export class AuthService {
       await tx.query('update accounts set locale=$2 where id=$1', [account.id, locale]);
     });
   }
+  // Shared by the SYSTEM-only route below and by capability-gated licensing services (deactivate/block/release/restore).
+  // Callers must already hold a stable lock order (accounts sorted, then this) inside their own transaction.
+  async changeStatusInTransaction(tx: Transaction, actorId: string, targetId: string, input: { status: Status; reason: string; publicMessage?: string; untilDate?: string }): Promise<{ previousStatus: Status }> {
+    if (!input.reason.trim()) throw new SafeError('VALIDATION_ERROR', 'auth.validation', false, 400);
+    const target = await this.lockAccount(tx, targetId);
+    await tx.query('update accounts set status=$2,status_until=$3,public_message=$4,version=version+1 where id=$1', [targetId, input.status, input.untilDate ?? null, input.publicMessage ?? null]);
+    await tx.query('insert into account_status_history(id,account_id,actor_id,previous_status,new_status,internal_reason,public_message,until_date) values($1,$2,$3,$4,$5,$6,$7,$8)', [randomUUID(), targetId, actorId, target.status, input.status, input.reason, input.publicMessage ?? null, input.untilDate ?? null]);
+    await this.revoke(tx, targetId);
+    await this.audit(tx, 'auth.status_changed', actorId, targetId);
+    return { previousStatus: target.status };
+  }
   // Internal hook for later authorized block/release services. No general status mutation route in Phase 03.
   async changeStatus(token: string, targetId: string, input: { status: Status; reason: string; publicMessage?: string; untilDate?: string }): Promise<void> {
     await this.database.transaction(async (tx) => {
@@ -203,12 +214,14 @@ export class AuthService {
       await tx.query('select id from accounts where id=any($1::uuid[]) order by id for update', [[source.account_id, targetId]]);
       const { account } = await this.checkSession(tx, token);
       if (account.kind !== 'SYSTEM' || account.id === targetId) throw new SafeError('FORBIDDEN', 'auth.forbidden', false, 403);
-      if (!input.reason.trim()) throw new SafeError('VALIDATION_ERROR', 'auth.validation', false, 400);
-      const target = await this.lockAccount(tx, targetId);
-      await tx.query('update accounts set status=$2,status_until=$3,public_message=$4,version=version+1 where id=$1', [targetId, input.status, input.untilDate ?? null, input.publicMessage ?? null]);
-      await tx.query('insert into account_status_history(id,account_id,actor_id,previous_status,new_status,internal_reason,public_message,until_date) values($1,$2,$3,$4,$5,$6,$7,$8)', [randomUUID(), targetId, account.id, target.status, input.status, input.reason, input.publicMessage ?? null, input.untilDate ?? null]);
-      await this.revoke(tx, targetId);
-      await this.audit(tx, 'auth.status_changed', account.id, targetId);
+      await this.changeStatusInTransaction(tx, account.id, targetId, input);
     });
+  }
+  // Reused by Superadmin account restoration: a fresh one-time credential, never the account's prior password.
+  async setTemporaryCredential(tx: Transaction, targetId: string): Promise<string> {
+    const temporary = randomToken();
+    const target = await this.lockAccount(tx, targetId);
+    await this.replacePassword(tx, target, await hashPassword(temporary), true);
+    return temporary;
   }
 }

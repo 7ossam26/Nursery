@@ -5,6 +5,7 @@ import { ZodError } from 'zod';
 import { SafeError } from './errors.js';
 import { installAuthentication } from './modules/auth/routes.js';
 import { installOrganization } from './modules/organization/routes.js';
+import { installLicensing } from './modules/licensing/routes.js';
 
 export { SafeError } from './errors.js';
 type DatabaseLifecycle = Pick<Database, 'checkConnection' | 'close'>;
@@ -16,6 +17,7 @@ export function buildApp(config: AppConfig, database: DatabaseLifecycle = create
   app.decorate('database', database as Database);
   installAuthentication(app, config);
   installOrganization(app);
+  installLicensing(app);
   app.get('/api/v1/health', { config: { public: true } }, async (request) => ({ status: 'ok', requestId: request.id }));
   app.get('/api/v1/readiness', { config: { public: true } }, async (request, reply) => {
     try { await database.checkConnection(); return { status: 'ready', requestId: request.id }; }

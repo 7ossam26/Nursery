@@ -12,7 +12,11 @@ export const organizationEnglish = {
   'organization.reserved': 'Reserved for Superadmin', 'organization.future': 'Future financial correction permission',
   'organization.cap.organization.read': 'View organization', 'organization.cap.organization.manage': 'Manage organization', 'organization.cap.users.assign_roles': 'Assign delegated staff roles',
   'organization.cap.roles.define': 'Define roles and delegation', 'organization.cap.grants.manage': 'Manage sensitive entitlement', 'organization.cap.accounts.reset_password': 'Reset account passwords',
-  'organization.cap.support.access': 'Audited support access', 'organization.cap.finance.correct': 'Financial corrections (future module)'
+  'organization.cap.support.access': 'Audited support access', 'organization.cap.finance.correct': 'Financial corrections (future module)',
+  'organization.cap.licensing.manage': 'Manage licensing and subscription (Superadmin only)', 'organization.cap.seats.release': 'Release account seats (Superadmin only)',
+  'organization.cap.branding.manage': 'Manage nursery brand and theme (Superadmin only)', 'organization.cap.modules.manage': 'Manage module availability',
+  'organization.cap.users.manage_staff': 'Provision, deactivate, and reactivate staff accounts', 'organization.cap.users.create_parent': 'Provision parent accounts',
+  'organization.cap.parents.block': 'Block and unblock parent accounts'
 } as const;
 export const organizationArabic: Record<keyof typeof organizationEnglish,string> = {
   'organization.title': 'تنظيم الحضانة والصلاحيات', 'organization.branches': 'الفروع', 'organization.classrooms': 'الفصول', 'organization.age-groups': 'الفئات العمرية', 'organization.roles': 'الأدوار', 'organization.staff': 'تعيينات الموظفين',
@@ -28,5 +32,9 @@ export const organizationArabic: Record<keyof typeof organizationEnglish,string>
   'organization.reserved': 'لمسؤول النظام فقط', 'organization.future': 'صلاحية تصحيح مالي لوحدة لاحقة',
   'organization.cap.organization.read': 'عرض تنظيم الحضانة', 'organization.cap.organization.manage': 'إدارة تنظيم الحضانة', 'organization.cap.users.assign_roles': 'تعيين الأدوار المفوّضة للموظفين',
   'organization.cap.roles.define': 'تعريف الأدوار والتفويض', 'organization.cap.grants.manage': 'إدارة السماح بالتعديل الحساس', 'organization.cap.accounts.reset_password': 'إعادة تعيين كلمات المرور',
-  'organization.cap.support.access': 'وصول الدعم المسجّل', 'organization.cap.finance.correct': 'تصحيحات مالية (وحدة لاحقة)'
+  'organization.cap.support.access': 'وصول الدعم المسجّل', 'organization.cap.finance.correct': 'تصحيحات مالية (وحدة لاحقة)',
+  'organization.cap.licensing.manage': 'إدارة الترخيص والاشتراك (لمسؤول النظام فقط)', 'organization.cap.seats.release': 'تحرير مقاعد الحسابات (لمسؤول النظام فقط)',
+  'organization.cap.branding.manage': 'إدارة هوية الحضانة والألوان (لمسؤول النظام فقط)', 'organization.cap.modules.manage': 'إدارة إتاحة الوحدات',
+  'organization.cap.users.manage_staff': 'إنشاء وتعطيل وإعادة تفعيل حسابات الموظفين', 'organization.cap.users.create_parent': 'إنشاء حسابات أولياء الأمور',
+  'organization.cap.parents.block': 'حظر وإلغاء حظر حسابات أولياء الأمور'
 };

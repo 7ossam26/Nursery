@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { NavLink } from 'react-router';
 import { Icon } from '../components/Icon.js';
 import { useLocale } from '../i18n/LocaleProvider.js';
+import { useBranding } from '../features/licensing/BrandingProvider.js';
 import { navigationByRole, type ShellRole } from './navigation.js';
 
 const roleLabelKeys = {
@@ -33,11 +34,12 @@ type AppShellProps = Readonly<{ role: ShellRole; children: ReactNode; pathPrefix
 
 export function AppShell({ role, children, pathPrefix = '' }: AppShellProps) {
   const { t } = useLocale();
+  const branding = useBranding();
   return <div className={`app-shell app-shell--${role}`}>
     <a className="skip-link" href="#main-content">{t('common.skipToContent')}</a>
     <header className="shell-header">
       <div className="brand-mark" aria-hidden="true">ن</div>
-      <div className="shell-header__title"><strong>{t('app.name')}</strong><span>{t(roleLabelKeys[role])}</span></div>
+      <div className="shell-header__title"><strong>{branding?.name ?? t('app.name')}</strong><span>{t(roleLabelKeys[role])}</span></div>
       <LanguageSwitcher />
       <button className="account-button" type="button" aria-label={t('shell.account')}><Icon name="more" /></button>
     </header>

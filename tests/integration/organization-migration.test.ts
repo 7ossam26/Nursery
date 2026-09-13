@@ -27,14 +27,14 @@ it('upgrades an actual Phase 03 schema once, preserves identity, and does not re
     // No authentication is attempted with this schema-only identity fixture.
     await database.pool.query("insert into accounts(id,kind,username_normalized,password_hash) values($1,'STAFF','migration-staff','schema-fixture-no-login')",[id]);
     const oldAccount = (await database.pool.query('select id,kind,password_hash,version from accounts where id=$1',[id])).rows[0];
-    const first = await migrate(); expect(first.code).toBe(0); expect(first.output).toBe('Applied 0002_organization_policy.sql\n');
+    const first = await migrate(); expect(first.code).toBe(0); expect(first.output).toBe('Applied 0002_organization_policy.sql\nApplied 0003_licensing_settings.sql\n');
     expect((await database.pool.query('select id,kind,password_hash,version from accounts where id=$1',[id])).rows[0]).toEqual(oldAccount);
     expect((await database.pool.query('select scope_mode,assignment_version from accounts where id=$1',[id])).rows[0]).toEqual({ scope_mode: 'CLASSROOM',assignment_version: 1 });
     expect((await database.pool.query('select count(*)::int as count from account_roles')).rows[0].count).toBe(0);
     await database.pool.query("update roles set name='Edited template' where name='Teacher'");
     const second = await migrate(); expect(second.code).toBe(0); expect(second.output).toBe('');
     expect((await database.pool.query("select count(*)::int as count from roles where name='Edited template'")).rows[0].count).toBe(1);
-    expect((await database.pool.query('select count(*)::int as count from schema_migrations')).rows[0].count).toBe(3);
+    expect((await database.pool.query('select count(*)::int as count from schema_migrations')).rows[0].count).toBe(4);
   } finally {
     await database.close();
     if (!/^phase04_migration_[a-f0-9]{32}$/.test(schema)) throw new Error('Invalid fixture schema');
