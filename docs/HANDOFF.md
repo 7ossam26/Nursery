@@ -1,38 +1,44 @@
 # Current handoff
 
-Updated: 2026-09-13 — Phase 01 complete.
+Updated: 2026-09-13 — Phase 02 complete.
 
 ## Current task
 
-Phase 01 is complete. Do not begin Phase 02 until the user explicitly requests it.
+Phase 02 is complete. Do not begin Phase 03 until the user explicitly requests it.
 
 ## Read next
 
 1. ../AGENTS.md
 2. PROJECT_STATE.md
-3. ../phases/PHASE_02_bilingual_design_system.md when Phase 02 is requested
-4. Relevant Phase 02 reference sections only
+3. ../phases/PHASE_03_authentication_sessions.md when Phase 03 is requested
+4. Relevant Phase 03 reference sections only
 
 ## Next executable action
 
-When requested, begin Phase 02 from its stated prerequisites. Preserve the Phase 01 baseline and do not alter the local `.env` or migration history.
+When requested, begin Phase 03 from its stated prerequisites. Preserve the Phase 02 design contracts, the local `.env`, and migration history.
 
 ## Confirmed latest decisions
 
-Three billing arrangements are supported. Monthly fees automatically generate charges; additional charges can be one-time or period-labeled without automatic recurrence. Staff record actual collection. Parent access blocking is manual and displays a nursery-contact message; blocking does not stop charges or release slots.
+UI locale values are `en` and `ar-EG`; a supplied user preference wins over local storage, with English as fallback. Business values remain language-independent. Business dates persist as ISO date-only values, display as `dd/MM/yyyy` with Latin digits, and instants use `Africa/Cairo`. Money remains integer piastres and displays as exact Latin-digit EGP.
 
-Homework is published by teachers, who record each child's completion. New custom checkpoints use configurable status plus optional note.
+The bright brand pink uses dark `#111827` text; white text is reserved for the strong `#BE185D` action. Persistent theme settings and server capability filtering remain later-phase work.
 
 ## Evidence and open work
 
-Changed files: workspace `package.json`/`package-lock.json`, `.nvmrc`, `.env.example`, `.gitignore`, TypeScript/Vite/ESLint/Vitest/Playwright configuration, minimal `apps/api`, `apps/web`, `apps/worker`, `packages/contracts`, `packages/domain`, `packages/db`, `packages/ui`, `tests/`, `README.md`, and `docs/DEPENDENCIES.md`.
+Changed files: root `package.json`/`package-lock.json`, `vitest.unit.config.ts`, `README.md`, `tests/e2e/startup.test.ts`; `packages/domain/src/index.ts` plus display tests; `packages/ui/src/index.ts` plus theme tests; and the web app entry, styles, bilingual catalogs/provider, component library, navigation metadata/shells, development preview, and component/responsive tests under `apps/web/src`. `docs/PROJECT_STATE.md` and this handoff contain the phase evidence.
 
-Installed runtime: Node 24.19.0 and npm 11.1.0 locally with Windows Package Manager. Local PostgreSQL service: `postgresql-x64-17`, version 17.9; target production major remains PostgreSQL 18. The ignored local `.env` contains the developer-supplied connection configuration; no credential was committed. No Docker assets were added. API port is 3000; web port is 5173.
+Shared components: `Button`, `TextField`, `SelectField`, `DateField`, `ErrorSummary`, `Modal`, `Card`, `Skeleton`, `StatePanel`, `ResponsiveTable`, and labeled inline `Icon`. The modal uses native dialog behavior and explicitly restores focus. Tables use semantic desktop markup and a mobile definition-list card alternative. All controls target at least 44px and icons supplement text rather than replacing it.
 
-Actual passed checks: `npm install`; `npm audit --omit=dev` (zero vulnerabilities); `npm run db:migrate` (first run applied `0000_installation_baseline.sql`, second and final runs applied nothing); `npm run test:integration` (one real PostgreSQL connectivity/rollback test passed); `npm run build`; `npm run lint`; `npm run typecheck`; `npm run test:unit` (one readiness test passed); `npm run test:e2e` (one Vitest Vite/HTTP startup test passed); and `npm run db:seed:demo` (intentionally no data). U24 explicitly forbids Playwright/browser automation in phases, so Playwright/config/spec were removed.
+Semantic token names: brand, brandSoft, peach, notice, text, textMuted, surface, surfaceSubtle, background, action/actionHover, success/successSurface, warning/warningSurface, error/errorSurface, info/infoSurface, border, focus, and support/supportSurface; also shared radius, shadow, motion, minimum-control, and maximum-content tokens. `contrastRatio`, `validatesTextContrast`, and `readableForeground` are reusable by the later persistent theme form. CSS-token alignment is tested.
 
-Remaining limitations: Phase 01 intentionally has only the installation baseline; business schemas and production deployment are later phases. PostgreSQL 17.9 is an acceptable local verifier for this foundation only; PostgreSQL 18 remains the deployment target. Persistent verification rule: use script test files only; do not use Playwright/browser automation unless the user explicitly reverses U24.
+Navigation conventions: production-neutral route groups are `/parent/*`, `/teacher/*`, `/administration/*`, and `/support/*`. Parent and teacher narrow navigation is limited to five labeled destinations; administration is grouped into daily and management sections; support has a distinct indigo shell. `ParentShell`, `TeacherShell`, `AdministrationShell`, and `SupportShell` wrap the common `AppShell`. These are navigation/presentation contracts only; Phase 04 must hide and enforce destinations from server capabilities. The development preview adds `/__preview` as a path prefix and is lazy-imported only in development.
 
-Routine implementation defaults are documented in DECISIONS.md. No additional product clarification is required to start. Exact supported dependency versions are a Phase 01 verification step.
+Translation pattern: add each key to the typed English catalog and matching Egyptian Arabic `Record<MessageKey, string>`, then call `useLocale().t`. `LocaleProvider` updates `html[lang]`/`html[dir]`, accepts a per-user locale, and persists the local selection under `nursery.locale`. Keep persisted codes/slugs outside catalogs. Synthetic preview records live inside the development-only module rather than the production catalog.
 
-Replace this file after the next meaningful checkpoint with changed files, actual commands/results, remaining work, and the next precise action.
+Actual final passed checks: `npm run lint`; `npm run typecheck`; `npm run build`; `npm run test:unit` (6 files, 29 tests); `npm run test:e2e` (1 file, 1 scripted Vite history-fallback test); `npm audit --omit=dev` (zero vulnerabilities); production bundle scan for synthetic `Mariam Hassan`/`child-001` records; and `git diff --check`. The responsive repository checks cover 360px, 768px, and 1280px contracts in LTR and RTL, page overflow containment, mobile table cards, focus styles, 44px controls, and reduced motion. Bilingual DOM renders passed axe with color contrast handled by exact token-ratio tests. No browser automation or screenshots were used because U24 prohibits them. Interim test-harness failures (a TypeScript import shape and Vite teardown after transformed CSS requests) were fixed; the final gate above passed.
+
+Migration status: no migration was added or required. Database integration/concurrency tests were not run because Phase 02 adds no persistence, transaction, scope, quota, or billing behavior. Nothing was deployed.
+
+Remaining limitations: authentication-backed profile persistence is Phase 03+, capability enforcement is Phase 04, and persistent nursery theme editing/audit is Phase 05. Nuanced Egyptian Arabic copy still requires the planned tech-lead manual review. PostgreSQL 18 remains the production target; the existing local PostgreSQL 17.9 evidence belongs to Phase 01.
+
+Next action: on explicit request, read Phase 03 and its named references, verify prerequisites from the code/diff, and implement authentication only through its gate.

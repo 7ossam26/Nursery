@@ -15,6 +15,8 @@ Modular TypeScript workspace for one independently deployed nursery per installa
 3. Apply the migration: `npm run db:migrate`.
 4. Start the API with `npm run dev -w @nursery/api` (port 3000), web app with `npm run dev -w @nursery/web` (port 5173), and worker with `npm run dev -w @nursery/worker`.
 
+During web development, open `/__preview` to inspect the bilingual component library and parent, teacher, administration, and support navigation shells. The route uses synthetic content and is unavailable in production builds.
+
 The API provides `GET /api/v1/health` and `GET /api/v1/readiness`. Readiness returns HTTP 503 and the safe `not_ready` state if PostgreSQL cannot be reached. Runtime configuration is server-only; never expose `DATABASE_URL`, session secrets, or support configuration through `VITE_*` variables.
 
 ## Commands
@@ -23,9 +25,9 @@ The API provides `GET /api/v1/health` and `GET /api/v1/readiness`. Readiness ret
 |---|---|
 | `npm run dev` | Starts all workspace development entries. |
 | `npm run build` / `lint` / `typecheck` | Builds and validates all packages. |
-| `npm run test:unit` | Runs unit tests (there are no Phase 01 unit specs yet). |
+| `npm run test:unit` | Runs domain, theme, localization, responsive-contract, and component accessibility unit checks. |
 | `npm run test:integration` | Runs real local PostgreSQL checks when `DATABASE_URL` is provided; otherwise reports its test as skipped. |
-| `npm run test:e2e` | Scripted Vite startup/HTTP smoke; it starts an isolated local Vite server and verifies its application document. |
+| `npm run test:e2e` | Scripted Vite startup/HTTP smoke for the application document and preview fallback; it uses no browser automation. |
 | `npm run db:migrate` | Applies each checked-in migration once under a PostgreSQL advisory lock. |
 | `npm run db:seed:demo` | Reports that Phase 01 has no demo data and makes no changes. |
 
