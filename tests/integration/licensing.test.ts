@@ -146,6 +146,10 @@ describe('Phase 05 licensing, slots, and nursery settings with real PostgreSQL',
     expect(toggled.enabled).toBe(false);
     await f.licensing.saveModuleSetting(f.root.token, 'ATTENDANCE', { expectedVersion: toggled.version, enabled: true, reason: 'restore' });
 
+    // Phase 06 adds resource-scope enforcement: a capability alone cannot globally block an unlinked parent.
+    await expect(f.licensing.blockAccount(operator.token, createdParent.id, { reason: 'unlinked target' })).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    await f.app.children.onboard(f.root.token,{ operationId: crypto.randomUUID(),guardians: [{ kind: 'EXISTING',accountId: createdParent.id,profile: { fullName: 'Operations parent',mobile: '01000000000' } }],
+      children: [{ child: { code: 'OPS-CHILD',fullName: 'Operations child',birthDate: '2022-01-01',branchId: branch.id,classroomId: null,contacts: [] },links: [{ guardianIndex: 0,relationship: 'Parent',permissions: { read: true,finance: false,pickup: false,notify: true } }] }] });
     await f.licensing.blockAccount(operator.token, createdParent.id, { reason: 'awaiting document', publicMessage: 'Please visit reception', untilDate: addIsoDays(cairoIsoDate(), 30) });
     expect((await f.database.pool.query('select status from accounts where id=$1', [createdParent.id])).rows[0].status).toBe('BLOCKED');
     await f.licensing.unblockAccount(operator.token, createdParent.id, { reason: 'document received' });

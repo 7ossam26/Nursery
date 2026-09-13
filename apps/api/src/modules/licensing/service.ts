@@ -14,6 +14,7 @@ import { hashPassword, randomToken } from '../auth/crypto.js';
 import { AUTH_DEFAULTS, type AuthService } from '../auth/service.js';
 import { denied, stale, loadPolicy, requireCapability, type Policy } from '../organization/policy.js';
 import { SafeError } from '../../errors.js';
+import { GUARDIAN_SCOPE_LOCK, requireParentAdministration } from '../children/policy.js';
 
 const LICENSE_LOCK = 7190501;
 
@@ -21,10 +22,12 @@ export class LicensingService {
   constructor(readonly auth: AuthService) {}
 
   // Mirrors OrganizationService.withPolicy: session/policy revalidated inside the same transaction as the work.
-  async withPolicy<T>(token: string, work: (tx: Transaction, policy: Policy) => Promise<T>, options: { edit?: boolean; targetIds?: string[] } = {}): Promise<T> {
+  async withPolicy<T>(token: string, work: (tx: Transaction, policy: Policy) => Promise<T>, options: { edit?: boolean; targetIds?: string[]; parentAction?: boolean } = {}): Promise<T> {
     try {
       return await this.auth.database.transaction(async (tx) => {
         await tx.query(options.edit ? 'select pg_advisory_xact_lock($1)' : 'select pg_advisory_xact_lock_shared($1)', [LICENSE_LOCK]);
+        await tx.query('select pg_advisory_xact_lock_shared(7190401)');
+        if (options.parentAction) await tx.query('select pg_advisory_xact_lock($1)',[GUARDIAN_SCOPE_LOCK]);
         const account = await this.auth.inTransaction(tx, token, options.targetIds);
         return work(tx, await loadPolicy(tx, account));
       });
@@ -105,13 +108,17 @@ export class LicensingService {
     if ((await this.activeCount(tx, kind)) >= capacity) throw new SafeError('VALIDATION_ERROR', 'licensing.capacityExceeded', false, 409);
     await tx.query('insert into seat_reservations(id,kind,account_id) values($1,$2,$3)', [randomUUID(), kind, accountId]);
   }
-  private requireUsable(p: Policy) {
+  requireUsable(p: Policy) {
     if (p.licenseStatus === 'SUSPENDED') throw new SafeError('LICENSE_SUSPENDED', 'licensing.suspended', false, 403);
     if (p.licenseStatus === 'NOT_CONFIGURED') throw new SafeError('VALIDATION_ERROR', 'licensing.notConfigured', false, 409);
   }
   private async provision(token: string, capability: Capability, kind: 'STAFF' | 'GUARDIAN', seatKind: SeatKind, raw: unknown): Promise<ProvisionResult> {
     const input = provisionInputSchema.parse(raw);
-    return this.withPolicy(token, async (tx, p) => {
+    return this.withPolicy(token, (tx,p) => this.provisionInTransaction(tx,p,capability,kind,seatKind,input));
+  }
+  // Reused by family onboarding; the caller owns the same license/policy locks and transaction.
+  async provisionInTransaction(tx: Transaction, p: Policy, capability: Capability, kind: 'STAFF' | 'GUARDIAN', seatKind: SeatKind, raw: unknown): Promise<ProvisionResult> {
+      const input = provisionInputSchema.parse(raw);
       requireCapability(p, capability);
       this.requireUsable(p);
       const id = randomUUID(); const temporaryPassword = randomToken();
@@ -119,7 +126,6 @@ export class LicensingService {
       await this.reserveSeat(tx, seatKind, id);
       await this.audit(tx, p, `licensing.${kind.toLowerCase()}_provisioned`, id, null, { username: input.username });
       return { id, username: input.username, temporaryPassword };
-    });
   }
   async provisionStaff(token: string, raw: unknown) { return this.provision(token, 'users.manage_staff', 'STAFF', 'EMPLOYEE', raw); }
   async provisionParent(token: string, raw: unknown) { return this.provision(token, 'users.create_parent', 'GUARDIAN', 'PARENT', raw); }
@@ -185,19 +191,21 @@ export class LicensingService {
     const input = blockAccountInputSchema.parse(raw);
     await this.withPolicy(token, async (tx, p) => {
       requireCapability(p, 'parents.block');
+      await requireParentAdministration(tx,p,targetId);
       this.requireOrdinaryTransition(await this.targetInfo(tx, targetId), 'GUARDIAN');
       await this.auth.changeStatusInTransaction(tx, p.account.id, targetId, { status: 'BLOCKED', reason: input.reason, publicMessage: input.publicMessage, untilDate: input.untilDate });
       await this.audit(tx, p, 'licensing.parent_blocked', targetId, null, { reason: input.reason, untilDate: input.untilDate ?? null });
-    }, { targetIds: [targetId] });
+    }, { targetIds: [targetId], parentAction: true });
   }
   async unblockAccount(token: string, targetId: string, raw: unknown): Promise<void> {
     const input = unblockAccountInputSchema.parse(raw);
     await this.withPolicy(token, async (tx, p) => {
       requireCapability(p, 'parents.block');
+      await requireParentAdministration(tx,p,targetId);
       this.requireOrdinaryTransition(await this.targetInfo(tx, targetId), 'GUARDIAN');
       await this.auth.changeStatusInTransaction(tx, p.account.id, targetId, { status: 'ACTIVE', reason: input.reason });
       await this.audit(tx, p, 'licensing.parent_unblocked', targetId, null, input);
-    }, { targetIds: [targetId] });
+    }, { targetIds: [targetId], parentAction: true });
   }
 
   // ---- Nursery-wide module settings: identical for every branch, no per-branch column exists ----

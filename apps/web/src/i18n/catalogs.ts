@@ -1,10 +1,12 @@
 import { organizationEnglish, organizationArabic } from '../features/organization/copy.js';
+import { childrenEnglish, childrenArabic } from '../features/children/copy.js';
 import { licensingEnglish, licensingArabic } from '../features/licensing/copy.js';
 export const supportedLocales = ['en', 'ar-EG'] as const;
 export type Locale = (typeof supportedLocales)[number];
 
 const en = {
   ...organizationEnglish,
+  ...childrenEnglish,
   ...licensingEnglish,
   'auth.signIn': 'Sign in',
   'auth.username': 'Username',
@@ -132,6 +134,7 @@ export type MessageKey = keyof typeof en;
 
 const ar: Record<MessageKey, string> = {
   ...organizationArabic,
+  ...childrenArabic,
   ...licensingArabic,
   'auth.signIn': 'تسجيل الدخول',
   'auth.username': 'اسم المستخدم',

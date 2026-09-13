@@ -43,6 +43,9 @@ export class AuthClient {
     const result = await this.request(`/api/v1/licensing/${path}`, method, body) as { data: T };
     return result.data;
   }
+  async business<T>(path: string,method = 'GET',body?: unknown): Promise<T> {
+    const result = await this.request(`/api/v1/${path}`,method,body) as { data: T }; return result.data;
+  }
   // Public and unauthenticated: safe to call before sign-in so the login screen reflects nursery branding.
   async branding<T>(): Promise<T> {
     const result = await this.request('/api/v1/licensing/branding') as { data: T };

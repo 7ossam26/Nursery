@@ -106,3 +106,9 @@ Templates are versioned and use stable external keys. Parent/child template has 
 Do not embed plaintext passwords in bulk templates. Create credential setup/reset results through an authorized one-time flow. Validate optional role/branch codes against delegated scope.
 
 Opening debt import creates dated outstanding obligations with a source label and due date. It creates no receipt, income, or treasury movement. Preview and commit check current quotas, permissions, duplicates, and template version again.
+
+## Phase 06 implemented child and document contract
+
+Migration 0004_children_guardians.sql and packages/contracts/src/children.ts implement R05/U08. ChildService coordinates LicensingService.provisionInTransaction in the same PostgreSQL transaction; no duplicate seat, child financial ledger, or financial formulas are created. Mutable actions require strict expectedVersion/expectedChildVersion. Guardian links separately authorize read, finance, pickup and notify; guardian account kind never inherits staff scope permissions. requireGuardianChild and activeClassroomChild are the reusable future resource gates.
+
+Namespaces: /api/v1/children (options, scoped search/detail, onboarding, update, lifecycle, classroom-moves, guardian-links, documents), /api/v1/guardians (scoped picker/profile update), /api/v1/parent/children (linked active children plus minimal paused contact cards), /api/v1/child-documents (download, retire, SYSTEM abandoned cleanup). Document upload is bounded JSON/base64, uses existing cookie/CSRF rules and real content validation; download is authenticated binary attachment, never a public URL. Responses omit storage keys, technical timestamps and unrelated guardian data. The full required fields, route verbs, limits, lifecycle and future billing boundary are documented in [CHILDREN_AND_DOCUMENTS.md](CHILDREN_AND_DOCUMENTS.md); defaults are D32.

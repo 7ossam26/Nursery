@@ -1,4 +1,5 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { config as loadDotenv } from 'dotenv';
 import { resolve, join } from 'node:path';
 import { createDatabase } from '@nursery/db';
@@ -14,10 +15,11 @@ export async function authFixture(https = true) {
   const url = new URL(process.env.DATABASE_URL);
   url.searchParams.set('options', `-c search_path=${schema}`);
   const database = createDatabase(url.toString());
+  const privateFilesDir = await mkdtemp(join(tmpdir(),'nursery-auth-files-'));
   try {
   const directory = resolve('packages/db/src/migrations');
   for (const file of (await readdir(directory)).filter((name) => name.endsWith('.sql')).sort()) await database.pool.query(await readFile(join(directory, file), 'utf8'));
-  const config = { databaseUrl: url.toString(), appOrigin: https ? 'https://nursery.example' : 'http://localhost:5173', sessionSecret: 'test-only-not-for-deployment-secret-123456789', installationId: crypto.randomUUID(), businessTimezone: 'Africa/Cairo', privateFilesDir: './private-files', supportContact: 'Support', backupTarget: 'test', production: https };
+  const config = { databaseUrl: url.toString(), appOrigin: https ? 'https://nursery.example' : 'http://localhost:5173', sessionSecret: 'test-only-not-for-deployment-secret-123456789', installationId: crypto.randomUUID(), businessTimezone: 'Africa/Cairo', privateFilesDir, supportContact: 'Support', backupTarget: 'test', production: https };
   const app = buildApp(config, database);
   const secret = 'Fixture password phrase 2026';
   const hash = await hashPassword(secret);
@@ -28,12 +30,14 @@ export async function authFixture(https = true) {
   }
   return { app, database, config, account, secret, async close() {
     await app.close();
+    await rm(privateFilesDir,{ recursive: true,force: true });
     if (!/^auth_test_[a-f0-9]{32}$/.test(schema)) throw new Error('Invalid test schema');
     await admin.pool.query(`drop schema ${schema} cascade`);
     await admin.close();
   } };
   } catch (error) {
     await database.close();
+    await rm(privateFilesDir,{ recursive: true,force: true });
     try { await admin.pool.query(`drop schema ${schema} cascade`); } finally { await admin.close(); }
     throw error;
   }

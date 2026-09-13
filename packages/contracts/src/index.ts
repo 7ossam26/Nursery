@@ -3,6 +3,7 @@ import { policyScopeSchema } from './organization.js';
 export * from './organization.js';
 export * from './identity.js';
 export * from './licensing.js';
+export * from './children.js';
 import { usernameSchema, passwordSchema } from './identity.js';
 import { licenseStatusSchema } from './licensing.js';
 
