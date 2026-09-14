@@ -225,7 +225,15 @@ export class LicensingService {
     return this.withPolicy(token, async (tx, p) => {
       requireCapability(p, 'modules.manage');
       const current = await this.moduleRow(tx, moduleKey);
-      return moduleChangeImpacts(moduleKey, input.enabled, current.enabled);
+      const impact=moduleChangeImpacts(moduleKey, input.enabled, current.enabled);
+      if(impact.requiresCatchupAcknowledgement) {
+        const billing=(await tx.query("select 1 from billing_agreements where status='APPROVED' limit 1")).rowCount;
+        if (billing) {
+          const row=(await tx.query<{start:string}>("select (updated_at at time zone 'Africa/Cairo')::date::text as start from module_settings where module_key='FINANCE'")).rows[0];
+          impact.missingPeriods=[{start:row.start,end:cairoIsoDate()}];
+        }
+      }
+      return impact;
     });
   }
   async saveModuleSetting(token: string, moduleKey: ModuleKey, raw: unknown) {

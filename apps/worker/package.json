@@ -1,6 +1,23 @@
 {
-  "name": "@nursery/worker", "private": true, "type": "module",
-  "scripts": { "dev": "tsx watch src/worker.ts", "build": "tsc -p tsconfig.json", "lint": "eslint src", "typecheck": "tsc --noEmit -p tsconfig.json" },
-  "dependencies": { "@nursery/db": "0.1.0", "pino": "10.3.1" },
-  "devDependencies": { "@types/node": "24.10.1", "typescript": "5.9.3", "tsx": "4.23.13" }
+  "name": "@nursery/worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/worker.ts",
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@nursery/db": "0.1.0",
+    "@nursery/domain": "0.1.0",
+    "dotenv": "17.4.2",
+    "pg-boss": "12.31.1",
+    "pino": "10.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3"
+  }
 }

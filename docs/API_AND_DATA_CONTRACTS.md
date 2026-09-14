@@ -88,7 +88,7 @@ A transferred obligation retains original attribution and a current owner for it
 - IdentityService.provisionAccountWithSeat(actor, input, operationId)
 - ChildService.onboard(actor, familyInput, operationId) coordinates account/links/children and approved finance components.
 - LearningService.publish/correct(actor, child/date scope, expectedVersion, operationId)
-- BillingService.activateAgreement/generateOccurrence(actorOrJob, terms, occurrenceKey)
+- BillingService.draft/approve/generateOccurrence/previewCatchup(actorOrJob, terms, occurrenceKey)
 - PaymentService.collect/correct/refund(actor, allocations, account, expectedVersion, operationId)
 - TreasuryService.postMovement/transfer/close(actor, source, operationId)
 - ChildTransferService.transfer(actor, child, from/to, operationId)
@@ -96,6 +96,8 @@ A transferred obligation retains original attribution and a current owner for it
 - ImportService.preview/commit(actor, batch, expectedPreviewVersion, operationId)
 
 These names describe responsibilities; implementation naming can follow the repo convention. All entry points must share the same invariants and authorization. Reports read canonical projections and cannot mutate source data.
+
+Phase 14 adds `billing_agreements`, `billing_children`, `agreement_versions`, `billing_pauses`, `billing_periods`, `recurrence_occurrences`, and `billing_catchup_approvals` in migration `0012_billing.sql`. Stored allocation JSON is an immutable financial snapshot; occurrence uniqueness and the approved-term trigger prevent historic re-splitting. `billing-monthly-v1` is a pg-boss worker contract, not a browser mutation queue.
 
 ## Event and job contracts
 

@@ -1,3 +1,4 @@
+import { BillingScreen } from './features/finance/billing-screen.js';
 import { lazy, Suspense, useEffect } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router';
 import { useLocale } from './i18n/LocaleProvider.js';
@@ -43,6 +44,7 @@ function AuthRoutes() {
     <Route path="/change-password" element={<AuthGate><PasswordScreen /></AuthGate>} />
     <Route path="/administration/organization" element={<AuthGate><OrganizationScreen /></AuthGate>} />
     <Route path="/administration/settings" element={<AuthGate><SettingsScreen /></AuthGate>} />
+    <Route path="/administration/billing" element={<AuthGate><BillingScreen /></AuthGate>} />
     <Route path="/administration/treasury" element={<AuthGate><TreasuryScreen /></AuthGate>} />
     <Route path="/administration/checkpoints" element={<AuthGate><LearningConfigurationScreen /></AuthGate>} />
     <Route path="/teacher/learning" element={<AuthGate><TeacherLearningScreen /></AuthGate>} />

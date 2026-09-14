@@ -19,13 +19,14 @@ export class FinancialCore {
   }
   date(value: string) { if(value>cairoIsoDate()) throw invalid(); }
   branch(p: Policy,capability: Capability,branchId: string) { requireRecord(p,capability,{branchId}); }
-  async operation<T>(tx: Transaction,p: Policy,operationId: string,action: string,input: unknown,capability: Capability,authorize:()=>Promise<FinanceResource[]>,work:()=>Promise<T>): Promise<T> {
+  async operation<T>(tx: Transaction,p: Policy,operationId: string,action: string,input: unknown,capability: Capability,authorize:()=>Promise<FinanceResource[]>,work:()=>Promise<T>,revalidateReplay?:()=>Promise<void>): Promise<T> {
     await this.enabled(tx); requireCapability(p,capability);
     await tx.query('select pg_advisory_xact_lock(hashtextextended($1,0))',[`finance/${p.account.id}/${operationId}`]);
     const canonical=(v:unknown):unknown=>Array.isArray(v) ? v.map(canonical) : v && typeof v==='object' ? Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b)).map(([k,x])=>[k,canonical(x)])) : v;
     const hash=createHash('sha256').update(JSON.stringify(canonical({action,input}))).digest('hex');
     const old=(await tx.query<{request_hash:string;result:T;resources:FinanceResource[]}>('select request_hash,result,resources from financial_operations where actor_id=$1 and operation_id=$2',[p.account.id,operationId])).rows[0];
     if(old) {
+      await revalidateReplay?.();
       for(const resource of old.resources) requireRecord(p,capability,resource);
       if(old.request_hash!==hash) throw new SafeError('IDEMPOTENCY_CONFLICT','finance.operationConflict',false,409);
       return old.result;

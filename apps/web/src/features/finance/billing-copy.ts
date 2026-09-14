@@ -1,0 +1,38 @@
+export const billingEn={
+ 'billing.firstAmount':'First-period agreed total (EGP, optional; no automatic proration)',
+ 'billing.title':'Billing agreements','billing.help':'Save a draft, review the stored child amounts, then approve charges. Recording money received is a separate action.',
+ 'billing.mode':'Billing arrangement','billing.MONTHLY':'Recurring monthly tuition','billing.FIXED':'Fixed term tuition','billing.ADDITIONAL':'Separate additional fee',
+ 'billing.category':'Fee category','billing.description':'Description','billing.normal':'Normal family tuition (EGP)','billing.agreed':'Final agreed family tuition (EGP)',
+ 'billing.discount':'Family discount','billing.addDiscount':'Add Discount','billing.child':'Include children','billing.selected':'Selected children',
+ 'billing.start':'Agreement start','billing.end':'Last service date (optional)','billing.first':'First monthly period','billing.day':'Monthly due day',
+ 'billing.from':'Service period start','billing.until':'Service period end','billing.periodHelp':'An additional fee service period is a label only. It never repeats.',
+ 'billing.installments':'Family installment schedule','billing.due':'Due date','billing.amount':'Amount (EGP)','billing.addDue':'Add installment','billing.remove':'Remove',
+ 'billing.draft':'Save draft','billing.approve':'Approve charges','billing.DRAFT':'Draft — no debt yet','billing.APPROVED':'Approved',
+ 'billing.allocation':'Agreed child allocation','billing.scheduleHelp':'The installment total must equal the final agreed amount. Child shares and schedules are saved with stable remainder rounding.',
+ 'billing.pause':'Pause monthly periods','billing.pauseFrom':'First paused month','billing.pauseUntil':'Last paused month','billing.pauseHelp':'Pause dates include both months. Child status and parent access blocks do not pause this agreement.',
+ 'billing.price':'Approve future price','billing.effective':'Effective month','billing.reason':'Reason','billing.endAction':'End future billing','billing.endDate':'Stop generating from date',
+ 'billing.preview':'Preview disabled-period catch-up','billing.catchup':'Approve reviewed catch-up','billing.noCatchup':'No disabled periods awaiting approval. The worker checks for missing periods every minute.',
+ 'billing.catchupHelp':'Only these displayed periods and stored child amounts will be charged. Review another batch if more periods remain.',
+ 'billing.empty':'No agreements on this page.','billing.onboarding':'Tuition setup for the children just added','billing.onboardingHelp':'Accounts and children are saved. Complete their tuition agreement below; approval creates debt only.',
+ 'billing.catalogCode':'Category code','billing.catalogName':'Category name','billing.catalogKind':'Category type','billing.createCategory':'Create fee category','billing.tuition':'Tuition','billing.additional':'Additional fee',
+ 'billing.saved':'Saved. Review the agreement below.','billing.ended':'Future generation ends from','billing.prices':'Approved future pricing','billing.pauses':'Approved pauses'
+} as const;
+export const billingAr:Record<keyof typeof billingEn,string>={
+ 'billing.firstAmount':'المبلغ المتفق عليه لأول شهر (جنيه، اختياري؛ مفيش حساب تلقائي بالأيام)',
+ 'billing.title':'اتفاقات المصروفات','billing.help':'احفظ مسودة وراجع مبالغ الأطفال المحفوظة، وبعدها اعتمد المصروفات. تسجيل الفلوس المستلمة خطوة منفصلة.',
+ 'billing.mode':'نظام المصروفات','billing.MONTHLY':'مصروفات شهرية متكررة','billing.FIXED':'مصروفات ترم أو سنة','billing.ADDITIONAL':'رسوم إضافية منفصلة',
+ 'billing.category':'بند المصروفات','billing.description':'الوصف','billing.normal':'مصروفات الأسرة العادية (جنيه)','billing.agreed':'مصروفات الأسرة النهائية المتفق عليها (جنيه)',
+ 'billing.discount':'خصم الأسرة','billing.addDiscount':'إضافة خصم','billing.child':'اختار الأطفال','billing.selected':'الأطفال المختارين',
+ 'billing.start':'بداية الاتفاق','billing.end':'آخر يوم خدمة (اختياري)','billing.first':'أول شهر','billing.day':'يوم الاستحقاق الشهري',
+ 'billing.from':'بداية فترة الخدمة','billing.until':'نهاية فترة الخدمة','billing.periodHelp':'فترة الرسوم الإضافية وصف بس. مش بتتكرر تلقائيًا.',
+ 'billing.installments':'جدول أقساط الأسرة','billing.due':'تاريخ الاستحقاق','billing.amount':'المبلغ (جنيه)','billing.addDue':'إضافة قسط','billing.remove':'إزالة',
+ 'billing.draft':'حفظ مسودة','billing.approve':'اعتماد المصروفات','billing.DRAFT':'مسودة — مفيش مديونية لسه','billing.APPROVED':'معتمد',
+ 'billing.allocation':'نصيب الطفل المتفق عليه','billing.scheduleHelp':'مجموع الأقساط لازم يساوي المبلغ النهائي. أنصبة الأطفال والأقساط بتتحفظ بتوزيع ثابت للقروش المتبقية.',
+ 'billing.pause':'إيقاف شهور مؤقتًا','billing.pauseFrom':'أول شهر متوقف','billing.pauseUntil':'آخر شهر متوقف','billing.pauseHelp':'الإيقاف شامل الشهرين. حالة الطفل وحظر ولي الأمر مش بيوقفوا الاتفاق.',
+ 'billing.price':'اعتماد سعر قادم','billing.effective':'شهر سريان السعر','billing.reason':'السبب','billing.endAction':'إنهاء المصروفات القادمة','billing.endDate':'وقف الإنشاء من تاريخ',
+ 'billing.preview':'معاينة فترات تعطيل المالية','billing.catchup':'اعتماد الفترات المعروضة','billing.noCatchup':'مفيش فترات تعطيل مستنية الاعتماد. النظام بيراجع الفترات الناقصة كل دقيقة.',
+ 'billing.catchupHelp':'الفترات ومبالغ الأطفال المعروضة دي بس هي اللي هتتحسب. راجع دفعة تانية لو فيه فترات أكتر.',
+ 'billing.empty':'مفيش اتفاقات في الصفحة دي.','billing.onboarding':'إعداد مصروفات الأطفال المضافين','billing.onboardingHelp':'الحسابات والأطفال اتحفظوا. كمّل اتفاق المصروفات هنا؛ الاعتماد بيضيف مديونية بس.',
+ 'billing.catalogCode':'كود البند','billing.catalogName':'اسم البند','billing.catalogKind':'نوع البند','billing.createCategory':'إنشاء بند مصروفات','billing.tuition':'مصروفات دراسية','billing.additional':'رسوم إضافية',
+ 'billing.saved':'اتحفظ. راجع الاتفاق تحت.','billing.ended':'وقف الإنشاء من','billing.prices':'الأسعار القادمة المعتمدة','billing.pauses':'فترات الإيقاف المعتمدة'
+};

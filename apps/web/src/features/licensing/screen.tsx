@@ -174,6 +174,8 @@ function ModulesCard() {
           <ul>{impact.impacts.map((line) => <li key={line}>{line}</li>)}</ul>
           {impact.requiresCatchupAcknowledgement && <>
             <p>{t('licensing.noMissingPeriods')}</p>
+            {impact.missingPeriods.map(period=><p key={period.start} dir="ltr">{period.start} – {period.end}</p>)}
+            <Link to="/administration/billing">{t('billing.title')}</Link>
             <label><input type="checkbox" checked={ack[module.moduleKey] ?? false} onChange={(e) => setAck((a) => ({ ...a, [module.moduleKey]: e.target.checked }))} />{t('licensing.catchupAcknowledge')}</label>
           </>}
           <TextField label={t('licensing.reason')} required value={reason[module.moduleKey] ?? ''} onChange={(e) => setReason((r) => ({ ...r, [module.moduleKey]: e.target.value }))} />

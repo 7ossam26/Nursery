@@ -1,14 +1,21 @@
+import { BillingService } from './billing.js';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { FinancialCore } from './core.js';
 import { LedgerService } from './ledger.js';
 import { TreasuryService } from './treasury.js';
 import { PaymentService } from './payments.js';
-declare module 'fastify' { interface FastifyInstance { financialCore:FinancialCore;ledger:LedgerService;treasury:TreasuryService;payments:PaymentService } }
+declare module 'fastify' { interface FastifyInstance { billing:BillingService;financialCore:FinancialCore;ledger:LedgerService;treasury:TreasuryService;payments:PaymentService } }
 export function installFinance(app:FastifyInstance) {
   const core=new FinancialCore(app.children),ledger=new LedgerService(core),treasury=new TreasuryService(core),payments=new PaymentService(core,ledger,treasury);
+  const billing=new BillingService(core);app.decorate('billing',billing);
   app.decorate('financialCore',core);app.decorate('ledger',ledger);app.decorate('treasury',treasury);app.decorate('payments',payments);
   const id=(raw:unknown)=>z.object({id:z.uuid()}).strict().parse(raw).id;
+  app.get('/api/v1/billing/agreements',async r=>({data:await billing.list(r.sessionToken,r.query)}));
+  app.get('/api/v1/billing/options',async r=>({data:await billing.options(r.sessionToken,r.query)}));
+  app.post('/api/v1/billing/agreements',{bodyLimit:65536},async r=>({data:await billing.draft(r.sessionToken,r.body)}));
+  app.get('/api/v1/billing/agreements/:id/catchup',async r=>({data:await billing.preview(r.sessionToken,id(r.params))}));
+  for(const action of ['approve','price','pause','end','catchup'] as const) app.post(`/api/v1/billing/agreements/:id/${action}`,{bodyLimit:65536},async r=>({data:await billing[action](r.sessionToken,id(r.params),r.body)}));
   app.get('/api/v1/finance/options',async r=>({data:await treasury.options(r.sessionToken)}));
   app.get('/api/v1/finance/accounts',async r=>({data:await treasury.accounts(r.sessionToken,r.query)}));
   app.post('/api/v1/finance/accounts',async r=>({data:await treasury.createAccount(r.sessionToken,r.body)}));

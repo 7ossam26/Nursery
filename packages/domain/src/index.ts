@@ -115,3 +115,4 @@ export const whatsAppLink = (normalizedNumber: string): string => {
   if (!/^[1-9][0-9]{7,14}$/.test(normalizedNumber)) throw new RangeError('Expected a normalized WhatsApp number.');
   return `https://wa.me/${normalizedNumber}`;
 };
+export * from './billing.js';

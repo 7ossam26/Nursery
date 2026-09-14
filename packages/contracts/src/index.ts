@@ -49,3 +49,4 @@ export * from './exams.js';
 export * from './homework.js';
 export * from './communication.js';
 export * from './finance.js';
+export * from './billing.js';

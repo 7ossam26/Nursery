@@ -1,12 +1,12 @@
 # Current handoff
 
-Updated: 2026-09-14 — Phase 13 COMPLETE. Stop at this gate; Phase 14 NOT STARTED.
+Updated: 2026-09-14 — Phase 14 COMPLETE.
 
 ## Next executable action
 
-On a separate Phase 14 request, read AGENTS.md, state, this handoff and its phase file before editing. Reuse financial contracts/services/views/factories below. Do not run recurrence, full collection UI, expense/refund/closing, debt transfer, payroll, imports or deployment as continuation of Phase 13.
+Phase 15 is the next executable action. Read AGENTS.md, state, this handoff and the Phase 15 file before editing. Reuse the Phase 13 financial services and Phase 14 agreement/occurrence contracts below. Do not continue into expenses/refunds/closing, debt transfer, payroll, imports or deployment.
 
-Phase 12's screenshot handoff remains unresolved, and its ledger row remains IN PROGRESS. User explicitly requested Phase 13; D39 records technical progression without claiming screenshots, manual phone review or browser authorization. Phase 12 implementation evidence remains in PARENT_HUB_AND_NOTIFICATIONS.md. Older authentication DOM timing failure and communication pg concurrent-query deprecation warning were not investigated in this phase.
+Phase 12's screenshot handoff remains unresolved, and its ledger row remains IN PROGRESS. D39 and D40 record technical progression without claiming screenshots, manual phone review or browser authorization. Phase 12 implementation evidence remains in PARENT_HUB_AND_NOTIFICATIONS.md. Older authentication DOM timing failure and the communication pg concurrent-query deprecation warning were not investigated in this phase.
 
 ## Delivered files and contracts
 
@@ -43,3 +43,8 @@ Database-dependent commands use DATABASE_URL=postgresql://postgres@127.0.0.1:554
 - git diff --check: passed after state EOF cleanup and final documentation updates. Earlier type nullability, guardian default/CSRF fixture assertions and inherited-fieldset-disabled assertion failures were fixed; detailed history in FINANCIAL_CORE.md.
 
 To restart only this isolated test cluster, use C:/Program Files/PostgreSQL/17/bin/pg_ctl.exe with -D "$env:TEMP/nursery-phase13-pg", -l "$env:TEMP/nursery-phase13-pg/server.log", -o '-h 127.0.0.1 -p 55413' and -w start. Stop it with the same verified -D and -m fast -w stop; never change system services. Changes remain uncommitted for review.
+## Phase 14 evidence and restart notes
+
+Migration `0012_billing.sql` adds immutable agreement/occurrence/catch-up tables. `postObligation` is shared by API and worker, so recurring charges retain Phase 13 installment and category checks. Queue `billing-monthly-v1` uses Cairo `* * * * *`, startup sweep, row locking and bounded 24-period batches. Billing API/UI and onboarding integration are in the Phase 14 files documented in [BILLING_AND_RECURRENCE.md](BILLING_AND_RECURRENCE.md).
+
+Actual checks: billing/worker/finance/licensing PostgreSQL 33/33; migration upgrade/rerun 2/2; bilingual billing HTTP/DOM 2/2; focused units 6/6; typecheck, lint, build and diff check passed. PostgreSQL 17.9 was disposable at `127.0.0.1:55413/nursery_test`; no live nursery or browser automation was used. Build retains the existing >500 kB bundle warning. Phase 12’s screenshot handoff remains unresolved outside this phase. Stop here; Phase 15 owns collections and outstanding-balance UI.

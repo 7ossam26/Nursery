@@ -1,5 +1,13 @@
+import 'dotenv/config';
 import pino from 'pino';
-const logger = pino({ redact: ['databaseUrl', 'token'] });
-logger.info('worker started; no Phase 01 jobs are registered');
-const stop = () => { logger.info('worker stopped'); process.exit(0); };
-process.once('SIGINT', stop); process.once('SIGTERM', stop);
+import { createDatabase } from '@nursery/db';
+import { startBillingWorker } from './billing.js';
+const logger=pino({redact:['databaseUrl','token']});
+const databaseUrl=process.env.DATABASE_URL;
+if(!databaseUrl) throw new Error('DATABASE_URL is required');
+const database=createDatabase(databaseUrl);
+const boss=await startBillingWorker(databaseUrl,database,()=>logger.error('Billing job failed; inspect queue status'));
+logger.info('Billing worker started');
+let stopping=false;
+const stop=async()=>{if(stopping) return;stopping=true;await boss.stop({graceful:true});await database.close();logger.info('Billing worker stopped');};
+process.once('SIGINT',()=>{void stop();});process.once('SIGTERM',()=>{void stop();});

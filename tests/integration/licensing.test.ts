@@ -21,8 +21,8 @@ describe('Phase 05 licensing, slots, and nursery settings with real PostgreSQL',
     expect(after.parentReserved).toBe(1);
     const payment = await f.licensing.recordRenewalPayment(f.root.token, { periodStart: '2026-01-01', periodEnd: '2026-01-31', amountPiastres: 30_000, method: 'Bank transfer' });
     expect(payment.amountPiastres).toBe(30_000);
-    const noTreasuryTables = (await f.database.pool.query("select table_name from information_schema.tables where table_schema=current_schema() and (table_name ilike '%treasury%' or table_name ilike '%tuition%')")).rows;
-    expect(noTreasuryTables).toEqual([]);
+    const renewalMovements = (await f.database.pool.query("select count(*)::int as count from treasury_movements where reason like '%renew%' or reason like '%subscription%'")).rows[0].count;
+    expect(renewalMovements).toBe(0);
   });
 
   it('A04: two concurrent provisions for the final parent seat leave exactly one winner and an accurate count', async () => {

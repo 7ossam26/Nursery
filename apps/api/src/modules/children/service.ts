@@ -53,7 +53,7 @@ export class ChildService {
         classrooms: (await tx.query<ChildrenOptions['classrooms'][number]>(`select c.id,c.branch_id as "branchId",c.name,c.capacity,
           (select count(*)::int from children ch where ch.classroom_id=c.id and ch.status='ACTIVE') as occupancy
           from classrooms c where ${scope.sql.replaceAll('c.classroom_id','c.id')} order by c.name,c.id`,scope.values)).rows,
-        integration: { finance: { enabled: Boolean((await tx.query<{ enabled: boolean }>("select enabled from module_settings where module_key='FINANCE'")).rows[0]?.enabled),implemented: false },transport: { implemented: false },availableSteps: ['accounts','children','documents'] } };
+        integration: { finance: { enabled: Boolean((await tx.query<{ enabled: boolean }>("select enabled from module_settings where module_key='FINANCE'")).rows[0]?.enabled),implemented: true },transport: { implemented: false },availableSteps: ['accounts','children','documents','finance'] } };
     });
   }
   async list(token: string,raw: unknown) {

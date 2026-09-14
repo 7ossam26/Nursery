@@ -4,14 +4,13 @@ Baseline: 2026-09-13. Phase 13 complete (2026-09-14).
 
 ## Active state
 
-- Current phase: 13 — Financial records, transactions, and treasury core — COMPLETE; stopped at this gate. Phase 14 is NOT STARTED.
-- Delivered: exact piastre string contracts/utilities; migration 0011; immutable obligations/installments, receipts/allocations, credits, movements, audit/events/operation results; scoped PaymentService/TreasuryService/LedgerService; minimum tested APIs and bilingual treasury setup screen.
-- Final evidence: financial PostgreSQL 16/16 (19.53s), including actual lock contention, concurrent collectors/credits, cross-branch atomicity/second-leg rollback, three intermediate failure points, replays/revocation, exact unsafe-number-range amounts and reconciliation after every test. Migration upgrade/rerun 2/2; prior prerequisite communication 9/9; focused units 7/7 plus final finance 1/1; bilingual real HTTP/DOM/connection-loss recovery 2/2. Final typecheck/lint/build passed; diff check passed after EOF cleanup. Full commands and failures/fixes in FINANCIAL_CORE.md.
-- Migration: fresh 0000–0011 and idempotent rerun passed on the disposable database. Existing identities/reservations/edited roles preserved; no new grants or invented opening cash. No production migration/deployment.
-- Environment: Node 24.19.0/npm 11.1.0; npm ci --ignore-scripts restored lockfile dependencies (0 vulnerabilities). Actual PostgreSQL 17.9 at %TEMP%/nursery-phase13-pg, loopback 55413/nursery_test; stop recorded in handoff. PostgreSQL 18 target unverified on this machine. No live nursery, system services, environment files, subagents or model changes.
-- Limitations: bundle 601.02 kB/167.14 kB gzip retains >500 kB warning; no physical-phone/screenshot claims. Phase 12 screenshot gate remains IN PROGRESS, explicit Phase 13 progression recorded in D39. Older auth DOM timing issue and pg concurrent-query warning remain outside scope. Financial event delivery is Phase 15; corrections/refunds/closing are Phase 16.
-- Next phase: 14 — Billing modes, equal discounts, and recurring charges, only on a separate request. See [FINANCIAL_CORE.md](FINANCIAL_CORE.md) and [HANDOFF.md](HANDOFF.md).
-
+- Current phase: 14 — Billing modes, equal discounts, and recurring charges — COMPLETE (2026-09-14).
+- Initial working tree was clean. Actual Phase 13 prerequisite PostgreSQL suite passed 16/16 (20.39s). Phase 12 screenshot gate remains unresolved; explicit Phase 14 request permits technical progression, without browser automation.
+- Checkpoint 1: strict agreement contracts, exact stored child/installment allocations, migration 0012, shared obligation writer, scoped draft/approval/version/pause/end/catch-up service and API implemented. Workspace typecheck passed at this checkpoint; behavioral verification is pending.
+- Checkpoint 2: shared locked recurrence engine and pg-boss worker registered (pg-boss 12.31.1 pinned; npm audit 0 vulnerabilities). Real PostgreSQL recurrence/concurrency/disable and pg-boss restart checks passed; one legacy Phase 05 assertion was narrowed from schema absence to zero renewal treasury movements after Phase 13 introduced treasury tables.
+- Delivered: migration 0012 agreement/occurrence/catch-up model; strict billing contracts and exact allocation helpers; scoped draft/approval, future price, pause/end, catch-up and onboarding APIs/UI; shared obligation posting; locked Cairo recurrence engine and pg-boss worker; bilingual UI and lost-response recovery. Evidence is in [BILLING_AND_RECURRENCE.md](BILLING_AND_RECURRENCE.md).
+- Final gate: billing/worker/finance/licensing PostgreSQL 33/33; migration upgrade/rerun 2/2; bilingual billing HTTP/DOM 2/2; focused units 6/6; typecheck, lint, build and diff check passed. Build retains the existing >500 kB bundle warning. Phase 12 screenshot handoff remains unresolved and is not claimed complete.
+- Disposable PostgreSQL 17.9 restarted at loopback 55413 using the existing %TEMP%/nursery-phase13-pg cluster. No production actions, services, .env edits, browser automation, subagents, or model changes.
 ## Phase ledger
 
 | Phase | Topic | Status | Evidence |
@@ -29,7 +28,7 @@ Baseline: 2026-09-13. Phase 13 complete (2026-09-14).
 | 11 | Homework assignments and individual completion | COMPLETE | Homework PostgreSQL 8/8; learning/exam/attendance/migration regression 22/22; unit 56/56; bilingual DOM/HTTP 2/2; workspace typecheck/lint/build, fresh migration/rerun and diff passed. See HOMEWORK.md. |
 | 12 | Parent hub, announcements, and live notifications | IN PROGRESS | Prerequisites 12/12; PG/regression 24/24 plus final communication 9/9; unit 3/3; final real HTTP/SSE bilingual DOM/publication 3/3; final type/lint/build passed. Required screenshot handoff conflict pending. |
 | 13 | Financial records, transactions, and treasury core | COMPLETE | Final PostgreSQL finance 16/16; upgrade/rerun 2/2; focused unit 7/7 plus final finance 1/1; bilingual real HTTP/DOM/lost-response 2/2; final type/lint/build and diff passed. See FINANCIAL_CORE.md. |
-| 14 | Billing modes, equal discounts, and recurring charges | NOT STARTED | None |
+| 14 | Billing modes, equal discounts, and recurring charges | COMPLETE | PostgreSQL 33/33; pg-boss restart; migration 0012 upgrade/rerun 2/2; bilingual HTTP/DOM 2/2; focused units 6/6; type/lint/build/diff passed. See BILLING_AND_RECURRENCE.md. |
 | 15 | Collections, outstanding balances, receipts, and manual blocks | NOT STARTED | None |
 | 16 | Expenses, transfers, refunds, and daily closing | NOT STARTED | None |
 | 17 | Child branch transfer and outstanding debt ownership | NOT STARTED | None |

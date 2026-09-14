@@ -122,7 +122,7 @@ export type ModuleChangeInput = z.infer<typeof moduleChangeInputSchema>;
 
 // Documented impact of toggling a module, per ACCESS_AND_LICENSING.md dependency rules.
 const moduleImpacts: Record<ModuleKey, string[]> = {
-  FINANCE: ['Pauses new billing/payroll generation and disables paid transport, paid events, collections, and treasury reports.', 'Existing financial records and history are retained.'],
+  FINANCE: ['Pauses new billing/payroll generation and disables paid transport, paid events, collections, and treasury reports.', 'Existing financial records and history are retained. Disabled billing periods need a separate exact catch-up approval in Billing agreements.'],
   ATTENDANCE: ['Removes the attendance checkpoint from today\'s daily bar and stops new attendance tasks.', 'Published attendance history is retained.'],
   CUSTOM_CHECKPOINTS: ['Hides custom checkpoints from current operations and guardian views.', 'Published custom checkpoint history is retained.'],
   EXAMS: ['Removes the exam checkpoint from today\'s daily bar and stops new exam tasks.', 'Published exam history is retained.'],
@@ -133,6 +133,6 @@ const moduleImpacts: Record<ModuleKey, string[]> = {
 };
 export function moduleChangeImpacts(moduleKey: ModuleKey, enabled: boolean, currentlyEnabled: boolean): ModuleImpactPreview {
   const requiresCatchupAcknowledgement = moduleKey === 'FINANCE' && enabled && !currentlyEnabled;
-  // No billing engine exists before Phase 14; the preview honestly reports no missing periods pending that adapter.
+  // Module enablement does not approve charges. Exact scoped amount previews live in BillingService.
   return { moduleKey, enabled, impacts: moduleImpacts[moduleKey], requiresCatchupAcknowledgement, missingPeriods: [] };
 }
