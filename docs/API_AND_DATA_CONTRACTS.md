@@ -105,7 +105,7 @@ Phase18 implements `bus_subscriptions`, append-only permission events, activitie
 - PayrollService.recordAdvance/settleMonth(actor, period, operationId)
 
 Phase19 runtime: strict `packages/contracts/src/payroll.ts`, migration0020 and `PayrollService` implement `/api/v1/payroll` (month/optional branch, bounded limit/offset), `/options`, employee create/detail/status/future salary/optional later login, period snapshot/detail, adjustment/advance/full settlement and settled receipt-data actions. Entry amounts are canonical integer strings; SQL balance and aggregate projections remain exact strings. Settlement includes the displayed expected amount, not a caller-selected partial amount. Reads, totals and receipt DTOs share immutable monthly branch scope. FinancialCore persists redacted one-time credential results and provides actor-scoped operation recovery. No technical audit timestamps or arbitrary paid flags are returned by payroll. D47 and [EMPLOYEE_PAYROLL.md](EMPLOYEE_PAYROLL.md) list exact routes, fields, transaction guards and migration evidence. PDF/Excel report generation remains Phase20; this phase returns real receipt/export data only.
-- ImportService.preview/commit(actor, batch, expectedPreviewVersion, operationId)
+- ImportService.upload/batch/commit(actor, batch, expectedPreviewHash, operationId) — Phase 21 runtime in `apps/api/src/modules/imports/service.ts`
 
 These names describe responsibilities; implementation naming can follow the repo convention. All entry points must share the same invariants and authorization. Reports read canonical projections and cannot mutate source data.
 
@@ -124,6 +124,8 @@ Templates are versioned and use stable external keys. Parent/child template has 
 Do not embed plaintext passwords in bulk templates. Create credential setup/reset results through an authorized one-time flow. Validate optional role/branch codes against delegated scope.
 
 Opening debt import creates dated outstanding obligations with a source label and due date. It creates no receipt, income, or treasury movement. Preview and commit check current quotas, permissions, duplicates, and template version again.
+
+Phase 21 implemented contract: `packages/contracts/src/imports.ts` (kinds, template versions/columns, limits, strict upload/commit inputs, preview/batch/result types, exact EGP/boolean/date parsers) and `import-copy.ts` (shared bilingual column/error/kind help). Migration `0022_imports.sql` adds `imports.commit` and the creator-private, immutable-once-committed `import_batches` table whose commit references `financial_operations`. `/api/v1/imports/{options,templates/:kind,:id,:id/commit}` and `POST /api/v1/imports` implement scope-filtered templates, bounded guarded parsing, staged validation preview with a preview hash, and one atomic `IMPORT_COMMIT` operation that reuses `ChildService.onboardInTransaction`, `LedgerService.postInTransaction`, `PayrollService.createProfileInTransaction`, `LicensingService.provisionInTransaction` and `OrganizationService.assignInTransaction`. Stored operation/audit/batch results redact one-time credentials. D49 and [IMPORTS.md](IMPORTS.md) record limits, duplicate policy, routes and evidence.
 
 ## Phase 06 implemented child and document contract
 

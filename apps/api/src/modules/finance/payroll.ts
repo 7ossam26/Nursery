@@ -45,10 +45,14 @@ export class PayrollService {
   });
  }
  async createProfile(token:string,raw:unknown) {
+  const input=employeeProfileInputSchema.parse(raw);
+  return this.core.children.withPolicy(token,(tx,p)=>this.createProfileInTransaction(tx,p,input));
+ }
+ // Shared by the payroll screen and bulk employee imports; the caller owns the license/policy locks and transaction.
+ async createProfileInTransaction(tx:Transaction,p:Policy,raw:unknown) {
   const input=employeeProfileInputSchema.parse(raw);let accountId:string|null=null;let temporaryPassword:string|null=null;
-  return this.core.children.withPolicy(token,async(tx,p)=>{
-   await this.enabled(tx);
-   return this.core.operation(tx,p,input.operationId,'EMPLOYEE_PROFILE_CREATE',input,'payroll.manage',async()=>{
+  await this.enabled(tx);
+  return this.core.operation(tx,p,input.operationId,'EMPLOYEE_PROFILE_CREATE',input,'payroll.manage',async()=>{
     requireRecord(p,'payroll.manage',resource(input.payingBranchId));if(input.loginUsername){requireCapability(p,'users.manage_staff');await tx.query('select singleton from license_limits where singleton for update');}const [account]=await this.treasury.lockAccounts(tx,p,[input.payingAccountId]);if(account.branch_id!==input.payingBranchId)throw invalid();return [resource(input.payingBranchId)];
    },async()=>{
     if(input.loginUsername){const created=await this.licensing.provisionInTransaction(tx,p,'users.manage_staff','STAFF','EMPLOYEE',{username:input.loginUsername});accountId=created.id;temporaryPassword=created.temporaryPassword;}
@@ -56,7 +60,6 @@ export class PayrollService {
     await tx.query('insert into salary_history(id,employee_id,effective_month,basic_salary,paying_branch_id,paying_account_id,reason,actor_id,operation_id) values($1,$2,$3,$4,$5,$6,$7,$8,$9)',[randomUUID(),id,monthDate(input.effectiveMonth),input.basicSalary,input.payingBranchId,input.payingAccountId,'Initial agreed salary',p.account.id,input.operationId]);
     return {id,accountId,temporaryPassword};
    },async()=>{if(input.loginUsername)requireCapability(p,'users.manage_staff');},true,result=>({...result,temporaryPassword:null}));
-  });
  }
  async profileStatus(token:string,id:string,raw:unknown) {
   const input=employeeProfileStatusInputSchema.parse(raw);return this.core.children.withPolicy(token,async(tx,p)=>{await this.enabled(tx);return this.core.operation(tx,p,input.operationId,'EMPLOYEE_PROFILE_STATUS',{id,...input},'payroll.manage',async()=>{const owner=await this.salaryOwner(tx,p,id,'payroll.manage');if(owner.active===input.active)throw invalid();return [resource(owner.branch_id)];},async()=>{const eventId=randomUUID();await tx.query('insert into employee_profile_status_events(id,employee_id,active,reason,actor_id,operation_id) values($1,$2,$3,$4,$5,$6)',[eventId,id,input.active,input.reason,p.account.id,input.operationId]);return {id,eventId,active:input.active};});});

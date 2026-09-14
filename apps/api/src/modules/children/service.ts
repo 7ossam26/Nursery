@@ -109,10 +109,14 @@ export class ChildService {
     });
   }
   async onboard(token: string,raw: unknown): Promise<OnboardingResult> {
-    const input = onboardingInputSchema.parse(raw); const hash = createHash('sha256').update(JSON.stringify(input)).digest('hex');
+    const input = onboardingInputSchema.parse(raw);
     const targets = input.guardians.flatMap((g) => g.kind === 'EXISTING' ? [g.accountId] : []);
-    return this.withPolicy(token,async (tx,p) => {
-      requireCapability(p,'children.manage'); requireCapability(p,'guardians.manage');
+    return this.withPolicy(token,(tx,p) => this.onboardInTransaction(tx,p,input),targets);
+  }
+  // Shared by interactive onboarding and bulk imports; the caller owns the license/policy/guardian locks and transaction.
+  async onboardInTransaction(tx: Transaction,p: Policy,raw: unknown): Promise<OnboardingResult> {
+    const input = onboardingInputSchema.parse(raw); const hash = createHash('sha256').update(JSON.stringify(input)).digest('hex');
+    requireCapability(p,'children.manage'); requireCapability(p,'guardians.manage');
       const previous = (await tx.query<{ input_hash: string; child_ids: string[]; guardian_ids: string[] }>('select * from child_onboarding_operations where actor_id=$1 and operation_id=$2',[p.account.id,input.operationId])).rows[0];
       if (previous) {
         if (previous.input_hash !== hash) throw new SafeError('IDEMPOTENCY_CONFLICT','children.operationConflict',false,409);
@@ -150,7 +154,6 @@ export class ChildService {
       }
       await tx.query('insert into child_onboarding_operations(actor_id,operation_id,input_hash,child_ids,guardian_ids) values($1,$2,$3,$4,$5)',[p.account.id,input.operationId,hash,childIds,guardianIds]);
       return { childIds,guardianIds,credentials,replayed: false,warnings: [...new Set(warnings)] };
-    },targets);
   }
   private async statusHistory(tx: Transaction,p: Policy,child: Child,previous: string | null,reason: string) {
     await tx.query('insert into child_status_history(id,child_id,actor_id,branch_id,previous_status,new_status,effective_on,reason,public_message,child_name_snapshot) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',[randomUUID(),child.id,p.account.id,child.branchId,previous,child.status,cairoIsoDate(),reason,child.publicMessage,child.fullName]);

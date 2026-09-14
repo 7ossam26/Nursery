@@ -55,7 +55,7 @@ export class OrganizationService {
     if (!row) throw denied();
     return row;
   }
-  private async assignable(tx: Transaction, p: Policy): Promise<Role[]> {
+  async assignable(tx: Transaction, p: Policy): Promise<Role[]> {
     const roles = await this.roles(tx);
     if (p.account.kind === 'SYSTEM') return roles;
     const delegated = (await tx.query<{ role_id: string }>('select role_id from delegated_assignable_roles where account_id=$1', [p.account.id])).rows.map((r) => r.role_id);
@@ -160,8 +160,12 @@ export class OrganizationService {
   }
   async assign(token: string, id: string, raw: unknown) {
     uuid.parse(id); const input = assignmentInputSchema.parse(raw);
-    return this.withPolicy(token, async (tx,p) => {
-      requireCapability(p,'users.assign_roles');
+    return this.withPolicy(token, (tx,p) => this.assignInTransaction(tx,p,id,input), { edit: true, targetIds: [id] });
+  }
+  // Shared by the staff screen and bulk employee-login imports; the caller must hold the exclusive policy lock (7190401).
+  async assignInTransaction(tx: Transaction, p: Policy, id: string, raw: unknown) {
+    const input = assignmentInputSchema.parse(raw);
+    requireCapability(p,'users.assign_roles');
       const target = await this.staff(tx,id); const roles = await this.assignable(tx,p);
       if (!this.canManageStaff(p,target,roles) || !input.roleIds.every((roleId) => roles.some((r) => r.id === roleId))) throw denied();
       for (const branchId of input.branchIds) requireBranch(p,branchId);
@@ -177,7 +181,6 @@ export class OrganizationService {
       await tx.query('update accounts set scope_mode=$2,assignment_version=assignment_version+1 where id=$1', [id,input.scopeMode]);
       await this.audit(tx,p,'staff.assigned',id,target,input); await this.changed(tx);
       return { version: target.version + 1 };
-    }, { edit: true, targetIds: [id] });
   }
   async delegateOrGrant(token: string, id: string, kind: 'delegation' | 'grant', raw: unknown) {
     uuid.parse(id); const input = kind === 'delegation' ? delegationInputSchema.parse(raw) : grantInputSchema.parse(raw);

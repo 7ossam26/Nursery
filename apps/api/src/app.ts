@@ -15,6 +15,7 @@ import { installHomework } from './modules/homework/routes.js';
 import { installCommunication } from './modules/communication/routes.js';
 import { installFinance } from './modules/finance/routes.js';
 import { installReports } from './modules/reports/routes.js';
+import { installImports } from './modules/imports/routes.js';
 
 export { SafeError } from './errors.js';
 type DatabaseLifecycle = Pick<Database, 'checkConnection' | 'close'>;
@@ -36,6 +37,7 @@ export function buildApp(config: AppConfig, database: DatabaseLifecycle = create
   installCommunication(app);
   installFinance(app);
   installReports(app,config.privateFilesDir);
+  installImports(app);
   app.get('/api/v1/health', { config: { public: true } }, async (request) => ({ status: 'ok', requestId: request.id }));
   app.get('/api/v1/readiness', { config: { public: true } }, async (request, reply) => {
     try { await database.checkConnection(); return { status: 'ready', requestId: request.id }; }

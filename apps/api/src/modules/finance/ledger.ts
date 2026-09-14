@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { z } from 'zod';
 import { postObligation,type Transaction } from '@nursery/db';
 import { feeCategoryInputSchema,obligationInputSchema,financeQuerySchema,outstandingQuerySchema,type OutstandingPage,type CollectionOptions,type Capability,type Child } from '@nursery/contracts';
 import { cairoIsoDate } from '@nursery/domain';
@@ -73,13 +74,15 @@ export class LedgerService {
     return this.core.children.withPolicy(token,(tx,p)=>this.core.operation(tx,p,input.operationId,'OBLIGATION_CREATE',input,'billing.manage',async()=>{
       child=await resolveChild(tx,input.childId,true); requireChild(p,'billing.manage',child);
       return [{branchId:child.branchId,classroomId:child.classroomId??undefined,childId:child.id}];
-    },async()=>{
-      this.core.date(input.issuedOn);
-      if(input.installments.reduce((sum,i)=>sum+BigInt(i.amount),0n)!==BigInt(input.amount)) throw invalid();
-      const category=(await tx.query<{name:string;kind:string}>('select name,kind from fee_categories where id=$1',[input.categoryId])).rows[0]; if(!category) throw invalid();
-      if(category.kind==='BUS'&&input.installments.length!==1) throw invalid();
-      return postObligation(tx,p.account.id,child,input);
-    }));
+    },()=>this.postInTransaction(tx,p,child,input)));
+  }
+  // One obligation writer for interactive charges and bulk opening-debt imports: dated debt only, never cash.
+  async postInTransaction(tx:Transaction,p:Policy,child:Child,input:z.infer<typeof obligationInputSchema>) {
+    this.core.date(input.issuedOn);
+    if(input.installments.reduce((sum,i)=>sum+BigInt(i.amount),0n)!==BigInt(input.amount)) throw invalid();
+    const category=(await tx.query<{name:string;kind:string}>('select name,kind from fee_categories where id=$1',[input.categoryId])).rows[0]; if(!category) throw invalid();
+    if(category.kind==='BUS'&&input.installments.length!==1) throw invalid();
+    return postObligation(tx,p.account.id,child,input);
   }
   // All settlement adapters lock this same hierarchy before reading canonical balances.
   async lockDue(tx:Transaction,p:Policy,ids:string[],capability:Capability='payments.record',extraChildIds:string[]=[]):Promise<DueItem[]> {
