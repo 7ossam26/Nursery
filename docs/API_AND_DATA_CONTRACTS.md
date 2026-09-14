@@ -75,6 +75,8 @@ Foreign keys with history default to restrict/retire behavior. Critical cross-ro
 
 ## Amount and status projections
 
+Phase 13 implements these formulas in PostgreSQL views `installment_balances`, `obligation_balances`, `credit_balances`, and `treasury_balances` (migration 0011). Strict runtime inputs in `packages/contracts/src/finance.ts` use canonical integer-string piastres and normalized UUIDs; aggregates stay exact strings beyond JavaScript's safe-integer range. `FinancialCore`, `LedgerService`, `PaymentService`, and `TreasuryService` share current policy/module checks and transactional locks. APIs, receipt print DTO, retry rules, scope predicates, migration implications and actual verification are documented in [FINANCIAL_CORE.md](FINANCIAL_CORE.md). These services do not grant existing roles new capabilities or expose correction/refund/closing workflows.
+
 Debt = approved base obligation amounts + signed obligation adjustments - effective receipt allocations - applied credits. Installment rows describe due portions and are not added as another obligation. Account balance sums all posted signed movements, including the opening movement and each original/reversing entry exactly once. Do not both remove an original movement from the sum and count its negative reversal.
 
 Paid flags, installment state, bus settlement, progress counters, and dashboard totals are projections of canonical records. Do not maintain independently writable paidTotal, treasuryBalance, or dailyProgress values that can drift.

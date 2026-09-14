@@ -7,6 +7,7 @@ import { attendanceEnglish, attendanceArabic } from '../features/attendance/copy
 import { examsEnglish, examsArabic } from '../features/exams/copy.js';
 import { homeworkEnglish, homeworkArabic } from '../features/homework/copy.js';
 import { communicationEnglish, communicationArabic } from '../features/communication/copy.js';
+import { financeEn,financeAr } from '../features/finance/copy.js';
 export const supportedLocales = ['en', 'ar-EG'] as const;
 export type Locale = (typeof supportedLocales)[number];
 
@@ -20,6 +21,7 @@ const en = {
   ...examsEnglish,
   ...homeworkEnglish,
   ...communicationEnglish,
+  ...financeEn,
   'auth.signIn': 'Sign in',
   'auth.username': 'Username',
   'auth.password': 'Password',
@@ -154,6 +156,7 @@ const ar: Record<MessageKey, string> = {
   ...examsArabic,
   ...homeworkArabic,
   ...communicationArabic,
+  ...financeAr,
   'auth.signIn': 'تسجيل الدخول',
   'auth.username': 'اسم المستخدم',
   'auth.password': 'كلمة السر',

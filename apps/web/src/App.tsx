@@ -13,6 +13,7 @@ import { TeacherAttendanceScreen } from './features/attendance/screens.js';
 import { TeacherExamsScreen } from './features/exams/screens.js';
 import { TeacherHomeworkScreen } from './features/homework/screens.js';
 import { ParentLive } from './features/communication/ParentLive.js';
+import { TreasuryScreen } from './features/finance/screen.js';
 import { AnnouncementPublishScreen,ParentTodayScreen,ParentNoticesScreen,ParentNoticeScreen,ParentNotificationsScreen } from './features/communication/screens.js';
 
 const DevelopmentPreview = import.meta.env.DEV
@@ -42,6 +43,7 @@ function AuthRoutes() {
     <Route path="/change-password" element={<AuthGate><PasswordScreen /></AuthGate>} />
     <Route path="/administration/organization" element={<AuthGate><OrganizationScreen /></AuthGate>} />
     <Route path="/administration/settings" element={<AuthGate><SettingsScreen /></AuthGate>} />
+    <Route path="/administration/treasury" element={<AuthGate><TreasuryScreen /></AuthGate>} />
     <Route path="/administration/checkpoints" element={<AuthGate><LearningConfigurationScreen /></AuthGate>} />
     <Route path="/teacher/learning" element={<AuthGate><TeacherLearningScreen /></AuthGate>} />
     <Route path="/teacher/today" element={<AuthGate><TeacherAttendanceScreen /></AuthGate>} />

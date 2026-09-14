@@ -67,6 +67,12 @@ Baseline 2026-09-13. U = explicit user decision; D = engineering/product default
 
 ## Change procedure
 
+### 2026-09-14 — Phase 13 execution and financial core defaults (D39)
+
+The user explicitly requested Phase 13 after the Phase 12 handoff. Proceed with its technical prerequisite verification while preserving Phase 12's unresolved screenshot handoff; this does not mark that gate complete or authorize browser automation. No model changes or delegation.
+
+Financial core amounts are canonical integer strings bounded to PostgreSQL BIGINT per entry; aggregate projections remain arbitrary precision strings. Receipt references use installation-local monotonic `FIN-` plus a minimum twelve-digit sequence (gaps allowed), with immutable branch/account/child/category identifying snapshots. One actor-scoped operation can contain one receipt per branch, with explicit destination and allocations for every branch. The first account configured for a branch must be CASH and becomes its default; an explicit dated opening movement (including an explicitly entered zero) is required. No existing branch/debt is silently assigned a cash balance. Additional BANK/WALLET accounts record their actual destination. Account identity/openings are immutable; default cash mapping changes use expectedVersion and audit. Branch-wide treasury requires branch scope; classroom finance sees only permitted debt and wholly permitted receipts, never branch cash totals. Correction authorization reuses capability plus sensitive grant; correction/refund/closing workflows remain Phase 16.
+
 ### 2026-09-14 — Phase 12 recipient and live-delivery defaults (D38)
 
 R04/R06/R09/U20, D19/D24: announcements are immutable plain-text publications with frozen recipient child witnesses; optional acknowledgments and inbox read state are independent per guardian. Current target branch/classroom, active child and guardian read links are rechecked on every read; notifications additionally require notify. Nursery publication is SYSTEM-only, scoped staff use delegable announcements.manage without automatic grants. Selected-parent publication requires all current active child scopes. One announcement notification per guardian is retained across sibling witnesses. Recipient-local dispatch reads immutable source identities, inserts at most 200 candidates per transaction and deduplicates event/guardian; sources are never mutated. No recipient lists or sensitive record dumps reach notification DTOs or live streams.

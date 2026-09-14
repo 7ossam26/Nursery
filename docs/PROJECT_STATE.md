@@ -1,18 +1,16 @@
 # Project state
 
-Baseline: 2026-09-13. Phase 12 in progress (2026-09-14).
+Baseline: 2026-09-13. Phase 13 complete (2026-09-14).
 
 ## Active state
 
-- Current phase: 12 — Parent hub, announcements, and live notifications — IN PROGRESS; gate not yet satisfied.
-- Checkpoint 1: inspected clean worktree, actual policy/guardian services and immutable learning/homework/incident/absence producers. Prerequisites verified on disposable PostgreSQL 18.6: `npm run test:integration -- tests/integration/safety.test.ts tests/integration/homework.test.ts --maxWorkers=1` passed 12/12. Pinned Node 24.19.0/npm 11.1.0; new loopback-only cluster `%TEMP%/nursery-phase12-pg`, port 55412, database nursery_test.
-- Delivered: communication contracts/migration 0010, immutable targeted announcements/holiday notices, private recipients/independent acknowledgment/inbox read state, real producer adapters, authenticated SSE and compact bilingual Today/history/notices/notification/publish/WhatsApp screens. Existing contracts/components/policy/learning operation reused.
-- Actual final evidence: current PostgreSQL/regression 24/24; final communication-only 9/9 including active-stream shutdown; focused units 3/3; final bilingual real HTTP/SSE/DOM/publication 3/3 with RTL/axe/no server errors and visible refresh under five seconds. Final typecheck/lint/build and repository-configured `git diff --check` passed. Detailed commands/results in PARENT_HUB_AND_NOTIFICATIONS.md.
-- Migration/defaults: fresh 0000–0010 applied and rerun idempotently; upgrades preserve identities/reservations/edited roles, no role grants/history mutation. D38 documents privacy/reconnect and narrow dated-holiday notice addition because actual Phase 09 lacks a calendar producer; notices never infer attendance.
-- Runtime: pinned Node 24.19.0/npm 11.1.0, isolated PostgreSQL 18.6 `%TEMP%/nursery-phase12-pg`, loopback 55412, nursery_test, STOPPED after verification. No live nursery/environment/dependency/model/deployment/browser automation/subagents changed. Initial diff clean; preserve uncommitted phase work.
-- Limits: dispatch at most 200 candidates/transaction, list pages at most 50, three streams/account/API process; revocation checked each second plus DB/network latency, normal requests immediately. Build 590.69 kB/164.63 kB gzip retains >500 kB warning; pg concurrent-query deprecation warning observed, origin untraced; prior auth DOM timing defect outside scope.
-- Remaining handoff conflict: phase requires screenshots; AGENTS mandates scripts and prohibits browser automation. Clarification asked (waive screenshots or explicitly permit local screenshot-only automation), no reply/permission received. Screenshots/physical narrow-phone layout review not run; gate stays open, no completion claim.
-- Last completed: Phase 11 (HOMEWORK.md). Resolve Phase 12 screenshot handoff next; Phase 13 follows only after its gate. Precise continuation: [HANDOFF.md](HANDOFF.md).
+- Current phase: 13 — Financial records, transactions, and treasury core — COMPLETE; stopped at this gate. Phase 14 is NOT STARTED.
+- Delivered: exact piastre string contracts/utilities; migration 0011; immutable obligations/installments, receipts/allocations, credits, movements, audit/events/operation results; scoped PaymentService/TreasuryService/LedgerService; minimum tested APIs and bilingual treasury setup screen.
+- Final evidence: financial PostgreSQL 16/16 (19.53s), including actual lock contention, concurrent collectors/credits, cross-branch atomicity/second-leg rollback, three intermediate failure points, replays/revocation, exact unsafe-number-range amounts and reconciliation after every test. Migration upgrade/rerun 2/2; prior prerequisite communication 9/9; focused units 7/7 plus final finance 1/1; bilingual real HTTP/DOM/connection-loss recovery 2/2. Final typecheck/lint/build passed; diff check passed after EOF cleanup. Full commands and failures/fixes in FINANCIAL_CORE.md.
+- Migration: fresh 0000–0011 and idempotent rerun passed on the disposable database. Existing identities/reservations/edited roles preserved; no new grants or invented opening cash. No production migration/deployment.
+- Environment: Node 24.19.0/npm 11.1.0; npm ci --ignore-scripts restored lockfile dependencies (0 vulnerabilities). Actual PostgreSQL 17.9 at %TEMP%/nursery-phase13-pg, loopback 55413/nursery_test; stop recorded in handoff. PostgreSQL 18 target unverified on this machine. No live nursery, system services, environment files, subagents or model changes.
+- Limitations: bundle 601.02 kB/167.14 kB gzip retains >500 kB warning; no physical-phone/screenshot claims. Phase 12 screenshot gate remains IN PROGRESS, explicit Phase 13 progression recorded in D39. Older auth DOM timing issue and pg concurrent-query warning remain outside scope. Financial event delivery is Phase 15; corrections/refunds/closing are Phase 16.
+- Next phase: 14 — Billing modes, equal discounts, and recurring charges, only on a separate request. See [FINANCIAL_CORE.md](FINANCIAL_CORE.md) and [HANDOFF.md](HANDOFF.md).
 
 ## Phase ledger
 
@@ -30,7 +28,7 @@ Baseline: 2026-09-13. Phase 12 in progress (2026-09-14).
 | 10 | Exams, grades, and corrections | COMPLETE | Unit 54/54; PostgreSQL exams 7/7 plus full regression 65/65; bilingual DOM/HTTP 2/2; workspace typecheck/lint/build and diff check passed. See EXAMS.md. |
 | 11 | Homework assignments and individual completion | COMPLETE | Homework PostgreSQL 8/8; learning/exam/attendance/migration regression 22/22; unit 56/56; bilingual DOM/HTTP 2/2; workspace typecheck/lint/build, fresh migration/rerun and diff passed. See HOMEWORK.md. |
 | 12 | Parent hub, announcements, and live notifications | IN PROGRESS | Prerequisites 12/12; PG/regression 24/24 plus final communication 9/9; unit 3/3; final real HTTP/SSE bilingual DOM/publication 3/3; final type/lint/build passed. Required screenshot handoff conflict pending. |
-| 13 | Financial records, transactions, and treasury core | NOT STARTED | None |
+| 13 | Financial records, transactions, and treasury core | COMPLETE | Final PostgreSQL finance 16/16; upgrade/rerun 2/2; focused unit 7/7 plus final finance 1/1; bilingual real HTTP/DOM/lost-response 2/2; final type/lint/build and diff passed. See FINANCIAL_CORE.md. |
 | 14 | Billing modes, equal discounts, and recurring charges | NOT STARTED | None |
 | 15 | Collections, outstanding balances, receipts, and manual blocks | NOT STARTED | None |
 | 16 | Expenses, transfers, refunds, and daily closing | NOT STARTED | None |

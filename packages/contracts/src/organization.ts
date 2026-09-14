@@ -6,7 +6,8 @@ export const capabilityKeys = [
   'licensing.manage', 'seats.release', 'branding.manage', 'modules.manage', 'users.manage_staff', 'users.create_parent', 'parents.block',
   'children.read', 'children.manage', 'guardians.manage', 'documents.manage',
   'health.read', 'health.manage', 'pickup.record', 'pickup.manage', 'incidents.read', 'incidents.manage',
-  'learning.configure', 'learning.read', 'learning.publish', 'exams.catalog', 'announcements.manage'
+  'learning.configure', 'learning.read', 'learning.publish', 'exams.catalog', 'announcements.manage',
+  'finance.read', 'billing.manage', 'payments.record', 'treasury.manage'
 ] as const;
 export type Capability = typeof capabilityKeys[number];
 export const scopeModeSchema = z.enum(['BRANCH', 'CLASSROOM']);
