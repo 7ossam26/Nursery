@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState, type ReactNode, type FormEvent } from 'react';
 import { errorKey, useScoped } from './scoped.js';
 import { ChildSafetyPanel, GuardianSafetyPanel } from '../safety/screens.js';
-import { Link, useParams } from 'react-router';
-import { onboardingInputSchema, defaultLinkPermissions, MAX_DOCUMENT_BYTES, type Child, type ChildDetail, type ChildrenOptions, type GuardianOption, type GuardianLink, type GuardianChild, type GuardianChildDetail, type LinkPermissions, type OnboardingInput, type OnboardingResult } from '@nursery/contracts';
+import { Link, useParams,useSearchParams } from 'react-router';
+import { ParentFrame } from '../communication/screens.js';
+import { onboardingInputSchema, learningDateSchema, defaultLinkPermissions, MAX_DOCUMENT_BYTES, type Child, type ChildDetail, type ChildrenOptions, type GuardianOption, type GuardianLink, type GuardianChild, type GuardianChildDetail, type LinkPermissions, type OnboardingInput, type OnboardingResult } from '@nursery/contracts';
 import { Button, SelectField, TextField } from '../../components/controls.js';
 import { Card } from '../../components/surfaces.js';
 import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import { type MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
-import { formatDateOnly } from '@nursery/domain';
+import { cairoIsoDate,formatDateOnly } from '@nursery/domain';
+import { DailyLearningPanel } from '../learning/screens.js';
 import { GuardianAttendancePanel } from '../attendance/screens.js';
 import { GuardianExamHistoryPanel } from '../exams/screens.js';
 import { GuardianHomeworkHistoryPanel } from '../homework/screens.js';
@@ -158,9 +160,9 @@ export function ChildDetailScreen() {
 }
 export function GuardianChildrenScreen() {
   const { t } = useLocale(); const state = useScoped<GuardianChild[]>('parent/children');
-  return <Frame>{state.error && <p role="alert">{t(state.error)}</p>}{state.data ? <>{!state.data.length && <p>{t('children.noChildren')}</p>}<div className="organization-records">{state.data.map((c) => <Card key={c.id} title={c.fullName}>{c.status==='PAUSED' ? <p>{c.publicMessage || t('children.contactNursery')}</p> : <Link to={`/parent/children/${c.id}`}>{t('children.open')}</Link>}</Card>)}</div></> : <p role="status">{t('state.loading')}</p>}</Frame>;
+  return <ParentFrame>{state.error && <p role="alert">{t(state.error)}</p>}{state.data ? <>{!state.data.length && <p>{t('children.noChildren')}</p>}<div className="organization-records">{state.data.map((c) => <Card key={c.id} title={c.fullName}>{c.status==='PAUSED' ? <p>{c.publicMessage || t('children.contactNursery')}</p> : <Link to={`/parent/children/${c.id}`}>{t('children.open')}</Link>}</Card>)}</div></> : <p role="status">{t('state.loading')}</p>}</ParentFrame>;
 }
 export function GuardianChildScreen() {
-  const { id } = useParams(); const { t } = useLocale(); const state = useScoped<GuardianChildDetail>(`parent/children/${encodeURIComponent(id ?? '')}`);
-  return <Frame><Link to="/parent/children">{t('children.back')}</Link>{state.error && <p role="alert">{t(state.error)}</p>}{state.data ? <><Card title={state.data.child.fullName}><p>{formatDateOnly(state.data.child.birthDate)}</p></Card><GuardianAttendancePanel childId={state.data.child.id} /><GuardianExamHistoryPanel childId={state.data.child.id} /><GuardianHomeworkHistoryPanel childId={state.data.child.id} /><GuardianSafetyPanel childId={state.data.child.id} /></> : <p role="status">{t('state.loading')}</p>}</Frame>;
+  const { id } = useParams(); const [query]=useSearchParams(); const date=learningDateSchema.safeParse({ date: query.get('date') }); const { t } = useLocale(); const state = useScoped<GuardianChildDetail>(`parent/children/${encodeURIComponent(id ?? '')}`);
+  return <ParentFrame><Link to="/parent/children">{t('children.back')}</Link>{state.error && <p role="alert">{t(state.error)}</p>}{state.data ? <><Card title={state.data.child.fullName}><p>{formatDateOnly(state.data.child.birthDate)}</p></Card>{date.success && date.data.date<=cairoIsoDate() && <DailyLearningPanel key={`${state.data.child.id}/${date.data.date}`} childId={state.data.child.id} date={date.data.date} guardian />}<GuardianAttendancePanel childId={state.data.child.id} /><GuardianExamHistoryPanel childId={state.data.child.id} /><GuardianHomeworkHistoryPanel childId={state.data.child.id} /><GuardianSafetyPanel childId={state.data.child.id} /></> : <p role="status">{t('state.loading')}</p>}</ParentFrame>;
 }

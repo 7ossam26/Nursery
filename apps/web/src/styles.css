@@ -244,3 +244,8 @@ p { line-height: 1.5; }
 .learning-status--error { color: var(--color-error); }
 .organization-page fieldset { min-inline-size: 0; }
 .organization-page progress { max-inline-size: 100%; }
+.parent-hub { font-size: 18px; line-height: 1.5; overflow-wrap: anywhere; }
+.parent-hub nav { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-block: 1rem; }
+.parent-hub nav a, .parent-hub summary, .parent-hub > a { display: inline-flex; align-items: center; min-block-size: 44px; padding: 0.5rem; }
+.parent-hub .notice-body { white-space: pre-wrap; }
+.parent-hub section, .parent-hub ul { min-inline-size: 0; max-inline-size: 100%; }

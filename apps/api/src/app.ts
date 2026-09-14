@@ -12,6 +12,7 @@ import { installLearning } from './modules/learning/routes.js';
 import { installAttendance } from './modules/attendance/routes.js';
 import { installExams } from './modules/exams/routes.js';
 import { installHomework } from './modules/homework/routes.js';
+import { installCommunication } from './modules/communication/routes.js';
 
 export { SafeError } from './errors.js';
 type DatabaseLifecycle = Pick<Database, 'checkConnection' | 'close'>;
@@ -30,6 +31,7 @@ export function buildApp(config: AppConfig, database: DatabaseLifecycle = create
   installAttendance(app);
   installExams(app);
   installHomework(app);
+  installCommunication(app);
   app.get('/api/v1/health', { config: { public: true } }, async (request) => ({ status: 'ok', requestId: request.id }));
   app.get('/api/v1/readiness', { config: { public: true } }, async (request, reply) => {
     try { await database.checkConnection(); return { status: 'ready', requestId: request.id }; }

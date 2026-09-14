@@ -95,7 +95,8 @@ export function AccountScreen() {
       catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } finally { setBusy(false); }
     }}><option value="en">English</option><option value="ar-EG">العربية</option></SelectField>
     <Link to="/change-password">{t('auth.changePassword')}</Link><LogoutButton />
-    {auth.session!.account.kind==='GUARDIAN' && <Link to="/parent/children">{t('children.title')}</Link>}
+    {auth.session!.account.kind==='GUARDIAN' && <><Link to="/parent/today">{t('hub.today')}</Link><Link to="/parent/children">{t('children.title')}</Link></>}
+    {auth.session!.account.capabilities.includes('announcements.manage') && <Link to="/administration/announcements">{t('hub.publish')}</Link>}
     {auth.session!.account.capabilities.includes('learning.configure') && <Link to="/administration/checkpoints">{t('learning.configuration')}</Link>}
     {auth.session!.account.capabilities.includes('learning.read') && <><Link to="/teacher/today">{t('attendance.title')}</Link><Link to="/teacher/homework">{t('homework.title')}</Link><Link to="/teacher/exams">{t('exams.title')}</Link><Link to="/teacher/learning">{t('learning.title')}</Link></>}
     {auth.session!.account.capabilities.includes('children.read') && <Link to="/administration/children">{t('children.title')}</Link>}

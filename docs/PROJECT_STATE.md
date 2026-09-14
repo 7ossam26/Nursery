@@ -1,16 +1,18 @@
 # Project state
 
-Baseline: 2026-09-13. Phase 11 complete (2026-09-14).
+Baseline: 2026-09-13. Phase 12 in progress (2026-09-14).
 
 ## Active state
 
-- Current phase: 11 — Homework assignments and individual completion — COMPLETE; acceptance gate satisfied.
-- Delivered: shared assignments with frozen recipient/class/date attribution, independent content/outcome correction chains, configurable mapped completion states, explicit No homework/Excused exceptions, due-date contextual single-slot reporting, overdue checklist, paged teacher workflows and read-only guardian history/current status.
-- Evidence: prerequisite exams 7/7; final homework PostgreSQL 8/8; focused learning/exam/attendance/migration regression 22/22; unit 56/56; English/Egyptian Arabic DOM/HTTP 2/2 with RTL/axe and no HTTP 5xx; workspace typecheck/lint/build and diff check passed. Exact commands and interim fixes in HOMEWORK.md/HANDOFF.md.
-- Migration/defaults: 0009 immutable homework adapter tables, no historical checkpoint reseed/meaning changes or role grants. Fresh isolated migration 0000–0009 applied and rerun idempotently; upgrade regression preserves identity/reservations/edited roles. D37 and API/DAILY_LEARNING document exact contracts/due semantics.
-- Runtime: pinned Node 24.19.0/npm 11.1.0, isolated PostgreSQL 18.6 at loopback 55411. Disposable cluster stopped; no live data/service, environment file, dependency/model, deployment, browser automation or subagent changes. Initial diff clean, all phase work uncommitted.
-- Limits: reviewed publications/rosters bounded to 100 children with further roster pages; classroom assignment list bounded to 100, parent history paged. Published date/recipient edits are unavailable (content correction only). Existing >500 kB build warning and prior authentication DOM timing defect remain, no production performance/manual visual/live delivery claim.
-- Last completed phase: 11. Next: Phase 12 — Parent hub, announcements, and live notifications — only when requested. Stop; delivery/dispatch remains unimplemented. Historical Phase 10 evidence in EXAMS.md; details [HOMEWORK.md](HOMEWORK.md), next-session record [HANDOFF.md](HANDOFF.md).
+- Current phase: 12 — Parent hub, announcements, and live notifications — IN PROGRESS; gate not yet satisfied.
+- Checkpoint 1: inspected clean worktree, actual policy/guardian services and immutable learning/homework/incident/absence producers. Prerequisites verified on disposable PostgreSQL 18.6: `npm run test:integration -- tests/integration/safety.test.ts tests/integration/homework.test.ts --maxWorkers=1` passed 12/12. Pinned Node 24.19.0/npm 11.1.0; new loopback-only cluster `%TEMP%/nursery-phase12-pg`, port 55412, database nursery_test.
+- Delivered: communication contracts/migration 0010, immutable targeted announcements/holiday notices, private recipients/independent acknowledgment/inbox read state, real producer adapters, authenticated SSE and compact bilingual Today/history/notices/notification/publish/WhatsApp screens. Existing contracts/components/policy/learning operation reused.
+- Actual final evidence: current PostgreSQL/regression 24/24; final communication-only 9/9 including active-stream shutdown; focused units 3/3; final bilingual real HTTP/SSE/DOM/publication 3/3 with RTL/axe/no server errors and visible refresh under five seconds. Final typecheck/lint/build and repository-configured `git diff --check` passed. Detailed commands/results in PARENT_HUB_AND_NOTIFICATIONS.md.
+- Migration/defaults: fresh 0000–0010 applied and rerun idempotently; upgrades preserve identities/reservations/edited roles, no role grants/history mutation. D38 documents privacy/reconnect and narrow dated-holiday notice addition because actual Phase 09 lacks a calendar producer; notices never infer attendance.
+- Runtime: pinned Node 24.19.0/npm 11.1.0, isolated PostgreSQL 18.6 `%TEMP%/nursery-phase12-pg`, loopback 55412, nursery_test, STOPPED after verification. No live nursery/environment/dependency/model/deployment/browser automation/subagents changed. Initial diff clean; preserve uncommitted phase work.
+- Limits: dispatch at most 200 candidates/transaction, list pages at most 50, three streams/account/API process; revocation checked each second plus DB/network latency, normal requests immediately. Build 590.69 kB/164.63 kB gzip retains >500 kB warning; pg concurrent-query deprecation warning observed, origin untraced; prior auth DOM timing defect outside scope.
+- Remaining handoff conflict: phase requires screenshots; AGENTS mandates scripts and prohibits browser automation. Clarification asked (waive screenshots or explicitly permit local screenshot-only automation), no reply/permission received. Screenshots/physical narrow-phone layout review not run; gate stays open, no completion claim.
+- Last completed: Phase 11 (HOMEWORK.md). Resolve Phase 12 screenshot handoff next; Phase 13 follows only after its gate. Precise continuation: [HANDOFF.md](HANDOFF.md).
 
 ## Phase ledger
 
@@ -27,7 +29,7 @@ Baseline: 2026-09-13. Phase 11 complete (2026-09-14).
 | 09 | Attendance and daily classroom reports | COMPLETE | Unit 50/50; PostgreSQL attendance+migration 8/8 plus learning regression 7/7; bilingual DOM/HTTP 2/2; typecheck/build/changed lint/diff passed. See ATTENDANCE.md. |
 | 10 | Exams, grades, and corrections | COMPLETE | Unit 54/54; PostgreSQL exams 7/7 plus full regression 65/65; bilingual DOM/HTTP 2/2; workspace typecheck/lint/build and diff check passed. See EXAMS.md. |
 | 11 | Homework assignments and individual completion | COMPLETE | Homework PostgreSQL 8/8; learning/exam/attendance/migration regression 22/22; unit 56/56; bilingual DOM/HTTP 2/2; workspace typecheck/lint/build, fresh migration/rerun and diff passed. See HOMEWORK.md. |
-| 12 | Parent hub, announcements, and live notifications | NOT STARTED | None |
+| 12 | Parent hub, announcements, and live notifications | IN PROGRESS | Prerequisites 12/12; PG/regression 24/24 plus final communication 9/9; unit 3/3; final real HTTP/SSE bilingual DOM/publication 3/3; final type/lint/build passed. Required screenshot handoff conflict pending. |
 | 13 | Financial records, transactions, and treasury core | NOT STARTED | None |
 | 14 | Billing modes, equal discounts, and recurring charges | NOT STARTED | None |
 | 15 | Collections, outstanding balances, receipts, and manual blocks | NOT STARTED | None |

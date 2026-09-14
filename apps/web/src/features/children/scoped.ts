@@ -8,19 +8,20 @@ export const errorKey = (error: unknown): MessageKey => error instanceof AuthErr
 // visible data. No business records or initial passwords are persisted in browser storage.
 export function useScoped<T>(path: string) {
   const auth = useAuth(); const authRef = useRef(auth); authRef.current = auth;
-  const [data,setData] = useState<T | null>(null); const [error,setError] = useState<MessageKey | null>(null); const [revision,setRevision] = useState(0);
+  const [record,setRecord] = useState<{ path: string;value: T } | null>(null); const [error,setError] = useState<MessageKey | null>(null); const [revision,setRevision] = useState(0);
   useEffect(() => {
-    let alive = true; let generation = 0; let pending = false;
+    let alive = true; let generation = 0; let pending = false; let queued = false;
     async function read() {
       if (!alive || pending || document.visibilityState === 'hidden') return; pending = true; const started = generation;
-      try { const next = await auth.client.business<T>(path); if (alive && started === generation) { setData(next); setError(null); } }
-      catch (caught) { if (alive && started === generation) { setData(null); setError(errorKey(caught)); authRef.current.handleError(caught); } }
-      finally { pending = false; }
+      try { const next = await auth.client.business<T>(path); if (alive && started === generation) { setRecord({ path,value: next }); setError(null); } }
+      catch (caught) { if (alive && started === generation) { setRecord(null); setError(errorKey(caught)); authRef.current.handleError(caught); } }
+      finally { pending = false; if (queued && alive) { queued=false; void read(); } }
     }
-    const focus = () => { generation++; setData(null); if (!pending) void read(); };
-    setData(null); void read(); const timer = window.setInterval(() => { void read(); },5000);
+    const focus = () => { generation++; setRecord(null); if (pending) queued=true; else void read(); };
+    setRecord(null); void read(); const timer = window.setInterval(() => { void read(); },5000);
     window.addEventListener('focus',focus); document.addEventListener('visibilitychange',focus);
-    return () => { alive = false; generation++; clearInterval(timer); window.removeEventListener('focus',focus); document.removeEventListener('visibilitychange',focus); };
+    window.addEventListener('nursery:scope-refresh',focus);
+    return () => { alive = false; generation++; clearInterval(timer); window.removeEventListener('focus',focus); document.removeEventListener('visibilitychange',focus); window.removeEventListener('nursery:scope-refresh',focus); };
   }, [auth.client,path,revision]);
-  return { data,error,reload: () => setRevision((v) => v+1) };
+  return { data: record?.path===path ? record.value : null,error,reload: () => setRevision((v) => v+1) };
 }

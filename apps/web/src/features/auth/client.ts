@@ -6,7 +6,8 @@ export class AuthError extends Error {
 export class AuthClient {
   private csrf = '';
   private revision = 0;
-  constructor(private readonly transport: typeof fetch = (...args) => fetch(...args)) {}
+  constructor(private readonly transport: typeof fetch = (...args) => fetch(...args),private readonly liveTransport?: () => EventSource) {}
+  parentLive(): EventSource | null { return this.liveTransport ? this.liveTransport() : typeof EventSource==='undefined' ? null : new EventSource('/api/v1/parent/live',{ withCredentials: true }); }
   clear() { this.revision++; this.csrf = ''; }
   private async request(path: string, method = 'GET', body?: unknown): Promise<unknown> {
     const response = await this.transport(path.startsWith('/') ? path : `/api/v1/auth/${path}`, { method, credentials: 'same-origin', cache: 'no-store', headers: method === 'GET' ? {} : { 'Content-Type': 'application/json', 'X-CSRF-Token': this.csrf }, ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });

@@ -160,6 +160,9 @@ export class AttendanceService {
         where attendance_planned_absences.reason is distinct from excluded.reason`,[p.account.id,input.childId,input.from,input.until,input.reason]);
       const after=(await tx.query<PlannedAbsence>('select business_date::text as date,reason,version from attendance_planned_absences where guardian_id=$1 and child_id=$2 and business_date between $3 and $4 order by business_date',[p.account.id,input.childId,input.from,input.until])).rows;
       await this.children.audit(tx,p,child,'attendance.planned_absence',before,{ from: input.from,until: input.until,days: after });
+      // One event per changed submission, not one notification for every day in a range.
+      if (JSON.stringify(before)!==JSON.stringify(after)) await tx.query(`insert into communication_events(id,kind,child_id,business_date,recipient_ids)
+        values($1,'PLANNED_ABSENCE',$2,$3,array[$4::uuid])`,[randomUUID(),child.id,input.from,p.account.id]);
       return after;
     });
   }

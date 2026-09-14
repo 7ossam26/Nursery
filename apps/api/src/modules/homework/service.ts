@@ -164,12 +164,13 @@ export class HomeworkService {
     return this.children.withPolicy(token,async (tx,p) => {
       await this.enabled(tx); await this.learning.authorizedChild(tx,p,childId); const scope=homeworkScope(p);
       const where=`r.child_id=$1 and a.assigned_on<=$2 and ${scope.sql} and ($7::date is null or a.assigned_on>=$7) and ($8::date is null or a.assigned_on<=$8)
-        and ($9::boolean=false or (a.due_on<$2 and coalesce(o.status->>'outcome','MISSING') not in ('COMPLETED','EXCUSED')))`;
+        and ($9::boolean=false or (a.due_on<$2 and coalesce(o.status->>'outcome','MISSING') not in ('COMPLETED','EXCUSED')))
+        and ($10::date is null or a.assigned_on=$10 or a.due_on=$10)`;
       const from=`from homework_assignments a join homework_recipients r on r.assignment_id=a.id join lateral(select * from homework_versions where assignment_id=a.id order by revision desc limit 1) v on true
         left join lateral(select * from homework_outcomes where assignment_id=a.id and child_id=r.child_id and effective_on<=$2 order by revision desc limit 1) o on true`;
-      const values=[childId,this.today(),...scope.values,input.from ?? null,input.until ?? null,input.overdue==='true'];
+      const values=[childId,this.today(),...scope.values,input.from ?? null,input.until ?? null,input.overdue==='true',input.on ?? null];
       const total=(await tx.query<{ total: number }>(`select count(*)::int as total ${from} where ${where}`,values)).rows[0].total;
-      const assignments=(await tx.query<HomeworkAssignment>(`select ${projection} ${from} where ${where} order by a.due_on desc,a.id limit $10 offset $11`,[...values,input.limit,input.offset])).rows; const items=[];
+      const assignments=(await tx.query<HomeworkAssignment>(`select ${projection} ${from} where ${where} order by a.due_on desc,a.id limit $11 offset $12`,[...values,input.limit,input.offset])).rows; const items=[];
       for (const a of assignments) { const outcome=await this.current(tx,a.id,childId,this.today()); items.push({ assignment: a,outcome,overdue: a.dueOn<this.today() && !['COMPLETED','EXCUSED'].includes(outcome?.status.outcome ?? '') }); }
       return { items,total };
     });

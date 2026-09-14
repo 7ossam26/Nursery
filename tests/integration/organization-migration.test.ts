@@ -32,7 +32,7 @@ it.each([3,5])('upgrades an actual Phase %i schema once, preserves identity/rese
       await database.pool.query("update roles set name='Before upgrade' where name='Teacher'");
     }
     const oldSeats = phase===5 ? (await database.pool.query('select * from seat_reservations')).rows : [];
-    const first = await migrate(); expect(first.code).toBe(0); expect(first.output).toBe((phase===3 ? 'Applied 0002_organization_policy.sql\nApplied 0003_licensing_settings.sql\n' : '')+'Applied 0004_children_guardians.sql\nApplied 0005_safety.sql\nApplied 0006_learning.sql\nApplied 0007_attendance.sql\nApplied 0008_exams.sql\nApplied 0009_homework.sql\n');
+    const first = await migrate(); expect(first.code).toBe(0); expect(first.output).toBe((phase===3 ? 'Applied 0002_organization_policy.sql\nApplied 0003_licensing_settings.sql\n' : '')+'Applied 0004_children_guardians.sql\nApplied 0005_safety.sql\nApplied 0006_learning.sql\nApplied 0007_attendance.sql\nApplied 0008_exams.sql\nApplied 0009_homework.sql\nApplied 0010_communication.sql\n');
     if (phase===5) {
       expect((await database.pool.query('select * from seat_reservations')).rows).toEqual(oldSeats);
       expect((await database.pool.query("select count(*)::int as count from roles where name='Before upgrade'")).rows[0].count).toBe(1);
@@ -43,7 +43,7 @@ it.each([3,5])('upgrades an actual Phase %i schema once, preserves identity/rese
     await database.pool.query("update roles set name='Edited template' where name=any($1::text[])",[['Teacher','Before upgrade']]);
     const second = await migrate(); expect(second.code).toBe(0); expect(second.output).toBe('');
     expect((await database.pool.query("select count(*)::int as count from roles where name='Edited template'")).rows[0].count).toBe(1);
-    expect((await database.pool.query('select count(*)::int as count from schema_migrations')).rows[0].count).toBe(10);
+    expect((await database.pool.query('select count(*)::int as count from schema_migrations')).rows[0].count).toBe(11);
   } finally {
     await database.close();
     if (!/^phase04_migration_[a-f0-9]{32}$/.test(schema)) throw new Error('Invalid fixture schema');

@@ -130,16 +130,17 @@ export function TeacherExamsScreen() {
   </Frame>;
 }
 
-export function GuardianExamHistoryPanel({ childId }: { childId: string }) {
+export function GuardianExamHistoryPanel({ childId,date }: { childId: string;date?: string }) {
   const { t }=useLocale(); const [subjectId,setSubjectId]=useState(''); const [typeId,setTypeId]=useState(''); const [from,setFrom]=useState(''); const [until,setUntil]=useState('');
   const catalog=useScoped<{ subjects: ExamCatalogItem[]; types: ExamCatalogItem[] }>('exams/catalog');
-  const query=new URLSearchParams({ ...(subjectId ? { subjectId } : {}),...(typeId ? { typeId } : {}),...(from ? { from } : {}),...(until ? { until } : {}) }).toString();
+  const query=new URLSearchParams({ ...(subjectId ? { subjectId } : {}),...(typeId ? { typeId } : {}),...((date || from) ? { from: date || from } : {}),...((date || until) ? { until: date || until } : {}) }).toString();
   const state=useScoped<{ items: ExamHistoryEntry[]; total: number }>(`exams/children/${childId}/history${query ? `?${query}` : ''}`);
-  return <section><h2>{t('exams.historyTitle')}</h2>
-    {catalog.data && <><SelectField label={t('exams.filterSubject')} value={subjectId} onChange={(e) => setSubjectId(e.target.value)}><option value="">{t('exams.allSubjects')}</option>{catalog.data.subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</SelectField>
+  if (state.error==='learning.disabled') return null;
+  return <section><h2>{t(date ? 'exams.title' : 'exams.historyTitle')}</h2>
+    {!date && catalog.data && <><SelectField label={t('exams.filterSubject')} value={subjectId} onChange={(e) => setSubjectId(e.target.value)}><option value="">{t('exams.allSubjects')}</option>{catalog.data.subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</SelectField>
       <SelectField label={t('exams.filterType')} value={typeId} onChange={(e) => setTypeId(e.target.value)}><option value="">{t('exams.allTypes')}</option>{catalog.data.types.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</SelectField></>}
-    <TextField label={t('exams.filterFrom')} type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-    <TextField label={t('exams.filterUntil')} type="date" min={from} value={until} onChange={(e) => setUntil(e.target.value)} />
+    {!date && <><TextField label={t('exams.filterFrom')} type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+    <TextField label={t('exams.filterUntil')} type="date" min={from} value={until} onChange={(e) => setUntil(e.target.value)} /></>}
     {state.error && <p role="alert">{t(state.error)}</p>}
     <ul>{state.data?.items.map((item) => <li key={item.exam.id}>{formatDateOnly(item.exam.assessedOn)} — {item.exam.subjectName} ({item.exam.typeName}): {item.result ? (item.result.outcome==='CHILD_ABSENT' ? t('exams.childAbsent') : item.exam.gradeFormat==='NUMERIC' ? `${item.result.score} / ${item.exam.maximumMarks}` : item.result.label) : t('exams.missing')}{item.result?.comment && ` — ${item.result.comment}`}</li>)}</ul>
   </section>;

@@ -156,10 +156,10 @@ export function GuardianSafetyPanel({ childId }: { childId: string }) {
   if (state.error) return <p role="alert">{t(state.error)}</p>;
   const view = state.data; if (!view) return <p role="status">{t('state.loading')}</p>;
   return <section aria-label={t('safety.title')}><Messages error={error} notice={notice} />
-    {view.health && <Card title={t('safety.health')}><HealthList entries={view.health} busy={busy} /></Card>}
-    {view.pickup && <Card title={t('safety.pickup')}><h3>{t('safety.authorized')}</h3>{view.pickup.authorizations.length ? <ul>{view.pickup.authorizations.map((a) => <li key={`${a.id}:${a.version}`}>{a.fullName} ({a.relationship}) — <span dir="ltr">{a.mobile}</span> — <Validity from={a.validFrom} until={a.validUntil} />{a.pendingNurseryConfirmation && <> — {t('safety.pending')}</>}
+    {view.health && <div id="health"><Card title={t('safety.health')}><HealthList entries={view.health} busy={busy} /></Card></div>}
+    {view.pickup && <div id="pickup"><Card title={t('safety.pickup')}><h3>{t('safety.authorized')}</h3>{view.pickup.authorizations.length ? <ul>{view.pickup.authorizations.map((a) => <li key={`${a.id}:${a.version}`}>{a.fullName} ({a.relationship}) — <span dir="ltr">{a.mobile}</span> — <Validity from={a.validFrom} until={a.validUntil} />{a.pendingNurseryConfirmation && <> — {t('safety.pending')}</>}
       {' '}<Button variant="secondary" disabled={busy} onClick={() => { void save(`pickup-authorizations/${a.id}/deactivate`,{ expectedVersion: a.version }); }}>{t('safety.deactivate')}</Button></li>)}</ul> : <p>{t('safety.none')}</p>}
-      <PersonForm childId={childId} save={save} busy={busy} guardian /></Card>}
+      <PersonForm childId={childId} save={save} busy={busy} guardian /></Card></div>}
     {view.incidents && <Card title={t('safety.incidents')}><IncidentList incidents={view.incidents} /></Card>}
   </section>;
 }

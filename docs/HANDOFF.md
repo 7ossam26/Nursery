@@ -1,48 +1,53 @@
 # Current handoff
 
-Updated: 2026-09-14 — Phase 11 complete.
+Updated: 2026-09-14 — Phase 12 implementation checkpoint; IN PROGRESS.
 
 ## Next executable action
 
-Stop. Phase 11 gate is satisfied. Begin Phase 12 (Parent hub, announcements, and live notifications) only when requested, reading its required files/references and inspecting actual code/diff. No Phase 12 sender/SSE/delivery cursor or other later-phase feature was introduced. Earlier Phase 10 evidence and its open pre-existing authentication DOM timing defect remain in EXAMS.md.
+Continue Phase 12, not Phase 13. Implementation and automated gates passed. Inspect the preserved diff and resolve the user clarification: phase handoff requires screenshots, while AGENTS.md prohibits browser automation. Offered waive screenshots/keep script-only, or explicitly allow screenshot-only local browser automation. No reply or authorization received. Elapsed time is not permission. No screenshots/manual phone layout verification have run; phase remains IN PROGRESS until resolved.
 
-[HOMEWORK.md](HOMEWORK.md) records exact assignment/outcome contracts, date semantics, scope/parent behavior, migration, outbox hooks and verification. D37, DAILY_LEARNING.md and API_AND_DATA_CONTRACTS.md reference the runtime contract.
+## Files and actual behavior
 
-## Delivered contract
+- packages/contracts/src/communication.ts and communication.unit.test.ts; organization.ts/index.ts: strict notice/target/page/date inputs, delegable announcements.manage, notice/notification DTOs; no role grants.
+- packages/db/src/migrations/0010_communication.sql: immutable notices/private recipient witnesses/acknowledgments/planned-absence event source; unique event/guardian inbox/read state; source view over immutable learning/homework/incident/attendance histories. Upgrade expected count now 11.
+- apps/api/src/modules/communication/{service,routes,live}.ts and app.ts: publication/current target/options/read/ack/inbox/contact and empty-payload SSE. Reuse ChildService.withPolicy/current capability-child-link policy/LearningService.operation. Selected-parent account locks protect target-link races; parent reads lock current child/link witnesses. Notice reads require original witness/current read/current branch-classroom; notifications add notify/module checks. One notice notification per guardian across siblings, independent read/ack state.
+- apps/api/src/modules/attendance/service.ts: atomic submitting-guardian confirmation for each changed absence range; identical retry none, no attendance inference.
+- packages/contracts/src/homework.ts and apps/api/src/modules/homework/service.ts: optional on history filter assigned-or-due day before pagination.
+- apps/web/src/features/communication/{ParentLive,screens,copy}.tsx/ts; App.tsx; auth/{client,screens}; children/{scoped,screens}; exams/homework/attendance/safety screens; catalogs/styles: compact bilingual five-link navigation/Today/child switching/date-specific details/grouped history/notices/ack/inbox/read state/publish form/safe profile and enabled safety entry points/user-clicked WhatsApp. Parent root redirects to Today; notification dates open a scoped dated daily view. Attendance form now waits for enabled authorized report. Shared useScoped discards obsolete reads, queues invalidations and tags records by path.
+- tests/helpers/http-client.ts: optional scripted EventSource adapter consumes real authenticated TCP stream; production native EventSource. No browser automation/mocked PostgreSQL.
+- tests/integration/communication.test.ts, organization-migration.test.ts, tests/e2e/parent-hub.test.tsx: actual PG privacy/races/rollback/scope/producers/SSE/reconnect/license and bilingual real HTTP/SSE DOM/publish tests. Teardown counts either response or socket close once: aborted SSE may not fire normal onResponse.
+- docs/PARENT_HUB_AND_NOTIFICATIONS.md, API_AND_DATA_CONTRACTS.md, DECISIONS.md D38, PROJECT_STATE.md: current contract/default/evidence. Previous Phase 11 details in HOMEWORK.md; historical Phase 10 auth DOM timing defect in EXAMS.md.
 
-Shared assignment publication freezes original classroom/branch, assigned/due dates and reviewed recipient IDs/names. One title/instructions version is shared across children/guardians, with reasoned append-only content correction (dates/recipients never edited). Per-child mapped Completed/Not completed/Excused events carry optional normalized note and independent revision/previous chain; missing is null, absence never infers completion. Outcome and content stale races reject the losing writer. Parent writes fail on the server.
+## Producers/privacy/live
 
-One HOMEWORK slot derives contextual reporting from persisted assignments/outcomes: due-today tasks pending until every explicit outcome; Completed and Not completed resolve; all Excused=N/A. Future-due publication resolves today's assignment-reporting requirement only if no task due today, with Assigned for later display. Lazy due-day read finds pending actual tasks without a fake event/job. Frozen definition/status labels and meanings stay unchanged; DailySlot.homework explicitly carries date-specific meaning/counts. Late review never rewrites earlier date-effective outcomes. Overdue missing/Not completed work is a separate review list and does not add a later-day pending slot. No homework today is once-only per reviewed child/date with explicit Excused/excluded exceptions; refused for selected children assigned/due tasks. New later assignments may reopen prior aggregate state through append-only transitions.
+Sources: learning_change_outbox, homework_content_outbox, incident notification_events, attendance_absence_alerts, new planned-absence events, announcements/dated holiday notices. Unexpected absence replaces generic learning notification for same event; content/outcomes keep independent identities. Actual Phase 09 lacks a holiday store: narrow addition is dated holiday notices, never auto-No-class or calendar editor. Parent DTOs contain only generated safe local target and current permitted metadata, no descriptions/instructions/recipient lists/audit times. Targets fetch through fresh auth.
 
-Original assignment scope plus current child scope govern staff history/writes; a destination teacher does not gain unrelated original-class work. Qualified management can correct after child scope loss. Guardians retain only their linked recipient child's history/current status, with no mutation/upload control. HOMEWORK disable hides operational/parent payload/panel and bar slot. Existing five-second scoped polling/focus invalidation reused, no browser record persistence.
+Recipient-local dispatch inserts at most 200 candidates/transaction, event/guardian uniqueness, no source mutations, retained independent read state. Later financial/event adapters must add real module/link permission rules through this source boundary; none implemented here. SSE reconstructs current session/license/link/scope each second, sends only {} snapshot/invalidate/revoked/reconnect, heartbeats ten ticks, three streams/account/API process, 15-minute reconnect. Signatures remain private. Scope/policy loss closes on next tick; normal requests deny immediately. Client focus/reconnect fetch scoped snapshots, backoff 1–10 seconds; foreground polling five seconds remains fallback. Hidden tabs drop queries/close streams, logout closes. Final accessible new-update announcement passed focused DOM rerun. Streams close in preClose before HTTP/database shutdown; disconnected handshakes reserve no slot, verified in final real HTTP/PG check.
 
-## Changed files
+## Commands/results and runtime
 
-- packages/contracts/src/homework.ts, homework.unit.test.ts (new), index.ts export; learning.ts optional DailySlot.homework context and contextual HOMEWORK progress count.
-- packages/db/src/migrations/0009_homework.sql (new): immutable homework_assignments, homework_versions, homework_recipients, homework_outcomes, homework_no_days, homework_content_outbox; chain FKs/uniqueness and indexes. No role/capability/config reseed, seat or finance changes.
-- apps/api/src/modules/homework/{service,reporting,routes}.ts (new); app.ts registration; learning/service.ts narrow aggregateTransition extension from EXAM-only to EXAM/HOMEWORK and authoritative due projection. Reuses ChildService.withPolicy, LearningService.operation/appendInTransaction, current scoped child gates, immutable audit and outboxes.
-- apps/web/src/features/homework/{copy.ts,screens.tsx} (new); App.tsx /teacher/homework route; auth/screens.tsx account task link; children/screens.tsx guardian panel; i18n/catalogs.ts bilingual copy; learning/screens.tsx contextual future/due display. Reviewed teacher roster pages, shared publication, individual checklist/correction, content version disclosure, No-homework review/exceptions, overdue toggle and parent paged history/current status.
-- tests/helpers/homework.ts, integration/homework.test.ts (8), e2e/homework.test.tsx (2), all new. Existing organization-migration.test.ts expected migration/count updated for 0009/count10.
-- docs/HOMEWORK.md (new), D37/DECISIONS, DAILY_LEARNING, API_AND_DATA_CONTRACTS, PROJECT_STATE and HANDOFF.
+Pinned Node 24.19.0/npm 11.1.0 from phase04 tools. PostgreSQL 18.6 disposable cluster %TEMP%/nursery-phase12-pg, loopback 55412, nursery_test STOPPED after verification. No .env, live services/deployment/dependency/model/subagents changed. Initial diff clean, work uncommitted.
 
-## Actual verification
+PowerShell runner prefix:
+```powershell
+$env:DATABASE_URL='postgresql://postgres@127.0.0.1:55412/nursery_test'
+$env:PATH="$env:TEMP/nursery-phase04-tools/node_modules/node/bin;$env:PATH"
+$phaseNode="$env:TEMP/nursery-phase04-tools/node_modules/node/bin/node.exe"
+$phaseNpm="$env:TEMP/nursery-phase04-tools/node_modules/npm/bin/npm-cli.js"
+```
 
-Pinned Node 24.19.0/npm 11.1.0 reused from %TEMP%/nursery-phase04-tools (earlier phase07 tools/cluster absent). New isolated PostgreSQL 18.6 %TEMP%/nursery-phase11-pg at 127.0.0.1:55411, postgres/nursery_test; DATABASE_URL=postgresql://postgres@127.0.0.1:55411/nursery_test. Test schemas/private files generated by existing disposable fixtures. No .env created or live service/database changed.
+- run test:integration -- tests/integration/safety.test.ts tests/integration/homework.test.ts --maxWorkers=1: prerequisite 12/12 passed.
+- run test:integration -- tests/integration/communication.test.ts tests/integration/organization-migration.test.ts --maxWorkers=1: interim backend 8/8 passed.
+- run test:integration -- tests/integration/communication.test.ts tests/integration/homework.test.ts tests/integration/attendance.test.ts tests/integration/organization-migration.test.ts --maxWorkers=1: current 24/24 passed, 72.81s, real incident/absence/reconnect/license cases. Existing pg concurrent-query deprecation warning, no failed checks.
+- run test:unit -- packages/contracts/src/communication.unit.test.ts packages/contracts/src/homework.unit.test.ts --maxWorkers=1: 3/3 passed.
+- run test:e2e -- tests/e2e/parent-hub.test.tsx --maxWorkers=1: FINAL 3/3 passed, 31.52s after accessible announcement edit, RTL/axe/no server errors/real SSE visible refresh under five seconds. Initial fixture wait and SSE socket accounting failures fixed. No active exec session remains.
+- run test:integration -- tests/integration/communication.test.ts --maxWorkers=1: FINAL 9/9 passed, 29.27s after shutdown/disconnected-handshake fix, includes active-stream graceful shutdown. pg concurrent-query deprecation warning observed; origin not traced.
+- run typecheck; run lint; run build: FINAL passed after all code edits. Build main 590.69 kB/164.63 kB gzip, existing >500 kB warning. Do not repeat unless new changes justify it.
+- run db:migrate: fresh 0000–0010 applied to disposable public schema; rerun no Applied lines. Upgrade preserves identities/reservations/edited roles. Fixtures use isolated generated schemas.
+- git diff --check: FINAL passed using repository configuration (core.autocrlf=true; CRLF normalization notices only). An attempted core.autocrlf=false command override reported carriage returns as trailing whitespace; no files/config were changed, and the normal required command passed.
 
-- Before adapter: npm run test:integration -- tests/integration/exams.test.ts: 7/7 passed; actual prerequisite code and clean diff inspected.
-- Final npm run test:integration -- tests/integration/homework.test.ts --maxWorkers=1: 8/8 passed. Covers A11 shared content/independent outcomes/parent mutation denial, A09 missing/Not completed/Excused/No homework, A08 frozen renamed mappings, A10 actor-separated content/outcome stale races and append-only preservation, future/lazy due behavior/two due tasks/aggregate reopen, recipient transfer scope, idempotent assignment/outcome/no-day replay, optional notes, rollback/outboxes, guardian module disable, overdue late review.
-- npm run test:integration -- tests/integration/learning.test.ts tests/integration/exams.test.ts tests/integration/attendance.test.ts tests/integration/organization-migration.test.ts --maxWorkers=1: 22/22 passed. Concrete regression risk from learning/progress/aggregation changes; no unrelated full suites repeated.
-- Final npm run test:unit -- --maxWorkers=1: 56/56 passed (14 files; 54 existing plus 2 homework checks).
-- Final npm run test:e2e -- tests/e2e/homework.test.tsx --maxWorkers=1: 2/2 passed, English/Egyptian Arabic HTTP/PostgreSQL workflows, individual reviews/content+outcome correction/read-only parent view; RTL/axe structural checks and no captured HTTP 5xx. jsdom only, no Playwright/browser automation; contrast excluded as unmeasurable in jsdom.
-- Final npm run typecheck; npm run lint; npm run build: all workspaces passed. Vite non-failing existing >500 kB warning pattern: main JS 574.69 kB / 160.86 kB gzip. No performance claim.
-- npm run db:migrate: fresh isolated database applied 0000–0009 cleanly; rerun applied nothing. Existing actual Phase 03/05 upgrade/rerun regression passes through 0009 preserving identities/Phase 05 reservations/edited roles.
-- git -c core.whitespace=cr-at-eol diff --check: passed after final documentation formatting.
-- pg_ctl -D %TEMP%/nursery-phase11-pg stop -m fast: verification cluster stopped. Temporary tooling/cluster files remain outside repository.
-
-Interim failures resolved, not skipped: late outcome correction reason sent to a new-day PUBLISH schema (corrected while preserving independent outcome reason), stray JSX brace (fixed), DOM test queried content controls before roster refresh after commit (now awaits them). Shell quoting error in an attempted UI edit performed no edits/checks; subsequent patch/final checks passed. Initial worktree clean, all work uncommitted, no dependency or model changes. Earlier auth DOM timing defect was not rerun or claimed fixed.
-
-## Migration, limits and Phase 12 integration
-
-Apply 0009 after 0008 before updated API use. Reuses learning.read/learning.publish and HOMEWORK module; no implicit capability grants. Content-only correction cannot change dates/classroom/recipient list. Publications/rosters reviewed in 100-child pages; classroom assignment list bounded100, parent history paged20 by UI. Generic imports, parent submission/uploads, automated grading/photo attachments are out of scope.
-
-Learning events stage existing learning_change_outbox; shared content versions also stage homework_content_outbox per snapshotted child with original branch/classroom and read+notify recipient snapshot. Phase 12 must revalidate live child/link/module/account scope, deduplicate by immutable event/version identity and use separate delivery cursors. Do not mutate append-only source histories. No sender/notification success path has been fabricated. Manual browser/responsive/production performance/backup/live-refresh measurement not claimed; gate has no remaining blocker. Next phase only on request.
+Stop only the disposable cluster after checks:
+```powershell
+& 'C:/Program Files/PostgreSQL/18/bin/pg_ctl.exe' -D "$env:TEMP/nursery-phase12-pg" -m fast -w stop
+```
+Resume with same verified -D, -l "$env:TEMP/nursery-phase12-pg/server.log", -o '-h 127.0.0.1 -p 55412', -w start. Never touch system services. No production/manual layout/screenshot claims. Do not mark Phase 12 complete until remaining gate/handoff conflict is resolved.
