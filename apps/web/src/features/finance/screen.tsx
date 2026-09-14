@@ -34,7 +34,7 @@ export function TreasuryScreen() {
   try {pending.current={path:'finance/accounts',body:{operationId:crypto.randomUUID(),branchId,code,name,type,openingAmount:egpToPiastres(opening),openedOn:date,reason}};void send();} catch {setMessage('finance.invalid');}
  }
  function makeDefault(a:TreasuryAccount) {if(pending.current||busy) return;pending.current={path:`finance/branches/${a.branchId}/default-account`,body:{operationId:crypto.randomUUID(),accountId:a.id,expectedVersion:a.defaultVersion}};void send();}
- return <main className="organization-page"><LanguageSwitcher /><Link to="/account">{t('auth.account')}</Link><Link to="/administration/expenses">{t('spending.title')}</Link><Link to="/administration/transfers">{t('transfer.title')}</Link><Link to="/administration/closing">{t('closing.title')}</Link><h1>{t('finance.title')}</h1>
+ return <main className="organization-page"><LanguageSwitcher /><Link to="/account">{t('auth.account')}</Link><Link to="/administration/expenses">{t('spending.title')}</Link><Link to="/administration/transfers">{t('transfer.title')}</Link><Link to="/administration/closing">{t('closing.title')}</Link><Link to="/administration/corrections">{t('corrections.title')}</Link><h1>{t('finance.title')}</h1>
  {(options.error||accounts.error)&&<p role="alert">{t(options.error||accounts.error!)}</p>}{message&&<p role={uncertain?'alert':'status'}>{t(message)}</p>}
  {uncertain&&<><Button disabled={busy} onClick={()=>{void check();}}>{t('finance.check')}</Button>{canRetry&&<Button disabled={busy} onClick={()=>{void send();}}>{t('finance.retry')}</Button>}</>}
  {options.data&&<><SelectField label={t('finance.branch')} value={branchId} disabled={busy||uncertain} onChange={e=>{setBranch(e.target.value);setOffset(0);}}>{options.data.branches.map(b=><option key={b.id} value={b.id}>{b.code} — {b.name}</option>)}</SelectField>
@@ -49,4 +49,3 @@ export function TreasuryScreen() {
  <Button disabled={!offset} onClick={()=>setOffset(offset-20)}>{t('hub.previous')}</Button><Button disabled={accounts.data?.length!==20} onClick={()=>setOffset(offset+20)}>{t('hub.next')}</Button></>}
  </main>;
 }
-

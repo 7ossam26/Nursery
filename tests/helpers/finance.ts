@@ -7,17 +7,23 @@ import type { Database } from '@nursery/db';
 export async function reconcileFinance(database:Database) {
  const rows=(await database.pool.query<{problem:string}>(`
  select 'schedule' as problem from obligations o where o.amount<>(select coalesce(sum(i.amount),0) from installments i where i.obligation_id=o.id)
- union all select 'receipt-allocation' from receipts r where r.kind='PAYMENT' and r.amount<>(select coalesce(sum(a.amount),0) from receipt_allocations a where a.receipt_id=r.id)
+ union all select 'receipt-allocation' from receipts r where r.kind='PAYMENT' and
+  (select coalesce(sum(a.amount),0) from receipt_allocations a where a.receipt_id=r.id)+(select coalesce(sum(o.amount),0) from credit_origins o join credits c on c.id=o.credit_id where o.receipt_id=r.id and c.correction_id is not null)
+  <>(select coalesce(sum(m.amount),0) from treasury_movements m where m.receipt_id=r.id or m.source_receipt_id=r.id)
  union all select 'credit-receipt' from receipts r where r.kind='CREDIT' and r.amount<>(select coalesce(sum(c.amount),0) from credits c where c.receipt_id=r.id)
- union all select 'receipt-cash' from receipts r where r.amount<>(select coalesce(sum(m.amount),0) from treasury_movements m where m.receipt_id=r.id)
+ union all select 'receipt-cash' from receipts r where r.kind='CREDIT' and r.amount<>(select coalesce(sum(m.amount),0) from treasury_movements m where m.receipt_id=r.id)
  union all select 'opening' from treasury_accounts a where 1<>(select count(*) from treasury_movements m where m.account_id=a.id and m.kind='OPENING_BALANCE')
  union all select 'negative-due' from installment_balances where remaining<0
  union all select 'negative-credit' from credit_balances where remaining<0
+ union all select 'credit-origin' from credits c where c.amount<>(select coalesce(sum(o.amount),0) from credit_origins o where o.credit_id=c.id)
+ union all select 'negative-credit-origin' from credit_origin_balances where remaining<0
  union all select 'branch-mismatch' from receipt_allocations a join receipts r on r.id=a.receipt_id join installments i on i.id=a.installment_id join obligations o on o.id=i.obligation_id where r.branch_id<>o.branch_id
  union all select 'missing-operation' from receipts r left join financial_operations f on f.actor_id=r.actor_id and f.operation_id=r.operation_id where f.operation_id is null
  union all select 'expense-cash' from expense_settlements s where s.amount<>(select -coalesce(sum(m.amount),0) from treasury_movements m where m.expense_settlement_id=s.id)
  union all select 'expense-source' from expense_settlements s join expenses e on e.id=s.expense_id where s.amount<>e.amount or s.branch_id<>e.branch_id
  union all select 'transfer-conservation' from account_transfers t where 2<>(select count(*) from treasury_movements m where m.transfer_id=t.id) or 0<>(select coalesce(sum(m.amount),0) from treasury_movements m where m.transfer_id=t.id)
+ union all select 'corrected-transfer-conservation' from transfer_corrections c where 0<>(select coalesce(sum(m.amount),0) from treasury_movements m where m.correction_id=c.correction_id)
+ union all select 'refund-cash' from refunds r where r.amount<>(select -coalesce(sum(m.amount),0) from treasury_movements m where m.refund_id=r.id)
  union all select 'closing-adjustment-cash' from closing_adjustments j where j.amount<>(select coalesce(sum(m.amount),0) from treasury_movements m where m.closing_adjustment_id=j.id)
  union all select 'closing-adjustment-source' from closing_adjustments j join daily_closings c on c.id=j.closing_id where j.amount<>c.difference or j.account_id<>c.account_id
  `)).rows;

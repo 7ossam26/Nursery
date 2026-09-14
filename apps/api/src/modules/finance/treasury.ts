@@ -15,11 +15,11 @@ export class TreasuryService {
     return rows;
   }
   // Internal source-specific posting only; callers own the authenticated transaction and account locks.
-  async postReceiptInTransaction(tx:Transaction,p:Policy,receiptId:string) {
-    requireCapability(p,'payments.record');
+  async postReceiptInTransaction(tx:Transaction,p:Policy,receiptId:string,capability:'payments.record'|'finance.correct'='payments.record') {
+    requireCapability(p,capability);
     const receipt=(await tx.query<{branch_id:string;account_id:string;lines:{childId:string;classroomId:string|null}[]}>('select branch_id,account_id,lines from receipts where id=$1',[receiptId])).rows[0];
     if(!receipt || !receipt.lines.length) throw denied();
-    for(const line of receipt.lines) requireRecord(p,'payments.record',{branchId:receipt.branch_id,classroomId:line.classroomId??undefined,childId:line.childId});
+    for(const line of receipt.lines) requireRecord(p,capability,{branchId:receipt.branch_id,classroomId:line.classroomId??undefined,childId:line.childId});
     await this.lockAccounts(tx,p,[receipt.account_id]);
     const date=(await tx.query<{collected_on:string}>('select collected_on::text from receipts where id=$1',[receiptId])).rows[0].collected_on;
     await this.core.cashDateOpen(tx,[receipt.account_id],date);

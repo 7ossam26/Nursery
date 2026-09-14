@@ -1,53 +1,70 @@
 # Current handoff
 
-Updated: 2026-09-14 — Phase 16 IN PROGRESS, expenses/documents/transfers/closing checkpoint verified.
+Updated: 2026-09-14 — Phase 16 COMPLETE. Phase 17 NOT STARTED.
 
 ## Next executable action
 
-Continue Phase16 (not Phase17). Read root AGENTS.md, PROJECT_STATE.md, this handoff and PHASE_16_expenses_corrections_closing.md completely; named references FINANCE_RULES F01/F04/F06/F07/F11, ACCESS_AND_LICENSING identity/scope/settings, API_AND_DATA_CONTRACTS financial constraints/projections and TESTING_AND_ACCEPTANCE A18/A23/A24/A25/A37. D20/D22/D39/D42/D43 apply. Initial tree was clean at274fc3c Phase15; current Phase16 changes are uncommitted, preserve them. Phase12 screenshot gate remains unresolved independently; no browser automation, parallel agents, model changes or live deployment authorized.
+Stop at the Phase 16 gate. On a new explicit request, start Phase17 by reading root AGENTS.md, PROJECT_STATE.md, this handoff, PHASE_17_child_branch_transfer.md and only its named references. Verify prerequisites from actual code/diff. Phase12's screenshot handoff remains unresolved independently; do not silently mark it complete. No browser automation, subagents, model changes or live deployment were authorized.
 
-Next executable implementation: sensitive source-linked receipt/expense/transfer correction/reversal/replacement, paid tuition reductions producing credit, credit application and separately recorded refunds. Reuse PaymentService allocation validation and canonical balance views; extend migrations deliberately for source-linked noncash credits, partial reversals/replacements and refundable balance projection, with PG availability/race/rollback/sensitive/scope/closed-date tests. Build correction/refund pages with immutable original history and shared frozen-operation recovery. Counted closing and every current cash writer are already protected by migration0015; call FinancialCore.cashDateOpen for future writers (plus shared SQL guard). Do not claim A25 or Phase16 complete yet. No receipt/tuition/expense/transfer correction or refund paths have been implemented.
-## Implemented checkpoint and precise files
+## Phase 16 completion
 
-- packages/db/src/migrations/0014_spending.sql: new delegable expenses.manage/pay/approve (no role grants), explicit0/disabled shared threshold/settings version, immutable operating categories/pending expenses, scoped approval/cancellation events, one actual settlement, paired account transfers, private documents/retirements. Extends existing immutable treasury ledger with EXPENSE/TRANSFER sources and deferred exact source/leg checks, original receipt/opening rows unchanged. Applied only in synthetic disposable schemas, actual upgrade/rerun migration checks passed.
-- packages/db/src/migrations/0015_closing.sql; packages/contracts/src/closing.ts; API finance/closing.ts,core.ts,treasury.ts,spending.ts,routes.ts: new delegable treasury.close, immutable counted/reopened chains, generated difference, canonical dated treasury_balance_on, sensitive current-date source-linked adjustment, shared account-lock/SQL BEFORE INSERT guard for ALL cash writers (including original receipts/openings). Every active counted date on/after a cash posting blocks it; only a count's own explicitly authorized current-date difference adjustment is exempt from that same count, never other/later counts. Reopen preserves count; recount appends revision. Sensitive mutation needs both capabilities AND grant AND original branch scope, no SYSTEM entitlement fallback. Current-head API and history isCurrent are server-owned, independent of pagination. Counts CASH only; direct bank/wallet count attempts are rejected.
-- apps/web/src/features/finance/closing-screen.tsx,spending-copy.ts,App.tsx,finance/screen.tsx; tests/integration/closing.test.ts, tests/e2e/closing.test.tsx: bilingual count/explicit-confirmed-adjustment/reopen/history, fresh authoritative expected revision, correct capability hiding and same-key uncertain recovery. PG5/5 final14.35s and bilingual actual HTTP/DOM2/2 final24.75s, including real post-commit TCP loss, exact one shortage adjustment, preserved snapshot and reasoned reopen.
-- packages/contracts/src/spending.ts,index.ts,organization.ts: strict UUID/integer-string schemas, ExpensePage full filtered totals, history/options, typed actual methods and source actions.
-- apps/api/src/modules/finance/spending.ts,routes.ts: FinancialCore actor/key idempotency/audit reused; settings -> actor operation -> expense -> sorted accounts locks; threshold strictly greater than amount rule, configured nonreserved approval required; cash account/date/branch/funds checks; all sources/movements/audit/result atomic. Original expense/classroom scope gates lists/totals/history. Transfers require both-side branch authority and conserve cash, excluded from paid-expense totals.
-- apps/api/src/modules/children/private-store.ts,documents.ts: extracted shared filesystem root/symlink/validated UUID/hash/read protections; existing child content validator/re-encoder reused unchanged. Child document regression10/10 passed after extraction.
-- apps/api/src/modules/finance/expense-documents.ts: current expense+finance+document scope and module gates, same-key upload, private/no-store attachment, no storage key/bytes/audit timestamp DTO, raw bytes omitted from audit (fingerprint only), reasoned immutable retirement retaining files; uncertain commit candidates conservatively retained and SYSTEM cleanup only old safe unreferenced files.
-- apps/web/src/features/finance/{spending-screen,spending-copy,use-operation}.tsx/.ts; App.tsx,i18n/catalogs.ts,finance/screen.tsx: bilingual expense/transfer pages, actual cash-effect confirmation, real methods/accounts, full pending/paid totals, category/approval settings, documents/audit and collection-style frozen-operation status recovery. Shared success copy now says Financial operation saved; rerun passed.
-- tests/integration/{spending,expense-documents}.test.ts, tests/e2e/spending.test.tsx, tests/helpers/finance.ts and organization-migration.test.ts: consequential PG races/rollback/scopes/threshold/source/legs/privacy and bilingual real HTTP/DOM lost-response/duplicateclick recovery. Reconciliation extended expense-cash/source and transfer net0/two legs; migration expected0014+0015/count16; reconciliation includes closing adjustment cash/source.
-- docs/EXPENSES_AND_CLOSING.md, API_AND_DATA_CONTRACTS.md, DECISIONS D42, PROJECT_STATE.md: actual checkpoint contracts/evidence and outstanding phase gate.
+Expenses, private expense documents, paired internal transfers, counted cash closing, sensitive receipt/expense/transfer correction, paid tuition reduction, credit application, and actual refunds are implemented. D42/D43/D44 and [EXPENSES_AND_CLOSING.md](EXPENSES_AND_CLOSING.md) hold the detailed semantics and evidence.
+
+Migration `0016_corrections_refunds.sql` appends immutable `financial_corrections` with typed detail rows, signed allocation/obligation adjustments, source-linked credit origins, refunds, and exact correction/refund treasury legs. `credit_balances` subtracts applications and refunds; origin balances prevent source overuse. Deferred PostgreSQL validators require complete sources/legs and reject excess reversal or negative credit. Migration count is17 and actual upgrade/rerun passed. No persistent/live database received this migration.
+
+`CorrectionService` and strict contracts/routes implement:
+
+- PAYMENT receipt full current-date reversal with optional replacement receipt/allocation/account; originals remain visible. Already corrected or tuition-credit-reclassified receipts are rejected instead of silently unwinding linked history.
+- Settled expense full current-date reversal with optional replacement; planned expense stays immutable and effective operating outflow projects REVERSED/CORRECTED.
+- Transfer full current-date reversal with optional replacement pair; all original/replacement accounts are scoped/locked and total cash remains conserved.
+- Tuition reduction that consumes unpaid debt first, restores newest applied credit next, then turns newest actual paid allocations into a noncash credit with original receipt/account origins.
+- Actual refund bounded by aggregate credit and selected-origin availability, from the original account or an explicitly confirmed/scoped/funded alternative. One REFUND outflow is posted; applying credit posts no cash.
+
+Every mutation requires Finance enabled, `finance.correct`, explicit sensitive entitlement even for SYSTEM, every original/replacement resource scope, reason, actor operation idempotency/audit, canonical balances, stable locks, recorded funds for cash outflows, and the shared counted-date guard. Replay revalidates current entitlement and stored scope. `/administration/corrections` provides bilingual forms, current-date/cash warnings, original source selection, immutable history and lost-response status recovery.
+
+## Changed files
+
+- Database/contracts: `packages/db/src/migrations/0016_corrections_refunds.sql`; `packages/contracts/src/{corrections,finance,spending,index}.ts`.
+- API: `apps/api/src/modules/finance/{corrections,payments,treasury,spending,routes}.ts`.
+- Web: `apps/web/src/features/finance/{corrections-screen,spending-screen,spending-copy,screen}.tsx/.ts`; `apps/web/src/App.tsx`.
+- Tests: `tests/integration/corrections.test.ts`, `tests/e2e/corrections.test.tsx`, `tests/helpers/finance.ts`, `tests/integration/organization-migration.test.ts`.
+- Evidence/contracts: `docs/{DECISIONS,API_AND_DATA_CONTRACTS,EXPENSES_AND_CLOSING,PROJECT_STATE,HANDOFF}.md`.
 
 ## Commands and actual results
 
-Before edits finance+collections+receipts20/20,14.74s. First new spending4/5 found invalid classroom column; fixed using organization queryScope; rerun spending+migration+children17/17,15.34s. Expense-documents2/2,6.89s.
+Runtime was recreated because prior `%TEMP%` paths had been cleaned: pinned Node24.19.0, npm11.1.0, fresh disposable PostgreSQL18 `%TEMP%/nursery-phase16-pg`, loopback127.0.0.1:55416, process-only DATABASE_URL. The first prerequisite command did not run tests due missing temporary paths. After recreation:
 
-Checkpoint PG29/29,20.31s:
+    npm run test:integration -- tests/integration/finance.test.ts tests/integration/collections.test.ts tests/integration/receipts.test.ts
 
-    npm run test:integration -- tests/integration/spending.test.ts tests/integration/expense-documents.test.ts tests/integration/finance.test.ts tests/integration/collections.test.ts tests/integration/receipts.test.ts tests/integration/organization-migration.test.ts
+Passed20/20,26.80s.
 
-Bilingual real HTTP/DOM4/4,14.02s:
+First new correction run0/4: deferred generic triggers referenced fields absent on some NEW record shapes; every operation rolled back. Fixed with table-agnostic JSON field lookup. Focused rerun passed4/4,21.13s.
 
-    npm run test:e2e -- tests/e2e/spending.test.tsx
+    npm run test:integration -- tests/integration/corrections.test.ts tests/integration/spending.test.ts tests/integration/closing.test.ts tests/integration/finance.test.ts tests/integration/collections.test.ts tests/integration/receipts.test.ts tests/integration/organization-migration.test.ts
 
-Includes actual TCP destruction after expense disbursement committed, same-operation lookup returns one real bank outflow, duplicate clicks and paired transfer conservation/history. Initial required-marker exact-label test failures corrected and rerun. Structural axe passes (color contrast excluded). Checkpoint typecheck/lint/build/diff passed. Build176 modules664.13kB/182.06kB gzip, existing >500kB warning. Initial missing new capability-label/account-prompt type errors fixed. Earlier child regression retained existing pg concurrent-query deprecation warning. Final saved-message rerun passed. Closing checkpoint combined PG34/34 (22.89s), strengthened closing5/5 (14.35s), final closing UI2/2 (24.75s) after correcting premature reopen lookup during reload; expense/transfer4/4 passed in combined UI5/6. Final catalog/finance units4/4 (556ms); final typecheck/lint/build passed after closing (178 modules671.96kB/183.70kB gzip). git diff --check passed.
+Passed36/36,44.52s. Covers refund/application race, exact availability and origins, sensitive/scope/current-date denial, active-count rollback/reopen, immutable originals, source/leg validation, expense projections, transfer conservation, idempotent retry and migration0016 upgrade/rerun.
 
-## Runtime
+Correction/refund UI attempts initially failed on premature/stale test references only. Final focused bilingual HTTP/DOM passed2/2,17.79s. Final combined gate:
 
-Pinned Node24.19.0/npm11.1.0 under %TEMP%/nursery-phase04-tools; system runtime differs. Disposable PostgreSQL18 %TEMP%/nursery-phase12-pg STOPPED after verification, loopback127.0.0.1:55412. No .env/system service/live nursery used. Each test creates/drops isolated schemas and private tempfiles.
+    npm run test:e2e -- tests/e2e/corrections.test.tsx tests/e2e/spending.test.tsx tests/e2e/closing.test.tsx
 
-PowerShell process-only:
+Passed8/8,58.06s, including real post-commit refund response loss and one outflow, English/Arabic, RTL/LTR and structural axe (color contrast excluded).
 
-    $env:PATH="$env:TEMP/nursery-phase04-tools/node_modules/node/bin;$env:PATH"
-    $env:DATABASE_URL='postgresql://postgres@127.0.0.1:55412/nursery_test'
-    node "$env:TEMP/nursery-phase04-tools/node_modules/npm/bin/npm-cli.js" run test:integration -- tests/integration/spending.test.ts
+    npm run test:unit -- apps/web/src/i18n/catalogs.unit.test.ts packages/contracts/src/finance.unit.test.ts
+    npm run typecheck
+    npm run lint
+    npm run build
+    git diff --check
 
-Cluster start only after checking actual PG_VERSION/postmaster.opts: C:/Program Files/PostgreSQL/18/bin/pg_ctl.exe -D "$env:TEMP/nursery-phase12-pg" -l "$env:TEMP/nursery-phase12-pg/server.log" -o '-h 127.0.0.1 -p 55412' -w start; stop same-D -m fast -w stop. Use process-only URL and synthetic data. No live application database migration performed.
+Units4/4,2.73s. Typecheck passed. First lint found one unused import; removed and final lint passed. Build passed:180 modules,691.26kB/187.24kB gzip, existing >500kB warning. Final diff check passed.
 
-## Outstanding rules/risks
+Final review found the alternative-refund checkbox was automatically selected when a different funding account was chosen. It now resets to unchecked and requires deliberate confirmation. Affected web typecheck/lint and bilingual correction UI reran passed2/2,17.83s.
 
-Pending expense never moves cash; actual settlement cannot be cancelled/repaid, no arbitrary in-place edits. Threshold default0 explicit disabled, over-threshold configured approval is scoped and amount equality is allowed. Sensitive correction must use finance.correct AND sensitiveFinancialEdit AND every original resource scope AND reason, including SYSTEM (no implicit grant). Preserve branch/account/receipt snapshots. Tuition reduction after paid cash must produce available credit by auditable source-linked allocation/charge adjustments; applying credit adds no cash, actual refund must spend available funds exactly once. Original receipt and reversal both stay in canonical sums. Existing credits.receipt_id uniqueness and allocation unique(receipt,installment) require deliberate additive migration/projection changes for noncash source credits and reasoned partial replacement; do not bypass the current constraints or duplicate balance formulas.
+## Remaining limitations/risks
 
-All original financial lock order: actor operation -> sorted children -> obligations -> installments -> credit -> sorted accounts. Daily closing/shared cash guards now serialize on the same account locks; preserve these protections in new correction/refund writers. Do not bypass the SQL guard through request flags/session settings. New noncash corrections must explicitly validate affected old closed cash/source dates or use the current-date path. Phase17 transfer/Phase19 payroll are outside current scope. Actual manual browser/mobile/VPS performance unmeasured. Phase15 printable receipt remains raster-embedded, not searchable; shared font packaging smoke should be rerun if receipt rendering changes. Historical evidence COLLECTIONS_AND_RECEIPTS.md/BILLING_AND_RECURRENCE.md/FINANCIAL_CORE.md retained.
+- No manual physical browser/mobile/VPS performance measurement or live migration/deployment was performed.
+- Receipt correction deliberately rejects CREDIT receipts and PAYMENT receipts already reclassified by tuition reduction; those credit/refund chains remain explicit and cannot be silently rewritten.
+- Reporting/export work beyond the canonical Phase16 projections remains Phase20. Payroll and branch transfer remain Phases19 and17 respectively.
+- Phase15 printable receipt is still raster-embedded rather than searchable. Phase12 screenshot evidence remains unresolved separately.
+
+The disposable PostgreSQL cluster was stopped after final verification.

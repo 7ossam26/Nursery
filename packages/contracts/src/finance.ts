@@ -24,7 +24,7 @@ export type CollectionInput = z.infer<typeof collectionInputSchema>;
 export type CreditReceiptInput = z.infer<typeof creditReceiptInputSchema>;
 export type TreasuryAccount = { id: string;branchId: string;code: string;name: string;type: z.infer<typeof accountTypeSchema>;openedOn: string;balance: string;isDefault: boolean;defaultVersion: number };
 export type FinanceOptions = { branches: { id: string;code: string;name: string }[];canManage: boolean };
-export type Receipt = { id: string;reference: string;branchId: string;branchCode: string;accountId: string;accountCode: string;method: z.infer<typeof accountTypeSchema>;collectedOn: string;payerName: string;externalReference: string;amount: string;kind: 'PAYMENT'|'CREDIT';lines: { childId: string;childCode: string;childName: string;classroomId: string|null;installmentId: string|null;categoryName: string;amount: string }[] };
+export type Receipt = { id: string;reference: string;branchId: string;branchCode: string;accountId: string;accountCode: string;method: z.infer<typeof accountTypeSchema>;collectedOn: string;payerName: string;externalReference: string;amount: string;kind: 'PAYMENT'|'CREDIT';correctionState:'ACTIVE'|'REVERSED'|'REPLACED';correctionId:string|null;replacementReceiptId:string|null;lines: { childId: string;childCode: string;childName: string;classroomId: string|null;installmentId: string|null;categoryName: string;amount: string }[] };
 export type PaymentResult = { operationId: string;receiptIds: string[] };
 export const outstandingQuerySchema = z.object({
   branchId: uuid.optional(),classroomId: uuid.optional(),categoryId: uuid.optional(),childId: uuid.optional(),
