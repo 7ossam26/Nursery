@@ -13,13 +13,13 @@ const invalid = () => new SafeError('VALIDATION_ERROR','children.invalid',false,
 
 export class ChildService {
   constructor(readonly licensing: LicensingService) {}
-  async withPolicy<T>(token: string, work: (tx: Transaction,p: Policy) => Promise<T>, targets: string[] = []): Promise<T> {
+  async withPolicy<T>(token: string, work: (tx: Transaction,p: Policy) => Promise<T>, targets: string[] = [], changesGuardianScope = false): Promise<T> {
     try {
       return await this.licensing.auth.database.transaction(async (tx) => {
         // Same global lock order as licensing parent actions: license, organization, guardian links, accounts, sessions, children.
         await tx.query('select pg_advisory_xact_lock_shared(7190501)');
         await tx.query('select pg_advisory_xact_lock_shared(7190401)');
-        await tx.query('select pg_advisory_xact_lock_shared($1)',[GUARDIAN_SCOPE_LOCK]);
+        await tx.query(changesGuardianScope ? 'select pg_advisory_xact_lock($1)' : 'select pg_advisory_xact_lock_shared($1)',[GUARDIAN_SCOPE_LOCK]);
         const account = await this.licensing.auth.inTransaction(tx,token,targets);
         return work(tx,await loadPolicy(tx,account));
       });

@@ -72,6 +72,10 @@ export async function runBillingBatch(database:Database,today=cairoIsoDate()) {
   const license=(await tx.query<{valid_until:string;grace_days:number}>('select valid_until::text,grace_days from license_limits where singleton')).rows[0];
   if(!license||subscriptionAccessStatus(cairoIsoDate(),license.valid_until,license.grace_days)==='SUSPENDED') return 0;
   if(!(await tx.query("select 1 from module_settings where module_key='FINANCE' and enabled")).rowCount) return 0;
+  // Generated obligations reference the approving account. Take that FK lock before
+  // children, matching authenticated writers (account -> child -> agreement).
+  // Otherwise an approver transferring a child can deadlock with this worker.
+  await tx.query('select ac.id from accounts ac join billing_agreements a on a.actor_id=ac.id where a.id=$1 for key share of ac',[id]);
   const a=await lockAgreement(tx,id);if(!a) return 0;
   return generateAgreement(tx,a,today);
  });

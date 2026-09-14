@@ -3,7 +3,7 @@ import type { Database,Transaction } from './index.js';
 
 export async function emitDueReminders(tx:Transaction,today=cairoIsoDate(),ids:string[]|null=null,deliveryKey='INITIAL',actorId:string|null=null) {
  const result=await tx.query(`with due as (
-   select b.id,o.child_id,o.branch_id,o.classroom_id from installment_balances b join obligations o on o.id=b.obligation_id
+   select b.id,o.child_id,o.branch_id,o.classroom_id from installment_balances b join receivable_obligations o on o.id=b.obligation_id
    where b.remaining>0 and b.due_on<$1::date and ($2::uuid[] is null or b.id=any($2::uuid[]))
  ),recipients as (
    select d.*,l.guardian_id as recipient_id from due d join children c on c.id=d.child_id

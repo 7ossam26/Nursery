@@ -1,3 +1,4 @@
+import { ChildTransferHistory } from './child-transfer-screen.js';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import type { OutstandingPage,Receipt } from '@nursery/contracts';
@@ -21,5 +22,5 @@ function ParentChildPayments({childId}:{childId:string}) {
  const {t}=useLocale();const [offset,setOffset]=useState(0),[receiptOffset,setReceiptOffset]=useState(0);
  const balances=useScoped<OutstandingPage>(`finance/outstanding?childId=${childId}&limit=20&offset=${offset}`),receipts=useScoped<Receipt[]>(`parent/children/${childId}/receipts?limit=20&offset=${receiptOffset}`);
  return <>{(balances.error||receipts.error)&&<p role="alert">{t(balances.error||receipts.error!)}</p>}{balances.data&&<><p>{t('collections.remaining')}: <bdi dir="ltr">{money(balances.data.totalRemaining)}</bdi></p>{balances.data.items.length===0&&<p>{t('collections.empty')}</p>}{balances.data.items.map(item=><Card key={item.id} title={item.categoryName}><p>{item.description}</p><p>{t(`collections.${item.status}`)}{item.overdue&&` · ${t('collections.OVERDUE')}`}</p><p><bdi dir="ltr">{formatDateOnly(item.dueOn)}</bdi> · <bdi dir="ltr">{money(item.remaining)}</bdi></p></Card>)}<Button disabled={!offset} onClick={()=>setOffset(offset-20)}>{t('hub.previous')}</Button><Button disabled={offset+20>=balances.data.totalCount} onClick={()=>setOffset(offset+20)}>{t('hub.next')}</Button></>}
- {receipts.data&&<section><h2>{t('collections.receipts')}</h2>{receipts.data.map(receipt=><ReceiptCard key={receipt.id} receipt={receipt}/>)}<Button disabled={!receiptOffset} onClick={()=>setReceiptOffset(receiptOffset-20)}>{t('hub.previous')}</Button><Button disabled={receipts.data.length!==20} onClick={()=>setReceiptOffset(receiptOffset+20)}>{t('hub.next')}</Button></section>}</>;
+ {receipts.data&&<section><h2>{t('collections.receipts')}</h2>{receipts.data.map(receipt=><ReceiptCard key={receipt.id} receipt={receipt}/>)}<Button disabled={!receiptOffset} onClick={()=>setReceiptOffset(receiptOffset-20)}>{t('hub.previous')}</Button><Button disabled={receipts.data.length!==20} onClick={()=>setReceiptOffset(receiptOffset+20)}>{t('hub.next')}</Button></section>}<ChildTransferHistory childId={childId}/></>;
 }

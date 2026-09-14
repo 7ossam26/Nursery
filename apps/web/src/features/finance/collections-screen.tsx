@@ -75,7 +75,7 @@ export function CollectionsScreen() {
   setCredit(false);setConfirmed(false);setMessage(null);setReceiptIds([]);
  }
  function remind(item:OutstandingItem) {if(locked||pending.current) return;pending.current={path:`finance/installments/${item.id}/reminders`,kind:'REMINDER_RESEND',input:{operationId:crypto.randomUUID()}};void send();}
- return <main className="organization-page"><LanguageSwitcher/><Link to="/account">{t('auth.account')}</Link><h1>{t('collections.title')}</h1>
+ return <main className="organization-page"><LanguageSwitcher/><Link to="/account">{t('auth.account')}</Link><Link to="/administration/child-transfers">{t('childTransfer.title')}</Link><h1>{t('collections.title')}</h1>
  {(options.error||balances.error)&&<p role="alert">{t(options.error||balances.error!)}</p>}{!options.data&&!options.error&&<p role="status">{t('state.loading')}</p>}{message&&<p role={uncertain?'alert':'status'}>{t(message)}</p>}
  {!balances.data&&!balances.error&&<p role="status">{t('state.loading')}</p>}
  {uncertain&&<><Button disabled={busy} onClick={()=>{void check();}}>{t('finance.check')}</Button>{canRetry&&<Button disabled={busy} onClick={()=>{void send();}}>{t('finance.retry')}</Button>}</>}

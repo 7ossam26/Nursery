@@ -1,3 +1,4 @@
+import { childTransferEn,childTransferAr } from '../features/finance/child-transfer-copy.js';
 import { billingEn,billingAr } from '../features/finance/billing-copy.js';
 import { collectionsEn,collectionsAr } from '../features/finance/collections-copy.js';
 import { spendingEn,spendingAr } from '../features/finance/spending-copy.js';
@@ -24,7 +25,7 @@ const en = {
   ...examsEnglish,
   ...homeworkEnglish,
   ...communicationEnglish,
-  ...financeEn,...billingEn,...collectionsEn,...spendingEn,
+  ...financeEn,...billingEn,...collectionsEn,...spendingEn,...childTransferEn,
   'auth.signIn': 'Sign in',
   'auth.username': 'Username',
   'auth.password': 'Password',
@@ -159,7 +160,7 @@ const ar: Record<MessageKey, string> = {
   ...examsArabic,
   ...homeworkArabic,
   ...communicationArabic,
-  ...financeAr,...billingAr,...collectionsAr,...spendingAr,
+  ...financeAr,...billingAr,...collectionsAr,...spendingAr,...childTransferAr,
   'auth.signIn': 'تسجيل الدخول',
   'auth.username': 'اسم المستخدم',
   'auth.password': 'كلمة السر',

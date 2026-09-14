@@ -89,6 +89,8 @@ Paid flags, installment state, bus settlement, progress counters, and dashboard 
 
 A transferred obligation retains original attribution and a current owner for its remaining due items. Paid source history and transferred outstanding items must not both count as new debt.
 
+Phase17 implements `child_branch_transfers`, `receivable_ownership`, `transferred_due_items`, and `receivable_obligations` in migration0017. Receipt allocations and tuition corrections snapshot their ownership transfer for historical authorization/reconciliation. `ChildTransferService`, strict `packages/contracts/src/child-transfers.ts`, preview/commit/history endpoints and the bilingual child-transfer page coordinate child placement, exact canonical open balances, immutable classroom/financial audit, operation recovery, and the durable conservative branch-change integration event. D45 fixes current-date-only placement, current/next occurrence semantics and unused-credit treatment. Lock ordering, source/destination/guardian scope and evidence: [CHILD_BRANCH_TRANSFERS.md](CHILD_BRANCH_TRANSFERS.md).
+
 ## Cross-domain service interfaces
 
 - IdentityService.provisionAccountWithSeat(actor, input, operationId)

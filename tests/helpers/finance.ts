@@ -17,7 +17,7 @@ export async function reconcileFinance(database:Database) {
  union all select 'negative-credit' from credit_balances where remaining<0
  union all select 'credit-origin' from credits c where c.amount<>(select coalesce(sum(o.amount),0) from credit_origins o where o.credit_id=c.id)
  union all select 'negative-credit-origin' from credit_origin_balances where remaining<0
- union all select 'branch-mismatch' from receipt_allocations a join receipts r on r.id=a.receipt_id join installments i on i.id=a.installment_id join obligations o on o.id=i.obligation_id where r.branch_id<>o.branch_id
+ union all select 'branch-mismatch' from receipt_allocations a join receipts r on r.id=a.receipt_id join installments i on i.id=a.installment_id join obligations o on o.id=i.obligation_id left join child_branch_transfers t on t.id=a.ownership_transfer_id where r.branch_id<>coalesce(t.destination_branch_id,o.branch_id)
  union all select 'missing-operation' from receipts r left join financial_operations f on f.actor_id=r.actor_id and f.operation_id=r.operation_id where f.operation_id is null
  union all select 'expense-cash' from expense_settlements s where s.amount<>(select -coalesce(sum(m.amount),0) from treasury_movements m where m.expense_settlement_id=s.id)
  union all select 'expense-source' from expense_settlements s join expenses e on e.id=s.expense_id where s.amount<>e.amount or s.branch_id<>e.branch_id

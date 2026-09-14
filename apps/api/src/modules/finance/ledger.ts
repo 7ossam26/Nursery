@@ -6,7 +6,7 @@ import { denied,requireCapability,requireRecord,requireBranch,type Policy } from
 import { resolveChild,requireChild,requireGuardianChild } from '../children/policy.js';
 import { FinancialCore,financeScope,invalid } from './core.js';
 
-export type DueItem={id:string;obligation_id:string;child_id:string;branch_id:string;classroom_id:string|null;child_code:string;child_name:string;category_name:string;category_kind:string;remaining:string;issued_on:string;due_on:string};
+export type DueItem={id:string;obligation_id:string;child_id:string;branch_id:string;classroom_id:string|null;child_code:string;child_name:string;category_name:string;category_kind:string;remaining:string;issued_on:string;due_on:string;ownership_on?:string|null};
 export class LedgerService {
   constructor(readonly core:FinancialCore) {}
   async parentOptions(token:string) {
@@ -52,7 +52,7 @@ export class LedgerService {
         select b.id,b.obligation_id as "obligationId",o.child_id as "childId",o.child_code as "childCode",o.child_name as "childName",o.branch_id as "branchId",o.classroom_id as "classroomId",o.category_id as "categoryId",o.category_name as "categoryName",o.category_kind as "categoryKind",o.description,b.due_on::text as "dueOn",b.amount::text,b.allocated::text,b.credited::text,b.adjustments::text,b.remaining::text,
         case when b.remaining=0 then 'PAID' when b.allocated+b.credited>0 then 'PARTIAL' else 'UNPAID' end as status,
         (b.remaining>0 and b.due_on<$${today}::date) as overdue
-        from installment_balances b join obligations o on o.id=b.obligation_id where ${predicate}
+        from installment_balances b join receivable_obligations o on o.id=b.obligation_id where ${predicate}
       ),visible as (select * from scoped where ${filter})
       select coalesce((select sum(remaining::numeric)::text from visible),'0') as "totalRemaining",(select count(*)::int from visible) as "totalCount",
       coalesce((select json_agg(page) from (select * from visible order by "dueOn",id limit $${values.length-1} offset $${values.length}) page),'[]') as items`,values)).rows[0];
@@ -85,18 +85,18 @@ export class LedgerService {
   async lockDue(tx:Transaction,p:Policy,ids:string[],capability:Capability='payments.record',extraChildIds:string[]=[]):Promise<DueItem[]> {
     const unique=[...new Set(ids)].sort();
     if(unique.length!==ids.length) throw invalid();
-    const witnesses=(await tx.query<{child_id:string;obligation_id:string}>('select o.child_id,o.id as obligation_id from installments i join obligations o on o.id=i.obligation_id where i.id=any($1::uuid[])',[unique])).rows;
+    const witnesses=(await tx.query<{child_id:string;obligation_id:string}>('select o.child_id,o.id as obligation_id from installments i join receivable_obligations o on o.id=i.obligation_id where i.id=any($1::uuid[])',[unique])).rows;
     if(witnesses.length!==ids.length) throw denied();
     await this.core.lockChildren(tx,[...witnesses.map(w=>w.child_id),...extraChildIds]);
     await tx.query('select id from obligations where id=any($1::uuid[]) order by id for update',[[...new Set(witnesses.map(w=>w.obligation_id))].sort()]);
     await tx.query('select id from installments where id=any($1::uuid[]) order by id for update',[unique]);
-    const rows=(await tx.query<DueItem>(`select b.id,b.obligation_id,o.child_id,o.branch_id,o.classroom_id,o.child_code,o.child_name,o.category_name,o.category_kind,b.remaining::text,o.issued_on::text,b.due_on::text
-      from installment_balances b join obligations o on o.id=b.obligation_id where b.id=any($1::uuid[]) order by b.id`,[unique])).rows;
+    const rows=(await tx.query<DueItem>(`select b.id,b.obligation_id,o.child_id,o.branch_id,o.classroom_id,o.child_code,o.child_name,o.category_name,o.category_kind,b.remaining::text,o.issued_on::text,b.due_on::text,o.ownership_on::text
+      from installment_balances b join receivable_obligations o on o.id=b.obligation_id where b.id=any($1::uuid[]) order by b.id`,[unique])).rows;
     for(const row of rows) requireRecord(p,capability,{branchId:row.branch_id,classroomId:row.classroom_id??undefined,childId:row.child_id});
     return rows;
   }
   validateAllocation(row:DueItem,amount:string,date:string) {
-    if(BigInt(amount)<=0n || BigInt(amount)>BigInt(row.remaining) || date<row.issued_on || (row.category_kind==='BUS'&&BigInt(amount)!==BigInt(row.remaining))) throw invalid();
+    if(BigInt(amount)<=0n || BigInt(amount)>BigInt(row.remaining) || date<row.issued_on || (row.ownership_on!=null&&date<row.ownership_on) || (row.category_kind==='BUS'&&BigInt(amount)!==BigInt(row.remaining))) throw invalid();
   }
   async balances(token:string,raw:unknown,childId?:string) {
     const q=financeQuerySchema.parse(raw);
@@ -114,7 +114,7 @@ export class LedgerService {
       values.push(q.limit,q.offset);
       return (await tx.query<{totalRemaining:string;items:unknown[]}>(`with visible as (select o.id,o.child_id as "childId",o.branch_id as "branchId",o.child_code as "childCode",o.child_name as "childName",o.category_name as "categoryName",o.description,o.amount::text,b.remaining::text,
         (select json_agg(json_build_object('id',i.id,'dueOn',i.due_on::text,'amount',i.amount::text,'allocated',i.allocated::text,'credited',i.credited::text,'adjustments',i.adjustments::text,'remaining',i.remaining::text) order by i.position) from installment_balances i where i.obligation_id=o.id) as installments
-        from obligations o join obligation_balances b on b.id=o.id where ${predicate})
+        from receivable_obligations o join obligation_balances b on b.id=o.id where ${predicate})
         select coalesce((select sum(remaining::numeric)::text from visible),'0') as "totalRemaining",coalesce((select json_agg(page) from (select * from visible order by id limit $${values.length-1} offset $${values.length}) page),'[]') as items`,values)).rows[0];
     });
   }

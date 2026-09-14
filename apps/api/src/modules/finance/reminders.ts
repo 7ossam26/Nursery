@@ -22,7 +22,7 @@ export class ReminderService {
   const q=financeQuerySchema.omit({branchId:true}).parse(raw);
   return this.ledger.core.children.withPolicy(token,async(tx,p)=>{
    await this.ledger.core.enabled(tx);const scope=financeScope(p,'finance.read','o');
-   return (await tx.query(`select n.id,o.child_id as "childId",o.child_name as "childName",o.category_name as "categoryName",b.due_on::text as "dueOn",b.remaining::text from finance_reminders n join installment_balances b on b.id=n.installment_id join obligations o on o.id=b.obligation_id where ${scope.sql} and n.recipient_id=$5 and b.remaining>0 and b.due_on<$6::date order by n.created_at desc,n.id limit $7 offset $8`,[...scope.values,p.account.id,cairoIsoDate(),q.limit,q.offset])).rows;
+   return (await tx.query(`select n.id,o.child_id as "childId",o.child_name as "childName",o.category_name as "categoryName",b.due_on::text as "dueOn",b.remaining::text from finance_reminders n join installment_balances b on b.id=n.installment_id join receivable_obligations o on o.id=b.obligation_id where ${scope.sql} and n.recipient_id=$5 and b.remaining>0 and b.due_on<$6::date order by n.created_at desc,n.id limit $7 offset $8`,[...scope.values,p.account.id,cairoIsoDate(),q.limit,q.offset])).rows;
   });
  }
 }

@@ -1,3 +1,4 @@
+import { ChildTransferScreen } from './features/finance/child-transfer-screen.js';
 import { BillingScreen } from './features/finance/billing-screen.js';
 import { CollectionsScreen } from './features/finance/collections-screen.js';
 import { ParentPaymentsScreen } from './features/finance/parent-screen.js';
@@ -43,6 +44,7 @@ function AuthRoutes() {
   useEffect(() => { if (userLocale) setLocale(userLocale); }, [userLocale, setLocale]);
   return <><ParentLive /><Routes>
     <Route path="/login" element={<LoginScreen />} />
+    <Route path="/administration/child-transfers" element={<AuthGate><ChildTransferScreen/></AuthGate>} />
     <Route path="/administration/expenses" element={<AuthGate><ExpensesScreen/></AuthGate>} />
     <Route path="/administration/transfers" element={<AuthGate><TransfersScreen/></AuthGate>} />
     <Route path="/administration/closing" element={<AuthGate><ClosingScreen/></AuthGate>} />

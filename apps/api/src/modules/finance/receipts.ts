@@ -66,7 +66,7 @@ export class ReceiptService {
    if(receipt.kind==='CREDIT') remaining=(await tx.query<{remaining:string}>('select remaining::text from credit_balances where id=(select id from credits where receipt_id=$1)',[id])).rows[0].remaining;
    else {
     const scope=p.account.kind==='GUARDIAN'?{sql:'true',values:[] as unknown[]}:financeScope(p,'finance.read','o');
-    remaining=(await tx.query<{remaining:string}>(`select coalesce(sum(b.remaining),0)::text as remaining from obligation_balances b join obligations o on o.id=b.id where ${scope.sql} and o.child_id=any($${scope.values.length+1}::uuid[])`,[...scope.values,ids])).rows[0].remaining;
+    remaining=(await tx.query<{remaining:string}>(`select coalesce(sum(b.remaining),0)::text as remaining from obligation_balances b join receivable_obligations o on o.id=b.id where ${scope.sql} and o.child_id=any($${scope.values.length+1}::uuid[])`,[...scope.values,ids])).rows[0].remaining;
    }
    const bytes=await renderReceipt({receipt,nurseryName:brand.name,contactPhone:brand.phone,remaining,balanceOn:cairoIsoDate(),accent:brand.accent});
    // Zero generated-file retention: memory only, never a web-root file, public URL or durable bearer link.

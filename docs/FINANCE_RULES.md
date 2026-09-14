@@ -103,6 +103,8 @@ Preserve due dates. Any existing current-period occurrence retains its identity;
 
 Require authority over both branches to execute transfer. A payment concurrent with transfer either completes before the transfer calculation or follows the newly committed ownership; it cannot be lost or counted twice.
 
+Implemented effective-date default (D45): transfers take effect on today's Cairo date; scheduled/backdated transfers are rejected. A newly issued occurrence, including delayed catch-up issued after transfer, uses committed placement at generation. Zero-balance ownership anchors ensure later authorized reversals restore debt at the current owner, but only positive remaining due items count in the transfer amount. Unused credits keep their original branch/origins. Reclassifying paid tuition and refunds still require historical source authority. See [CHILD_BRANCH_TRANSFERS.md](CHILD_BRANCH_TRANSFERS.md).
+
 ## F09 — Bus and activity settlement
 
 Bus subscription records service period, amount, child, administrative permission, and the corresponding obligation. Paid is derived from complete valid settlement. Reject any positive receipt below or above the required bus balance; a free bus subscription is explicitly zero-priced and shown as No fee, not as a fabricated payment.
