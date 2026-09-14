@@ -5,6 +5,8 @@ export async function emitDueReminders(tx:Transaction,today=cairoIsoDate(),ids:s
  const result=await tx.query(`with due as (
    select b.id,o.child_id,o.branch_id,o.classroom_id from installment_balances b join receivable_obligations o on o.id=b.obligation_id
    where b.remaining>0 and b.due_on<$1::date and ($2::uuid[] is null or b.id=any($2::uuid[]))
+   and (o.category_kind<>'BUS' or exists(select 1 from module_settings where module_key='TRANSPORT' and enabled))
+   and (o.category_kind<>'TRIP' or exists(select 1 from module_settings where module_key='ACTIVITIES' and enabled))
  ),recipients as (
    select d.*,l.guardian_id as recipient_id from due d join children c on c.id=d.child_id
    join guardian_child_links l on l.child_id=c.id join accounts a on a.id=l.guardian_id

@@ -5,6 +5,7 @@ import { ParentPaymentsScreen } from './features/finance/parent-screen.js';
 import { ExpensesScreen,TransfersScreen } from './features/finance/spending-screen.js';
 import { ClosingScreen } from './features/finance/closing-screen.js';
 import { CorrectionsScreen } from './features/finance/corrections-screen.js';
+import { TransportScreen } from './features/finance/transport-screen.js';
 import { lazy, Suspense, useEffect } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router';
 import { useLocale } from './i18n/LocaleProvider.js';
@@ -49,6 +50,7 @@ function AuthRoutes() {
     <Route path="/administration/transfers" element={<AuthGate><TransfersScreen/></AuthGate>} />
     <Route path="/administration/closing" element={<AuthGate><ClosingScreen/></AuthGate>} />
     <Route path="/administration/corrections" element={<AuthGate><CorrectionsScreen/></AuthGate>} />
+    <Route path="/administration/transport" element={<AuthGate><TransportScreen/></AuthGate>} />
     <Route path="/session-expired" element={<LoginScreen expired />} />
     <Route path="/" element={<AuthGate>{session?.account.kind==='GUARDIAN' ? <Navigate to="/parent/today" replace /> : <AccountScreen />}</AuthGate>} />
     <Route path="/account" element={<AuthGate><AccountScreen /></AuthGate>} />
@@ -63,6 +65,7 @@ function AuthRoutes() {
     <Route path="/teacher/today" element={<AuthGate><TeacherAttendanceScreen /></AuthGate>} />
     <Route path="/teacher/homework" element={<AuthGate><TeacherHomeworkScreen /></AuthGate>} />
     <Route path="/teacher/exams" element={<AuthGate><TeacherExamsScreen /></AuthGate>} />
+    <Route path="/teacher/activities" element={<AuthGate><TransportScreen rosterOnly /></AuthGate>} />
     <Route path="/support/licenses" element={<AuthGate><LicensingScreen /></AuthGate>} />
     <Route path="/administration/children" element={<AuthGate><ChildrenScreen /></AuthGate>} />
     <Route path="/administration/children/:id" element={<AuthGate><ChildDetailScreen /></AuthGate>} />

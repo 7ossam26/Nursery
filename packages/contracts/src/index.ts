@@ -54,3 +54,4 @@ export * from './spending.js';
 export * from './closing.js';
 export * from './corrections.js';
 export * from './child-transfers.js';
+export * from './transport.js';

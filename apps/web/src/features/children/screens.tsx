@@ -98,6 +98,7 @@ export function ChildrenScreen() {
       {result.credentials.length>0 && <><h2>{t('children.credentials')}</h2><p>{t('children.credentialsHelp')}</p>{result.credentials.map((c) => <p key={c.id}>{c.username}: <code className="auth-temporary" dir="ltr">{c.temporaryPassword}</code></p>)}<Button onClick={() => setResult(null)}>{t('children.dismiss')}</Button></>}
       {options.data?.integration.finance.enabled && options.data.capabilities.includes('billing.manage') && <section><h2>{t('billing.onboarding')}</h2><p>{t('billing.onboardingHelp')}</p><BillingWorkspace initialChildIds={result.childIds} /></section>}
       {options.data?.integration.finance.enabled && options.data.capabilities.includes('payments.record') && options.data.capabilities.includes('finance.read') && <section><h2>{t('collections.initial')}</h2><p>{t('collections.initialHelp')}</p>{result.childIds.map((id,index)=><Link key={id} to={`/administration/collections?childId=${id}`}>{t('collections.initial')} — {index+1}</Link>)}</section>}
+      {options.data?.integration.transport.enabled && options.data.capabilities.includes('transport.manage') && <section><h2>{t('transport.onboarding')}</h2><p>{t('transport.onboardingHelp')}</p>{result.childIds.map((id,index)=><Link key={id} to={`/administration/transport?childId=${id}`}>{t('transport.openSetup')} — {index+1}</Link>)}</section>}
       {result.childIds.map((id) => <Link key={id} to={`/administration/children/${id}`}>{t('children.open')}</Link>)}
     </Card>}
     {options.data && page.data ? <>

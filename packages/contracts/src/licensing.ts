@@ -112,7 +112,7 @@ export type NurserySettings = NurserySettingsInput & { version: number; updatedA
 export const saveNurserySettingsSchema = z.object({ expectedVersion: versionSchema, value: nurserySettingsInputSchema }).strict();
 export type Branding = { name: string; logoPath: string | null; theme: ThemeTokens };
 
-export const moduleKeys = ['FINANCE', 'ATTENDANCE', 'EXAMS', 'HOMEWORK', 'HEALTH', 'PICKUP', 'INCIDENTS', 'CUSTOM_CHECKPOINTS'] as const;
+export const moduleKeys = ['FINANCE', 'ATTENDANCE', 'EXAMS', 'HOMEWORK', 'HEALTH', 'PICKUP', 'INCIDENTS', 'CUSTOM_CHECKPOINTS', 'TRANSPORT', 'ACTIVITIES'] as const;
 export const moduleKeySchema = z.enum(moduleKeys);
 export type ModuleKey = z.infer<typeof moduleKeySchema>;
 export type ModuleSetting = { moduleKey: ModuleKey; enabled: boolean; version: number; updatedAt: string };
@@ -130,6 +130,8 @@ const moduleImpacts: Record<ModuleKey, string[]> = {
   HEALTH: ['Hides the parent health section and stops new health-entry tasks.', 'Existing emergency information remains in the restricted staff emergency panel (D26).'],
   PICKUP: ['Stops new authorized-person entries, restrictions and release recording for every branch.', 'Existing authorizations and date-only release history remain readable to authorized staff.'],
   INCIDENTS: ['Stops new incident reports and follow-up edits; parents lose the incident section.', 'Existing incident records and their notification events are retained for authorized staff.']
+  ,TRANSPORT: ['Stops new bus subscriptions and permission changes. Paid transport also requires Finance.', 'Existing subscriptions and permitted history remain readable to authorized staff.']
+  ,ACTIVITIES: ['Stops new trips, invitations, consent records and cancelations. Paid activities also require Finance.', 'Existing events, invitations and financial history remain readable to authorized staff.']
 };
 export function moduleChangeImpacts(moduleKey: ModuleKey, enabled: boolean, currentlyEnabled: boolean): ModuleImpactPreview {
   const requiresCatchupAcknowledgement = moduleKey === 'FINANCE' && enabled && !currentlyEnabled;

@@ -128,7 +128,7 @@ export class CommunicationService {
       where n.guardian_id=$1 and ${currentSource} order by n.id,s.child_id`;
   }
   private href(n: ParentNotification & { announcementId: string | null }) {
-    if(n.kind==='RECEIPT'||n.kind==='OVERDUE') return `/parent/payments?childId=${n.childId}`;
+    if(n.kind==='RECEIPT'||n.kind==='OVERDUE'||n.kind==='TRIP') return `/parent/payments?childId=${n.childId}`;
     return n.announcementId ? `/parent/notices/${n.announcementId}` : `/parent/children/${n.childId}${n.date ? `?date=${n.date}` : ''}`;
   }
   async notifications(token: string,raw: unknown): Promise<NotificationPage> {

@@ -113,6 +113,8 @@ Initial eligibility rule D12: subscribed, active, fully paid for applicable peri
 
 Trip selected children get a notification. Participation requires recorded permission plus paid fee or an explicitly free event. Teacher roster displays each state separately. Record externally obtained consent with actor/date; no parent approval form. Canceling an event creates credits/refunds through F07, not deletion of receipts.
 
+Implemented Phase 18 default: event permission is the latest append-only externally obtained guardian-consent event. A paid cancellation and every affected TRIP reduction execute in one transaction after activity/participant and canonical financial locks. The unchanged Phase 16 reduction equation lowers unpaid value, restores applied credit, then creates source-linked noncash credit for released receipt value; cancellation itself never moves cash. The deferred validator permits only explicitly typed TUITION or TRIP reductions and still requires the obligation category to match. BUS remains excluded. Retry/concurrent cancellation cannot append a second history row or credit. Disabled Transport/Activities blocks new mutations and reminders while authorized staff history remains readable.
+
 ## F10 — Payroll
 
 Employee profile has basic monthly salary. A payroll period snapshots that salary. Additions, deductions, penalties, and advances are manual month-scoped actions with reason/actor. Working hours/attendance never enter the formula.

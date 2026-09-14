@@ -21,6 +21,13 @@ describe('Phase 16 sensitive corrections, credits and refunds on PostgreSQL',()=
   for(const table of ['refunds','credit_origins'])await expect(f.database.pool.query(`delete from ${table}`)).rejects.toThrow();
  });
 
+ it('TRIP reduction uses the identical source-linked noncash credit invariant and rejects BUS',async()=>{
+  const c=await setup(),trip=await f.ledger.category(f.root.token,{operationId:crypto.randomUUID(),code:'TRIP',name:'Trip',kind:'TRIP'}),child=await f.child('TRIP-REDUCE'),charge=await f.charge(child.childId,'5000',trip.id),payment=await f.payments.collect(f.root.token,f.collect(charge.installmentIds[0],'5000'));
+  const result=await c.reduceTuition(f.root.token,charge.installmentIds[0],{operationId:crypto.randomUUID(),effectiveOn:cairoIsoDate(),reductionAmount:'5000',reason:'Cancelled trip'});expect(result.creditAmount).toBe('5000');
+  expect((await f.database.pool.query('select target_kind from financial_corrections where id=$1',[result.correctionId])).rows[0].target_kind).toBe('TRIP');expect((await f.database.pool.query('select count(*)::int n from credit_origins where credit_id=$1 and receipt_id=$2',[result.creditId,payment.receiptIds[0]])).rows[0].n).toBe(1);
+  const bus=await f.charge(child.childId,'1000',f.bus.id);await expect(c.reduceTuition(f.root.token,bus.installmentIds[0],{operationId:crypto.randomUUID(),effectiveOn:cairoIsoDate(),reductionAmount:'1',reason:'Invalid bus reduction'})).rejects.toMatchObject({code:'VALIDATION_ERROR'});
+ });
+
  it('A25: receipt reversal/replacement is sensitive, current-dated, scoped, retry-safe, and preserves the original',async()=>{
   const c=await setup(),child=await f.child('RECEIPT'),charge=await f.charge(child.childId),payment=await f.payments.collect(f.root.token,f.collect(charge.installmentIds[0],'5000'));
   const staff=await f.financeStaff([f.a.id],[],'BRANCH',['finance.read','finance.correct']);const input={operationId:crypto.randomUUID(),effectiveOn:cairoIsoDate(),reason:'Correct incorrectly recorded amount',replacement:{accountId:f.cashA.id,method:'CASH' as const,amount:'4000',payerName:'Corrected payer',externalReference:'CORRECTED',allocations:[{installmentId:charge.installmentIds[0],amount:'4000'}]}};

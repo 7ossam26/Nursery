@@ -1,63 +1,55 @@
 # Current handoff
 
-Updated: 2026-09-14 — Phase17 COMPLETE. Phase18 NOT STARTED.
+Updated: 2026-09-14 — Phase 18 COMPLETE.
 
 ## Next executable action
 
-Stop at the Phase17 gate. On a new explicit request, start Phase18 by reading AGENTS.md, PROJECT_STATE.md, this handoff, the Phase18 file and only its named references; verify actual prerequisites/code/diff. No browser automation, subagents, model changes or live deployment. Phase12 screenshot handoff remains unresolved independently.
+Stop after Phase 18. Phase 19 is next but has not started; begin it only on an explicit user request after reading its phase file and required references. The independently unresolved Phase 12 screenshot handoff remains unchanged. Do not use browser automation, subagents, model changes, or a live deployment as a side effect.
 
-## Completed scope and contracts
+## Phase 18 delivered behavior
 
-Migration0017 adds immutable child_branch_transfers, receivable_ownership and transferred_due_items, current receivable_obligations projection, receipt-allocation ownership snapshots and tuition-correction historical ownership snapshots. Original charges/installments/receipts/cash stay immutable. Only positive canonical remaining installments count as transferred debt; zero-balance ownership anchors let later entitled reversals restore debt at the current owner. Direct branch changes require an atomic transfer.
+Migration `0018_bus_trips_activities.sql` adds shared `TRANSPORT`/`ACTIVITIES` module settings, delegable manage/read capabilities, bus subscriptions and append-only administrative permission events, activities/selected children, append-only external-consent and cancellation histories, and parent trip notification sources. BUS and TRIP fees use existing obligations/installments; paid/no-fee/eligibility/participation are canonical projections. A BUS charge has one installment and retains the existing exact-full-settlement rule. Explicit zero fee creates no receipt.
 
-ChildTransferService reuses FinancialCore idempotency/audit and ChildService policy. children.manage, billing.manage and finance.read are required at both placements and every existing debt owner scope. Transfers take effect on the current Cairo date, require expected child version and valid classroom, reject archived children and report advisory capacity. Commit recalculates preview balances. Same actor/key/payload replay returns the original result after current authorization, even following another transfer.
+Current bus eligibility is active child + current service period + fully paid/no-fee + administrative permission. Activity participation is active event + selected child + fully paid/no-fee + latest recorded external guardian consent. Consent and payment remain independent. Parent invitations use the existing notification service and payment link; teachers see only selected children in their assigned scope. Module disable blocks new actions/reminders and ordinary parent notices while authorized staff history remains readable. Transfers do not enroll children or duplicate fees.
 
-Lock order: licensing, organization, exclusive guardian scope for transfer, authenticated account/session, operation identity, child, sorted relevant agreements, obligations and installments. Recurrence locks all agreement children before its agreement; transfer never acquires siblings after agreement locks. A real worker/API deadlock was reproduced: approving-account FK lock came after the worker's child lock. runBillingBatch now takes the approving account key-share lock before children, matching authenticated writers.
+Migration `0019_trip_reduction_invariant.sql` adds only `TRIP` to the explicit reduction target check and replaces the validator's fixed TUITION predicate with exact `target_kind`/obligation-category matching. The reduction equation, origin traceability, nonnegative balances, historical receipt scope, no-correction-cash rule, and RECEIPT/EXPENSE/TRANSFER deferred branches remain unchanged. BUS reductions remain rejected.
 
-Existing issued occurrences retain identity/due dates/price/attribution; new generation including delayed catch-up uses committed child placement. Stored sibling shares are never re-split. Classroom history, child audit, ownership/items, financial audit/operation and child.branch_transferred outbox are atomic. Bus/event consumers receive REVIEW_REQUIRED/automaticEnrollment:false and preserve fee references; no trip/subscription enrollment or payroll action occurs. Unused credits retain original branch/origins and existing same-branch application restrictions.
+`CorrectionService.reductionInTransaction(tx,p,id,input,due,resources)` is the transaction-neutral shared Phase16 reduction body. It does not begin/commit/rollback. Public tuition reduction retains its own operation/transaction and delegates to it. `TransportService.cancel` owns one operation/transaction, locks the activity and sorted participants before canonical financial resources, revalidates activity/finance authority, appends cancellation history and applies every TRIP reduction through that primitive. Failure rolls back both; same-operation retry replays; distinct concurrent cancellation serializes. Paid receipt value becomes source-linked noncash credit and cancellation moves no cash. TRIP reductions appear in immutable correction history.
 
-Collections/outstanding/reminders/receipt-balance summaries use current receivable ownership. Historical receipts keep source scope. Paid tuition reclassification requires original receipt scopes; tuition correction history snapshots ownership. Refund history uses its recorded funding branch, preventing current child placement from exposing source refunds. Parent permitted-child finance history remains continuous.
-
-Bilingual /administration/child-transfers uses established controls/scoped reads/frozen-operation recovery, with preview/open debt references/due dates/destination/today/capacity/no-cash confirmation and branch receivable-in/out history. Collections links to it; parent payments includes permitted transfer history. D45, FINANCE_RULES.md and API_AND_DATA_CONTRACTS.md are updated. Full semantics, failed attempts and evidence: [CHILD_BRANCH_TRANSFERS.md](CHILD_BRANCH_TRANSFERS.md).
+Bilingual `/administration/transport` and `/teacher/activities` screens include management forms, operation-status recovery, bus/current eligibility, activity roster states, module-disabled history copy, and finance links only for finance readers. The child onboarding result links each new child to `/administration/transport?childId=...`. Manager options expose only existing transport/activity-manage scope without granting children or finance views. Event/service dates may be future; due dates cannot follow the activity/service end.
 
 ## Changed files
 
-- DB/contracts: packages/db/src/migrations/0017_child_branch_transfers.sql; packages/db/src/{billing,reminders}.ts; packages/contracts/src/{child-transfers,index}.ts.
-- API: apps/api/src/modules/children/service.ts; apps/api/src/modules/finance/{child-transfers,routes,ledger,corrections,reminders,receipts}.ts.
-- Web: apps/web/src/App.tsx; apps/web/src/features/finance/{child-transfer-screen,child-transfer-copy,collections-screen,parent-screen}.tsx/.ts; apps/web/src/i18n/catalogs.ts.
-- Tests: tests/integration/child-transfers.test.ts; tests/e2e/child-transfers.test.tsx; tests/helpers/finance.ts; tests/integration/organization-migration.test.ts.
-- Docs: CHILD_BRANCH_TRANSFERS.md, FINANCE_RULES.md, API_AND_DATA_CONTRACTS.md, DECISIONS.md, PROJECT_STATE.md, HANDOFF.md.
+- Database/contracts: `packages/db/src/migrations/0018_bus_trips_activities.sql`, `0019_trip_reduction_invariant.sql`; `packages/db/src/reminders.ts`; `packages/contracts/src/{transport,children,communication,corrections,index,licensing,organization}.ts`.
+- API: `apps/api/src/modules/finance/{transport,core,corrections,routes}.ts`; `apps/api/src/modules/{children,communication}/service.ts`.
+- Web: `apps/web/src/App.tsx`; `features/finance/{transport-screen,transport-copy,spending-copy}.tsx/.ts`; `features/{auth,children}/screens.tsx`; `features/communication/copy.ts`; `i18n/catalogs.ts`.
+- Tests: `tests/integration/{transport,corrections,organization-migration}.test.ts`; `tests/e2e/{transport,children}.test.tsx`.
+- Docs: `FINANCE_RULES.md`, `API_AND_DATA_CONTRACTS.md`, `DECISIONS.md` (D46), `PROJECT_STATE.md`, `HANDOFF.md`.
 
-## Actual commands and results
+## Actual verification
 
-Node24.19.0: %TEMP%/nursery-phase07-tools/node.exe. npm11.1.0: %TEMP%/nursery-phase16-tools/node_modules/npm/bin/npm-cli.js. Prepend the Node directory to process PATH. DATABASE_URL=postgresql://postgres@127.0.0.1:55417/postgres was process-only; fresh disposable PostgreSQL18 at %TEMP%/nursery-phase17-pg. Cluster was interrupted during session change and recovered; connection-failed attempt ran no checks. The cluster is now stopped. No persistent/live database received migration0017.
+Disposable PostgreSQL18 UTF-8 cluster: `%TEMP%/nursery-phase18-pg-utf8`, loopback port55419. It was stopped after verification. No persistent/live database received migrations.
 
-    npm run test:integration -- tests/integration/corrections.test.ts tests/integration/collections.test.ts tests/integration/billing.test.ts
+    node node_modules/vitest/vitest.mjs run --config vitest.integration.config.ts tests/integration/transport.test.ts tests/integration/corrections.test.ts --maxWorkers=1
 
-Prerequisites16/16 passed22.96s before implementation. Failed fixture setup/assertion attempts and the real deadlock are documented in CHILD_BRANCH_TRANSFERS.md. Broad parallel gate timed out existing10-second fixture hooks (19 pass/1 fail/32 skipped) and was not accepted. No test timeout or assertion was relaxed; the correct reminder suite was rerun with one worker.
+Final 2 files/11 tests passed in61.07s. Coverage includes A20 exact BUS settlement/idempotency/no extra cash; A32 paid-vs-consent and zero fee; A01/A02 scoped teacher/parent/finance separation; A31 disable/history/reminders; successful source-linked paid TRIP cancellation; rollback injection; same-key retry; concurrent cancellation; TUITION/TRIP/BUS and RECEIPT/EXPENSE/TRANSFER protections; finance reconciliation.
 
-    npm run test:integration -- tests/integration/child-transfers.test.ts tests/integration/corrections.test.ts tests/integration/finance.test.ts tests/integration/collections.test.ts tests/integration/receipts.test.ts tests/integration/finance-reminders.test.ts tests/integration/billing.test.ts tests/integration/children.test.ts tests/integration/organization-migration.test.ts --maxWorkers=1
+    node node_modules/vitest/vitest.mjs run --config vitest.integration.config.ts tests/integration/organization-migration.test.ts --maxWorkers=1
 
-Passed56/56 across9 files,141.10s. Upgrade/idempotent rerun through0017 passed (18 migrations). A pg client-query deprecation warning appeared; no failures.
+Passed2/2 in11.77s. Actual Phase3/Phase5 baselines upgraded in filename order through0019, retained identity/reservations/edited role data, reported20 migrations, and reran with no new output.
 
-    npm run test:integration -- tests/integration/child-transfers.test.ts tests/integration/corrections.test.ts --maxWorkers=1
+    node node_modules/vitest/vitest.mjs run --config vitest.e2e.config.ts tests/e2e/transport.test.tsx tests/e2e/children.test.tsx --maxWorkers=1
 
-Final refinement11/11 passed37.34s. Includes paid source reversal after zero-debt transfer, original-account refund and historical visibility, repeated transfer/retry, rollback, current teacher/manager/guardian scope, source/destination authorization and real payment/recurrence contention.
+Passed2 files/5 tests in53.78s. English/Arabic real HTTP/DOM, live permission mutation, onboarding links/preselection, exact classroom roster, no finance link without permission, RTL/LTR and structural axe (color contrast excluded). Expected aborted polling requests were logged during test unmount/navigation; asserted operations and suites passed.
 
-    npm run test:e2e -- tests/e2e/child-transfers.test.tsx --maxWorkers=1
-
-Final2/2 passed37.25s, English/Arabic real HTTP/DOM, actual dropped post-commit response, exactly one transfer/no destination cash, RTL/LTR and structural axe (color contrast excluded).
-
+    node node_modules/vitest/vitest.mjs run --config vitest.unit.config.ts apps/web/src/i18n/catalogs.unit.test.ts packages/contracts/src/finance.unit.test.ts
     npm run lint
     npm run typecheck
-    npm run test:unit -- apps/web/src/i18n/catalogs.unit.test.ts packages/contracts/src/finance.unit.test.ts
     npm run build
     git diff --check
 
-Final lint/type/build/diff passed; units4/4 passed691ms. Lint's earlier unused import was removed. Production build183 modules701.31kB/189.15kB gzip; existing >500kB warning remains.
+Final units4/4 passed874ms; lint/typecheck/build/diff passed. Production build transformed186 modules, 721.82kB/193.34kB gzip; the existing >500kB warning remains.
 
-## Worked A21 evidence and remaining limits
+## Remaining limitations
 
-One EGP4,000 charge; A collects EGP1,500; exactly EGP2,500 remaining debt moves to B with the original installment/obligation/due date retained. At transfer A cash stays1,500 and B cash0; nursery debt stays2,500. Retrying creates no second transfer. B later collects2,500; final A/B cash1,500/2,500, nursery receipts4,000 and debt0. Branch in/out histories both show2,500 without creating debt or cash. Original receipt DTO and obligation rows are unchanged.
-
-Current-date-only placement; unused credits stay at source under existing restrictions. No scheduled/backdated move, historic repricing, automatic transport/event enrollment, treasury transfer or independent-nursery transfer. No physical browser/mobile/VPS performance checks or live migration/deployment. Phase12 screenshot evidence remains unresolved separately. Phase18 is next and has not started.
+No bus attendance, route/GPS, boarding/dropoff, parent approval form, online payment, live nursery deployment, or physical-device/performance check was added. Cancellation produces noncash credit; actual cash refund remains the separate authorized Phase16 workflow. The Phase12 screenshot handoff is still unresolved independently. Phase19 has not started.

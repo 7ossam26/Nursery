@@ -22,8 +22,8 @@ export class FinancialCore {
     if((await tx.query("select 1 from daily_closing_heads where account_id=any($1::uuid[]) and action='COUNTED' and business_date>=$2 and ($3::uuid is null or id<>$3)",[accountIds,date,exemptId])).rowCount) throw new SafeError('VALIDATION_ERROR','closing.closedDate',false,409);
   }
   branch(p: Policy,capability: Capability,branchId: string) { requireRecord(p,capability,{branchId}); }
-  async operation<T>(tx: Transaction,p: Policy,operationId: string,action: string,input: unknown,capability: Capability,authorize:()=>Promise<FinanceResource[]>,work:()=>Promise<T>,revalidateReplay?:()=>Promise<void>): Promise<T> {
-    await this.enabled(tx); requireCapability(p,capability);
+  async operation<T>(tx: Transaction,p: Policy,operationId: string,action: string,input: unknown,capability: Capability,authorize:()=>Promise<FinanceResource[]>,work:()=>Promise<T>,revalidateReplay?:()=>Promise<void>,requireFinance=true): Promise<T> {
+    if(requireFinance) await this.enabled(tx); requireCapability(p,capability);
     await tx.query('select pg_advisory_xact_lock(hashtextextended($1,0))',[`finance/${p.account.id}/${operationId}`]);
     const canonical=(v:unknown):unknown=>Array.isArray(v) ? v.map(canonical) : v && typeof v==='object' ? Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b)).map(([k,x])=>[k,canonical(x)])) : v;
     const hash=createHash('sha256').update(JSON.stringify(canonical({action,input}))).digest('hex');

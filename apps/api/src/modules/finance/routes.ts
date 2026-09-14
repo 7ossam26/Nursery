@@ -12,20 +12,31 @@ import { ExpenseDocumentService } from './expense-documents.js';
 import { ClosingService } from './closing.js';
 import { CorrectionService } from './corrections.js';
 import { ChildTransferService } from './child-transfers.js';
+import { TransportService } from './transport.js';
 declare module 'fastify' { interface FastifyInstance { childTransfers:ChildTransferService } }
-declare module 'fastify' { interface FastifyInstance { corrections:CorrectionService;closing:ClosingService;expenseDocuments:ExpenseDocumentService;spending:SpendingService;billing:BillingService;financialCore:FinancialCore;ledger:LedgerService;treasury:TreasuryService;payments:PaymentService } }
+declare module 'fastify' { interface FastifyInstance { corrections:CorrectionService;closing:ClosingService;expenseDocuments:ExpenseDocumentService;spending:SpendingService;billing:BillingService;financialCore:FinancialCore;ledger:LedgerService;treasury:TreasuryService;payments:PaymentService;transport:TransportService } }
 export function installFinance(app:FastifyInstance) {
   const core=new FinancialCore(app.children),ledger=new LedgerService(core),treasury=new TreasuryService(core),payments=new PaymentService(core,ledger,treasury);
   const billing=new BillingService(core);app.decorate('billing',billing);
+  const spending=new SpendingService(core,treasury);app.decorate('spending',spending);
+  const corrections=new CorrectionService(core,ledger,treasury,payments,spending);app.decorate('corrections',corrections);
+  const transport=new TransportService(core,corrections);app.decorate('transport',transport);
   app.decorate('financialCore',core);app.decorate('ledger',ledger);app.decorate('treasury',treasury);app.decorate('payments',payments);
   const id=(raw:unknown)=>z.object({id:z.uuid()}).strict().parse(raw).id;
+  const activityChild=(raw:unknown)=>z.object({id:z.uuid(),childId:z.uuid()}).strict().parse(raw);
   const childTransfers=new ChildTransferService(core);app.decorate('childTransfers',childTransfers);
   app.post('/api/v1/finance/child-transfers/preview',async r=>({data:await childTransfers.preview(r.sessionToken,r.body)}));
+  app.get('/api/v1/transport/options',async r=>({data:await transport.options(r.sessionToken)}));
+  app.get('/api/v1/transport/subscriptions',async r=>({data:await transport.subscriptions(r.sessionToken,r.query)}));
+  app.post('/api/v1/transport/subscriptions',async r=>({data:await transport.subscribe(r.sessionToken,r.body)}));
+  app.post('/api/v1/transport/subscriptions/:id/permission',async r=>({data:await transport.permission(r.sessionToken,id(r.params),r.body)}));
+  app.get('/api/v1/activities',async r=>({data:await transport.activities(r.sessionToken,r.query)}));
+  app.post('/api/v1/activities',async r=>({data:await transport.createActivity(r.sessionToken,r.body)}));
+  app.post('/api/v1/activities/:id/children/:childId/consent',async r=>{const p=activityChild(r.params);return {data:await transport.consent(r.sessionToken,p.id,p.childId,r.body)};});
+  app.post('/api/v1/activities/:id/cancel',async r=>({data:await transport.cancel(r.sessionToken,id(r.params),r.body)}));
   app.post('/api/v1/children/:id/branch-transfers',async r=>({data:await childTransfers.transfer(r.sessionToken,{...z.record(z.string(),z.unknown()).parse(r.body),childId:id(r.params)})}));
   app.get('/api/v1/finance/child-transfers',async r=>({data:await childTransfers.history(r.sessionToken,r.query)}));
   app.get('/api/v1/parent/children/:id/branch-transfers',async r=>({data:await childTransfers.history(r.sessionToken,r.query,id(r.params))}));
-  const spending=new SpendingService(core,treasury);app.decorate('spending',spending);
-  const corrections=new CorrectionService(core,ledger,treasury,payments,spending);app.decorate('corrections',corrections);
   const closing=new ClosingService(core,treasury);app.decorate('closing',closing);
   app.get('/api/v1/finance/correction-options',async r=>({data:await corrections.options(r.sessionToken)}));
   app.get('/api/v1/finance/corrections',async r=>({data:await corrections.corrections(r.sessionToken,r.query)}));

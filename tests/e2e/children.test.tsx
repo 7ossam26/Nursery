@@ -35,6 +35,7 @@ describe('Phase 06 bilingual scripted DOM against HTTP and real PostgreSQL',() =
     expect((await axe.run(view.container,{ rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
     await user.click(screen.getByRole('button',{ name: t('children.review') }));
     await screen.findByRole('heading',{ name: t('children.credentials'),exact: true },{ timeout: 15000 });
+    expect(screen.getByRole('heading',{name:t('transport.onboarding'),exact:true})).toBeTruthy();expect(screen.getAllByRole('link',{name:new RegExp(t('transport.openSetup'))})).toHaveLength(2);
     const temporary = await waitFor(() => { const value = view.container.querySelector('.auth-temporary')?.textContent; expect(value).toBeTruthy(); return value!; }); expect(temporary.length).toBeGreaterThan(20); expect(JSON.stringify(window.localStorage)).not.toContain(temporary);
     await user.click(screen.getByRole('button',{ name: t('children.dismiss') })); expect(view.container.textContent).not.toContain(temporary);
     const firstCard = await screen.findByRole('heading',{ name: 'UI first child' }); await user.click(within(firstCard.closest('section')!).getByRole('link',{ name: t('children.open') }));

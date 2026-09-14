@@ -99,6 +99,8 @@ export function AccountScreen() {
     {auth.session!.account.capabilities.includes('announcements.manage') && <Link to="/administration/announcements">{t('hub.publish')}</Link>}
     {auth.session!.account.capabilities.includes('finance.read') && <Link to="/administration/billing">{t('billing.title')}</Link>}
     {auth.session!.account.capabilities.includes('finance.read') && <Link to="/administration/collections">{t('collections.title')}</Link>}
+    {(auth.session!.account.capabilities.includes('transport.read')||auth.session!.account.capabilities.includes('transport.manage')) && <Link to="/administration/transport">{t('transport.title')}</Link>}
+    {(auth.session!.account.capabilities.includes('activities.read')||auth.session!.account.capabilities.includes('activities.manage')) && <Link to="/teacher/activities">{t('transport.rosterTitle')}</Link>}
     {auth.session!.account.capabilities.includes('finance.read') && (auth.session!.account.kind==='SYSTEM'||auth.session!.account.scope?.mode==='BRANCH') && <Link to="/administration/treasury">{t('finance.title')}</Link>}
     {auth.session!.account.capabilities.includes('learning.configure') && <Link to="/administration/checkpoints">{t('learning.configuration')}</Link>}
     {auth.session!.account.capabilities.includes('learning.read') && <><Link to="/teacher/today">{t('attendance.title')}</Link><Link to="/teacher/homework">{t('homework.title')}</Link><Link to="/teacher/exams">{t('exams.title')}</Link><Link to="/teacher/learning">{t('learning.title')}</Link></>}
