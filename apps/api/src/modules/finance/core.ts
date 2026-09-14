@@ -22,7 +22,7 @@ export class FinancialCore {
     if((await tx.query("select 1 from daily_closing_heads where account_id=any($1::uuid[]) and action='COUNTED' and business_date>=$2 and ($3::uuid is null or id<>$3)",[accountIds,date,exemptId])).rowCount) throw new SafeError('VALIDATION_ERROR','closing.closedDate',false,409);
   }
   branch(p: Policy,capability: Capability,branchId: string) { requireRecord(p,capability,{branchId}); }
-  async operation<T>(tx: Transaction,p: Policy,operationId: string,action: string,input: unknown,capability: Capability,authorize:()=>Promise<FinanceResource[]>,work:()=>Promise<T>,revalidateReplay?:()=>Promise<void>,requireFinance=true): Promise<T> {
+  async operation<T>(tx: Transaction,p: Policy,operationId: string,action: string,input: unknown,capability: Capability,authorize:()=>Promise<FinanceResource[]>,work:()=>Promise<T>,revalidateReplay?:()=>Promise<void>,requireFinance=true,resultForStorage:(result:T)=>T=(result)=>result): Promise<T> {
     if(requireFinance) await this.enabled(tx); requireCapability(p,capability);
     await tx.query('select pg_advisory_xact_lock(hashtextextended($1,0))',[`finance/${p.account.id}/${operationId}`]);
     const canonical=(v:unknown):unknown=>Array.isArray(v) ? v.map(canonical) : v && typeof v==='object' ? Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b)).map(([k,x])=>[k,canonical(x)])) : v;
@@ -34,9 +34,9 @@ export class FinancialCore {
       if(old.request_hash!==hash) throw new SafeError('IDEMPOTENCY_CONFLICT','finance.operationConflict',false,409);
       return old.result;
     }
-    const resources=await authorize(); const result=await work();
-    await tx.query('insert into financial_audit_events(id,actor_id,operation_id,action,details) values($1,$2,$3,$4,$5)',[randomUUID(),p.account.id,operationId,action,JSON.stringify({input,result})]);
-    await tx.query('insert into financial_operations(actor_id,operation_id,request_hash,action,result,resources) values($1,$2,$3,$4,$5,$6)',[p.account.id,operationId,hash,action,JSON.stringify(result),JSON.stringify(resources)]);
+    const resources=await authorize(); const result=await work();const storedResult=resultForStorage(result);
+    await tx.query('insert into financial_audit_events(id,actor_id,operation_id,action,details) values($1,$2,$3,$4,$5)',[randomUUID(),p.account.id,operationId,action,JSON.stringify({input,result:storedResult})]);
+    await tx.query('insert into financial_operations(actor_id,operation_id,request_hash,action,result,resources) values($1,$2,$3,$4,$5,$6)',[p.account.id,operationId,hash,action,JSON.stringify(storedResult),JSON.stringify(resources)]);
     return result;
   }
   async operationStatus(token:string,id:string) {

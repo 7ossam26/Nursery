@@ -129,6 +129,8 @@ Example: salary 5,000; advance 1,000; deduction 300 → final payment 3,700. Tot
 
 Prior months retain their paid/unpaid history and may be settled independently. No adjustment automatically rolls into another month. Salary edits affect future unapproved periods only. Correcting paid payroll uses explicit audited financial correction, never toggling paid to false.
 
+Phase19 implements immutable salary/month snapshots and the canonical `payroll_period_balances` formula in migration0020. Adjustments/advances are current-Cairo-month only and stop at final settlement. Final settlement requires the entire locked expected remainder; zero creates a reasoned no-cash source. `payroll_cash_sources` includes actual advances and positive final settlements, not basic salary or forecasts. The roster's outstanding total includes only unpaid snapshotted periods; prior months are retained independently. Independent PostgreSQL reconciliation checks the cap, full remainder and source/cash conservation. D47 and [EMPLOYEE_PAYROLL.md](EMPLOYEE_PAYROLL.md) describe permissions, optional login seats, routes, limits and actual evidence. No settled payroll correction/toggle endpoint is exposed.
+
 ## F11 — Reports and reconciliation
 
 Collections report: actual receipts by effective collection date, less explicit refunds where shown. Cash-based operating result: collections + separately identified other income - refunds - actual operating outflows. Exclude internal transfers, imported opening debt, new charges, and noncash discounts.

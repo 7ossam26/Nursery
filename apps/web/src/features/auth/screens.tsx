@@ -6,6 +6,7 @@ import { useLocale } from '../../i18n/LocaleProvider.js';
 import { catalogs, type MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from './AuthProvider.js';
 import { AuthError } from './client.js';
+import { PayrollNavigation } from '../finance/payroll-screen.js';
 
 function errorKey(error: unknown): MessageKey {
   return error instanceof AuthError && error.detail.messageKey in catalogs.en ? error.detail.messageKey as MessageKey : 'auth.networkError';
@@ -102,6 +103,7 @@ export function AccountScreen() {
     {(auth.session!.account.capabilities.includes('transport.read')||auth.session!.account.capabilities.includes('transport.manage')) && <Link to="/administration/transport">{t('transport.title')}</Link>}
     {(auth.session!.account.capabilities.includes('activities.read')||auth.session!.account.capabilities.includes('activities.manage')) && <Link to="/teacher/activities">{t('transport.rosterTitle')}</Link>}
     {auth.session!.account.capabilities.includes('finance.read') && (auth.session!.account.kind==='SYSTEM'||auth.session!.account.scope?.mode==='BRANCH') && <Link to="/administration/treasury">{t('finance.title')}</Link>}
+    {auth.session!.account.capabilities.includes('finance.read') && (auth.session!.account.kind==='SYSTEM'||auth.session!.account.scope?.mode==='BRANCH') && <PayrollNavigation/>}
     {auth.session!.account.capabilities.includes('learning.configure') && <Link to="/administration/checkpoints">{t('learning.configuration')}</Link>}
     {auth.session!.account.capabilities.includes('learning.read') && <><Link to="/teacher/today">{t('attendance.title')}</Link><Link to="/teacher/homework">{t('homework.title')}</Link><Link to="/teacher/exams">{t('exams.title')}</Link><Link to="/teacher/learning">{t('learning.title')}</Link></>}
     {auth.session!.account.capabilities.includes('children.read') && <Link to="/administration/children">{t('children.title')}</Link>}

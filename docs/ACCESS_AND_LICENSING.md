@@ -69,6 +69,8 @@ Core identity, authorization, audit, data integrity, and child identifiers canno
 
 Finance is required for payroll settlement, paid transport, paid events, collections, treasury reports, and monetary imports. Disabling finance pauses new generation and disables dependent paid operations; existing data is retained. Free announcements/activities and ordinary child operations can continue. Show the dependency impact before saving settings.
 
+Phase19 adds PAYROLL with explicit FINANCE dependency copy. Both modules gate new payroll profile/salary/snapshot/adjustment/advance/settlement/login actions; authorized finance.read branch-wide history remains readable. `payroll.manage` and `payroll.pay` are separately delegable, with no automatic role grants or classroom/guardian fallback. Profile-only employees reserve no login slot; optional STAFF login at creation or later uses LicensingService atomically and requires users.manage_staff as well as payroll.manage. Financial profile deactivation never changes account status or frees a reservation. See D47 and [EMPLOYEE_PAYROLL.md](EMPLOYEE_PAYROLL.md).
+
 Daily learning depends on configured enabled checkpoints. Attendance/exams/homework may be switched off independently; disabled checkpoints create no parent fields or staff tasks. Parent responses must omit disabled data, including old daily details; authorized administrative history remains available.
 
 Re-enabling a feature restores existing history. New daily snapshots use the applicable configuration version. For finance re-enable, show missing service periods for explicit admin catch-up approval; do not silently invoice periods while the module was intentionally off.

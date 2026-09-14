@@ -6,6 +6,7 @@ import { ExpensesScreen,TransfersScreen } from './features/finance/spending-scre
 import { ClosingScreen } from './features/finance/closing-screen.js';
 import { CorrectionsScreen } from './features/finance/corrections-screen.js';
 import { TransportScreen } from './features/finance/transport-screen.js';
+import { PayrollScreen } from './features/finance/payroll-screen.js';
 import { lazy, Suspense, useEffect } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router';
 import { useLocale } from './i18n/LocaleProvider.js';
@@ -51,6 +52,7 @@ function AuthRoutes() {
     <Route path="/administration/closing" element={<AuthGate><ClosingScreen/></AuthGate>} />
     <Route path="/administration/corrections" element={<AuthGate><CorrectionsScreen/></AuthGate>} />
     <Route path="/administration/transport" element={<AuthGate><TransportScreen/></AuthGate>} />
+    <Route path="/administration/payroll" element={<AuthGate><PayrollScreen/></AuthGate>} />
     <Route path="/session-expired" element={<LoginScreen expired />} />
     <Route path="/" element={<AuthGate>{session?.account.kind==='GUARDIAN' ? <Navigate to="/parent/today" replace /> : <AccountScreen />}</AuthGate>} />
     <Route path="/account" element={<AuthGate><AccountScreen /></AuthGate>} />

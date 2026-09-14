@@ -103,6 +103,8 @@ Phase18 implements `bus_subscriptions`, append-only permission events, activitie
 - TreasuryService.postMovement/transfer/close(actor, source, operationId)
 - ChildTransferService.transfer(actor, child, from/to, operationId)
 - PayrollService.recordAdvance/settleMonth(actor, period, operationId)
+
+Phase19 runtime: strict `packages/contracts/src/payroll.ts`, migration0020 and `PayrollService` implement `/api/v1/payroll` (month/optional branch, bounded limit/offset), `/options`, employee create/detail/status/future salary/optional later login, period snapshot/detail, adjustment/advance/full settlement and settled receipt-data actions. Entry amounts are canonical integer strings; SQL balance and aggregate projections remain exact strings. Settlement includes the displayed expected amount, not a caller-selected partial amount. Reads, totals and receipt DTOs share immutable monthly branch scope. FinancialCore persists redacted one-time credential results and provides actor-scoped operation recovery. No technical audit timestamps or arbitrary paid flags are returned by payroll. D47 and [EMPLOYEE_PAYROLL.md](EMPLOYEE_PAYROLL.md) list exact routes, fields, transaction guards and migration evidence. PDF/Excel report generation remains Phase20; this phase returns real receipt/export data only.
 - ImportService.preview/commit(actor, batch, expectedPreviewVersion, operationId)
 
 These names describe responsibilities; implementation naming can follow the repo convention. All entry points must share the same invariants and authorization. Reports read canonical projections and cannot mutate source data.

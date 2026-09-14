@@ -68,3 +68,5 @@ Measure query plans for balances/attendance/guardian history, eliminate N+1 quer
 ## Evidence rules
 
 Actual commands replace planned command names once Phase 01 establishes them. Capture concise relevant output. A failed test cannot be marked skipped to pass a gate. Missing credentials/infrastructure are recorded as not run. Do not claim live deployment, restore success, performance, or visual verification without evidence.
+
+Phase19 A26/A27/A28/A01/A05 evidence: final PostgreSQL payroll/actual upgrade-rerun15/15, financial regression checkpoint45/45, final real HTTP/DOM payroll/shared-operation regression8/8, focused units3/3 and workspace lint/type/build passed. Independent source/cash/cap/final-equation reconciliation is included in the repository fixtures. Exact commands, earlier failed attempts/fixes, runtime mismatch and unverified visual/deployment/performance limits are recorded in [EMPLOYEE_PAYROLL.md](EMPLOYEE_PAYROLL.md); no browser automation or live database was used.

@@ -112,7 +112,7 @@ export type NurserySettings = NurserySettingsInput & { version: number; updatedA
 export const saveNurserySettingsSchema = z.object({ expectedVersion: versionSchema, value: nurserySettingsInputSchema }).strict();
 export type Branding = { name: string; logoPath: string | null; theme: ThemeTokens };
 
-export const moduleKeys = ['FINANCE', 'ATTENDANCE', 'EXAMS', 'HOMEWORK', 'HEALTH', 'PICKUP', 'INCIDENTS', 'CUSTOM_CHECKPOINTS', 'TRANSPORT', 'ACTIVITIES'] as const;
+export const moduleKeys = ['FINANCE', 'ATTENDANCE', 'EXAMS', 'HOMEWORK', 'HEALTH', 'PICKUP', 'INCIDENTS', 'CUSTOM_CHECKPOINTS', 'TRANSPORT', 'ACTIVITIES', 'PAYROLL'] as const;
 export const moduleKeySchema = z.enum(moduleKeys);
 export type ModuleKey = z.infer<typeof moduleKeySchema>;
 export type ModuleSetting = { moduleKey: ModuleKey; enabled: boolean; version: number; updatedAt: string };
@@ -132,6 +132,7 @@ const moduleImpacts: Record<ModuleKey, string[]> = {
   INCIDENTS: ['Stops new incident reports and follow-up edits; parents lose the incident section.', 'Existing incident records and their notification events are retained for authorized staff.']
   ,TRANSPORT: ['Stops new bus subscriptions and permission changes. Paid transport also requires Finance.', 'Existing subscriptions and permitted history remain readable to authorized staff.']
   ,ACTIVITIES: ['Stops new trips, invitations, consent records and cancelations. Paid activities also require Finance.', 'Existing events, invitations and financial history remain readable to authorized staff.']
+  ,PAYROLL: ['Stops new employee financial profiles, monthly snapshots, adjustments, advances and settlements. Finance is also required for cash actions.', 'Existing employee and payroll history remains readable to authorized finance staff.']
 };
 export function moduleChangeImpacts(moduleKey: ModuleKey, enabled: boolean, currentlyEnabled: boolean): ModuleImpactPreview {
   const requiresCatchupAcknowledgement = moduleKey === 'FINANCE' && enabled && !currentlyEnabled;

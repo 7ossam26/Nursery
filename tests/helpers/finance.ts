@@ -26,6 +26,10 @@ export async function reconcileFinance(database:Database) {
  union all select 'refund-cash' from refunds r where r.amount<>(select -coalesce(sum(m.amount),0) from treasury_movements m where m.refund_id=r.id)
  union all select 'closing-adjustment-cash' from closing_adjustments j where j.amount<>(select coalesce(sum(m.amount),0) from treasury_movements m where m.closing_adjustment_id=j.id)
  union all select 'closing-adjustment-source' from closing_adjustments j join daily_closings c on c.id=j.closing_id where j.amount<>c.difference or j.account_id<>c.account_id
+ union all select 'payroll-cap' from payroll_period_balances p where p.deductions+p.advances>p.basic_salary or p.remaining<0
+ union all select 'payroll-advance-cash' from payroll_advances a where a.amount<>(select -coalesce(sum(m.amount),0) from treasury_movements m where m.payroll_advance_id=a.id)
+ union all select 'payroll-settlement-cash' from payroll_final_settlements s where s.amount<>(select -coalesce(sum(m.amount),0) from treasury_movements m where m.payroll_settlement_id=s.id)
+ union all select 'payroll-settlement-amount' from payroll_final_settlements s join payroll_period_balances p on p.id=s.period_id where s.amount<>p.basic_salary+p.additions-p.deductions-p.advances
  `)).rows;
  return rows.map(r=>r.problem);
 }

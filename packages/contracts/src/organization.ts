@@ -8,7 +8,7 @@ export const capabilityKeys = [
   'health.read', 'health.manage', 'pickup.record', 'pickup.manage', 'incidents.read', 'incidents.manage',
   'learning.configure', 'learning.read', 'learning.publish', 'exams.catalog', 'announcements.manage',
   'finance.read', 'billing.manage', 'payments.record', 'treasury.manage', 'expenses.manage', 'expenses.pay', 'expenses.approve', 'treasury.close'
-  ,'transport.manage', 'transport.read', 'activities.manage', 'activities.read'
+  ,'transport.manage', 'transport.read', 'activities.manage', 'activities.read', 'payroll.manage', 'payroll.pay'
 ] as const;
 export type Capability = typeof capabilityKeys[number];
 export const scopeModeSchema = z.enum(['BRANCH', 'CLASSROOM']);

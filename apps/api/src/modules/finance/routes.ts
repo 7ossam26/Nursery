@@ -13,18 +13,33 @@ import { ClosingService } from './closing.js';
 import { CorrectionService } from './corrections.js';
 import { ChildTransferService } from './child-transfers.js';
 import { TransportService } from './transport.js';
+import { PayrollService } from './payroll.js';
 declare module 'fastify' { interface FastifyInstance { childTransfers:ChildTransferService } }
-declare module 'fastify' { interface FastifyInstance { corrections:CorrectionService;closing:ClosingService;expenseDocuments:ExpenseDocumentService;spending:SpendingService;billing:BillingService;financialCore:FinancialCore;ledger:LedgerService;treasury:TreasuryService;payments:PaymentService;transport:TransportService } }
+declare module 'fastify' { interface FastifyInstance { corrections:CorrectionService;closing:ClosingService;expenseDocuments:ExpenseDocumentService;spending:SpendingService;billing:BillingService;financialCore:FinancialCore;ledger:LedgerService;treasury:TreasuryService;payments:PaymentService;transport:TransportService;payroll:PayrollService } }
 export function installFinance(app:FastifyInstance) {
   const core=new FinancialCore(app.children),ledger=new LedgerService(core),treasury=new TreasuryService(core),payments=new PaymentService(core,ledger,treasury);
   const billing=new BillingService(core);app.decorate('billing',billing);
   const spending=new SpendingService(core,treasury);app.decorate('spending',spending);
+  const payroll=new PayrollService(core,treasury,spending,app.licensing);app.decorate('payroll',payroll);
   const corrections=new CorrectionService(core,ledger,treasury,payments,spending);app.decorate('corrections',corrections);
   const transport=new TransportService(core,corrections);app.decorate('transport',transport);
   app.decorate('financialCore',core);app.decorate('ledger',ledger);app.decorate('treasury',treasury);app.decorate('payments',payments);
   const id=(raw:unknown)=>z.object({id:z.uuid()}).strict().parse(raw).id;
   const activityChild=(raw:unknown)=>z.object({id:z.uuid(),childId:z.uuid()}).strict().parse(raw);
   const childTransfers=new ChildTransferService(core);app.decorate('childTransfers',childTransfers);
+  app.get('/api/v1/payroll/options',async r=>({data:await payroll.options(r.sessionToken)}));
+  app.get('/api/v1/payroll',async r=>({data:await payroll.roster(r.sessionToken,r.query)}));
+  app.post('/api/v1/payroll/employees',async r=>({data:await payroll.createProfile(r.sessionToken,r.body)}));
+  app.get('/api/v1/payroll/employees/:id',async r=>({data:await payroll.employee(r.sessionToken,id(r.params))}));
+  app.post('/api/v1/payroll/employees/:id/status',async r=>({data:await payroll.profileStatus(r.sessionToken,id(r.params),r.body)}));
+  app.post('/api/v1/payroll/employees/:id/login',async r=>({data:await payroll.provisionLogin(r.sessionToken,id(r.params),r.body)}));
+  app.post('/api/v1/payroll/employees/:id/salary',async r=>({data:await payroll.changeSalary(r.sessionToken,id(r.params),r.body)}));
+  app.post('/api/v1/payroll/periods',async r=>({data:await payroll.prepare(r.sessionToken,r.body)}));
+  app.get('/api/v1/payroll/periods/:id',async r=>({data:await payroll.period(r.sessionToken,id(r.params))}));
+  app.post('/api/v1/payroll/periods/:id/adjustments',async r=>({data:await payroll.adjust(r.sessionToken,id(r.params),r.body)}));
+  app.post('/api/v1/payroll/periods/:id/advances',async r=>({data:await payroll.advance(r.sessionToken,id(r.params),r.body)}));
+  app.post('/api/v1/payroll/periods/:id/settlements',async r=>({data:await payroll.settle(r.sessionToken,id(r.params),r.body)}));
+  app.get('/api/v1/payroll/periods/:id/receipt-data',async r=>({data:await payroll.receiptData(r.sessionToken,id(r.params))}));
   app.post('/api/v1/finance/child-transfers/preview',async r=>({data:await childTransfers.preview(r.sessionToken,r.body)}));
   app.get('/api/v1/transport/options',async r=>({data:await transport.options(r.sessionToken)}));
   app.get('/api/v1/transport/subscriptions',async r=>({data:await transport.subscriptions(r.sessionToken,r.query)}));
