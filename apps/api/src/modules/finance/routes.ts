@@ -1,4 +1,6 @@
 import { BillingService } from './billing.js';
+import { ReceiptService } from './receipts.js';
+import { ReminderService } from './reminders.js';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { FinancialCore } from './core.js';
@@ -22,14 +24,23 @@ export function installFinance(app:FastifyInstance) {
   app.post('/api/v1/finance/branches/:id/default-account',async r=>({data:await treasury.setDefault(r.sessionToken,id(r.params),r.body)}));
   app.get('/api/v1/finance/accounts/:id/movements',async r=>({data:await treasury.movements(r.sessionToken,id(r.params),r.query)}));
   app.get('/api/v1/finance/categories',async r=>({data:await ledger.categories(r.sessionToken)}));
+  app.get('/api/v1/finance/collection-options',async r=>({data:await ledger.collectionOptions(r.sessionToken)}));
+  app.get('/api/v1/finance/outstanding',async r=>({data:await ledger.outstanding(r.sessionToken,r.query)}));
+  const reminders=new ReminderService(ledger);
+  app.post('/api/v1/finance/installments/:id/reminders',async r=>({data:await reminders.resend(r.sessionToken,id(r.params),r.body)}));
+  app.get('/api/v1/finance/reminders',async r=>({data:await reminders.inbox(r.sessionToken,r.query)}));
   app.post('/api/v1/finance/categories',async r=>({data:await ledger.category(r.sessionToken,r.body)}));
   app.get('/api/v1/finance/balances',async r=>({data:await ledger.balances(r.sessionToken,r.query)}));
   app.get('/api/v1/finance/children/:id/balances',async r=>({data:await ledger.balances(r.sessionToken,r.query,id(r.params))}));
+  app.get('/api/v1/parent/payment-options',async r=>({data:await ledger.parentOptions(r.sessionToken)}));
+  app.get('/api/v1/parent/children/:id/receipts',async r=>({data:await payments.receipts(r.sessionToken,r.query,id(r.params))}));
   app.post('/api/v1/finance/obligations',{bodyLimit:65536},async r=>({data:await ledger.createObligation(r.sessionToken,r.body)}));
   app.post('/api/v1/payments',{bodyLimit:262144},async r=>({data:await payments.collect(r.sessionToken,r.body)}));
   app.post('/api/v1/finance/credit-receipts',async r=>({data:await payments.receiveCredit(r.sessionToken,r.body)}));
   app.post('/api/v1/finance/credit-applications',{bodyLimit:65536},async r=>({data:await payments.applyCredit(r.sessionToken,r.body)}));
   app.get('/api/v1/finance/receipts',async r=>({data:await payments.receipts(r.sessionToken,r.query)}));
   app.get('/api/v1/finance/receipts/:id',async r=>({data:await payments.getReceipt(r.sessionToken,id(r.params))}));
+  const receiptFiles=new ReceiptService(payments);
+  app.get('/api/v1/finance/receipts/:id/download',async(r,reply)=>{const file=await receiptFiles.download(r.sessionToken,id(r.params));return reply.type('application/pdf').header('Cache-Control','private, no-store').header('Content-Disposition',`attachment; filename="${file.filename}"`).send(file.bytes);});
   app.get('/api/v1/finance/operations/:id',async r=>({data:await core.operationStatus(r.sessionToken,id(r.params))}));
 }

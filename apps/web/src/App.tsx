@@ -1,4 +1,6 @@
 import { BillingScreen } from './features/finance/billing-screen.js';
+import { CollectionsScreen } from './features/finance/collections-screen.js';
+import { ParentPaymentsScreen } from './features/finance/parent-screen.js';
 import { lazy, Suspense, useEffect } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router';
 import { useLocale } from './i18n/LocaleProvider.js';
@@ -45,6 +47,7 @@ function AuthRoutes() {
     <Route path="/administration/organization" element={<AuthGate><OrganizationScreen /></AuthGate>} />
     <Route path="/administration/settings" element={<AuthGate><SettingsScreen /></AuthGate>} />
     <Route path="/administration/billing" element={<AuthGate><BillingScreen /></AuthGate>} />
+    <Route path="/administration/collections" element={<AuthGate><CollectionsScreen /></AuthGate>} />
     <Route path="/administration/treasury" element={<AuthGate><TreasuryScreen /></AuthGate>} />
     <Route path="/administration/checkpoints" element={<AuthGate><LearningConfigurationScreen /></AuthGate>} />
     <Route path="/teacher/learning" element={<AuthGate><TeacherLearningScreen /></AuthGate>} />
@@ -57,6 +60,7 @@ function AuthRoutes() {
     <Route path="/parent/children" element={<AuthGate><GuardianChildrenScreen /></AuthGate>} />
     <Route path="/parent/children/:id" element={<AuthGate><GuardianChildScreen /></AuthGate>} />
     <Route path="/parent/today" element={<AuthGate><ParentTodayScreen /></AuthGate>} />
+    <Route path="/parent/payments" element={<AuthGate><ParentPaymentsScreen /></AuthGate>} />
     <Route path="/parent/notices" element={<AuthGate><ParentNoticesScreen /></AuthGate>} />
     <Route path="/parent/notices/:id" element={<AuthGate><ParentNoticeScreen /></AuthGate>} />
     <Route path="/parent/notifications" element={<AuthGate><ParentNotificationsScreen /></AuthGate>} />

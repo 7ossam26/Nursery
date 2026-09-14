@@ -29,7 +29,7 @@ function ReasonActionById({ label, run, extra }: Readonly<{ label: string; run: 
     {error && <p role="alert">{t(error)}</p>}{done && <p role="status">{t('licensing.actionDone')}</p>}
     <TextField label={t('licensing.accountId')} required value={id} onChange={(e) => setId(e.target.value)} />
     <TextField label={t('licensing.reason')} required maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
-    {extra?.map((field) => <TextField key={field.key} label={field.label} value={values[field.key] ?? ''} onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))} />)}
+    {extra?.map((field) => field.key==='untilDate'?<DateField key={field.key} label={field.label} value={values[field.key]??''} onValueChange={value=>setValues(v=>({...v,[field.key]:value}))}/>:<TextField key={field.key} label={field.label} value={values[field.key] ?? ''} onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))} />)}
     <Button type="submit" disabled={busy || !id.trim() || !reason.trim()}>{label}</Button>
   </form>;
 }

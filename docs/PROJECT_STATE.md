@@ -1,16 +1,18 @@
 # Project state
 
-Baseline: 2026-09-13. Phase 13 complete (2026-09-14).
+Baseline: 2026-09-13. Phase 15 complete (2026-09-14).
 
 ## Active state
 
-- Current phase: 14 — Billing modes, equal discounts, and recurring charges — COMPLETE (2026-09-14).
-- Initial working tree was clean. Actual Phase 13 prerequisite PostgreSQL suite passed 16/16 (20.39s). Phase 12 screenshot gate remains unresolved; explicit Phase 14 request permits technical progression, without browser automation.
-- Checkpoint 1: strict agreement contracts, exact stored child/installment allocations, migration 0012, shared obligation writer, scoped draft/approval/version/pause/end/catch-up service and API implemented. Workspace typecheck passed at this checkpoint; behavioral verification is pending.
-- Checkpoint 2: shared locked recurrence engine and pg-boss worker registered (pg-boss 12.31.1 pinned; npm audit 0 vulnerabilities). Real PostgreSQL recurrence/concurrency/disable and pg-boss restart checks passed; one legacy Phase 05 assertion was narrowed from schema absence to zero renewal treasury movements after Phase 13 introduced treasury tables.
-- Delivered: migration 0012 agreement/occurrence/catch-up model; strict billing contracts and exact allocation helpers; scoped draft/approval, future price, pause/end, catch-up and onboarding APIs/UI; shared obligation posting; locked Cairo recurrence engine and pg-boss worker; bilingual UI and lost-response recovery. Evidence is in [BILLING_AND_RECURRENCE.md](BILLING_AND_RECURRENCE.md).
-- Final gate: billing/worker/finance/licensing PostgreSQL 33/33; migration upgrade/rerun 2/2; bilingual billing HTTP/DOM 2/2; focused units 6/6; typecheck, lint, build and diff check passed. Build retains the existing >500 kB bundle warning. Phase 12 screenshot handoff remains unresolved and is not claimed complete.
-- Disposable PostgreSQL 17.9 restarted at loopback 55413 using the existing %TEMP%/nursery-phase13-pg cluster. No production actions, services, .env edits, browser automation, subagents, or model changes.
+- Current phase: 15 — Collections, outstanding balances, receipts, and manual blocks — COMPLETE (2026-09-14).
+- Initial working tree clean; required phase/reference reads completed. Actual prerequisite finance/billing PostgreSQL tests passed 25/25. Worker suite initially failed to import missing pg-boss; restored committed dependencies with npm ci --ignore-scripts (349 packages, 0 vulnerabilities), then worker restart check passed 1/1.
+- Checkpoint 1 complete: strict outstanding DTO/query, canonical installment filters/full totals, scoped destination identities, bilingual collections and separately confirmed credit receipt, frozen-operation recovery, staff receipt history and optional initial-payment links. PaymentService remains the sole writer; no charge/admission creates cash.
+- Checkpoint 2 complete: freshly authorized bilingual A4 receipt attachment, bundled OFL Arabic font/Pango at 300 dpi, nursery name/contact/accent, canonical permitted balances, no technical timestamps, zero generated-file retention. Final receipt PG 1/1 (6.39s), emitted-module/font smoke and final four-page PDF render/inspection passed.
+- Checkpoint 3 complete: migration 0013 immutable/deduplicated reminders, bounded Cairo minute/startup pg-boss sweep, explicit scoped/idempotent resend, staff inbox, all-line finance-gated parent notifications/receipts and child payment views. Manual blocking reuses existing administration/revocation services; debt/billing/seats stay independent.
+- Final gate: focused PostgreSQL/regression 51/51 (23.76s), final reminder/receipt checks 5/5 (15.85s, including 204-recipient 200+4 dispatch/resend), final receipt 1/1, bilingual real HTTP/DOM collection/credit/readonly/block/finance-revocation 4/4 (35.59s), focused units 9/9 plus updated catalog/finance 4/4; final typecheck/lint/build/emitted receipt/diff passed. Evidence and contracts: [COLLECTIONS_AND_RECEIPTS.md](COLLECTIONS_AND_RECEIPTS.md), D41. Shared DateField prerequisite fix prevents invalid visible dates submitting old ISO values.
+- Limitations: printable receipt text is raster-embedded, not searchable; no existing logo upload/render service was introduced. Actual browser/manual mobile walkthrough and VPS performance unmeasured; existing >500 kB web bundle and pg query-deprecation warnings retained. Next phase is 16; no later-phase work performed.
+- Actual runtime: Node 24.19.0/npm 11.1.0 under %TEMP%/nursery-phase04-tools; disposable PostgreSQL 18 %TEMP%/nursery-phase12-pg on loopback 55412 STOPPED after checks. Process-only DATABASE_URL; no .env, system service, browser automation, subagents, model changes or production actions.
+- Phase 12 screenshot handoff remains unresolved, without marking it complete. Earlier completed Phase 14 evidence remains in [BILLING_AND_RECURRENCE.md](BILLING_AND_RECURRENCE.md).
 ## Phase ledger
 
 | Phase | Topic | Status | Evidence |
@@ -29,7 +31,7 @@ Baseline: 2026-09-13. Phase 13 complete (2026-09-14).
 | 12 | Parent hub, announcements, and live notifications | IN PROGRESS | Prerequisites 12/12; PG/regression 24/24 plus final communication 9/9; unit 3/3; final real HTTP/SSE bilingual DOM/publication 3/3; final type/lint/build passed. Required screenshot handoff conflict pending. |
 | 13 | Financial records, transactions, and treasury core | COMPLETE | Final PostgreSQL finance 16/16; upgrade/rerun 2/2; focused unit 7/7 plus final finance 1/1; bilingual real HTTP/DOM/lost-response 2/2; final type/lint/build and diff passed. See FINANCIAL_CORE.md. |
 | 14 | Billing modes, equal discounts, and recurring charges | COMPLETE | PostgreSQL 33/33; pg-boss restart; migration 0012 upgrade/rerun 2/2; bilingual HTTP/DOM 2/2; focused units 6/6; type/lint/build/diff passed. See BILLING_AND_RECURRENCE.md. |
-| 15 | Collections, outstanding balances, receipts, and manual blocks | NOT STARTED | None |
+| 15 | Collections, outstanding balances, receipts, and manual blocks | COMPLETE | PostgreSQL/regression 51/51, final reminders/receipts 5/5 and receipt 1/1; bilingual real HTTP/DOM 4/4; focused units 9/9 plus 4/4; migration upgrade/rerun, worker restart, final A4 Arabic PDF visual/emitted-module smoke, type/lint/build/diff passed. See COLLECTIONS_AND_RECEIPTS.md. |
 | 16 | Expenses, transfers, refunds, and daily closing | NOT STARTED | None |
 | 17 | Child branch transfer and outstanding debt ownership | NOT STARTED | None |
 | 18 | Bus subscriptions, trips, and participation | NOT STARTED | None |

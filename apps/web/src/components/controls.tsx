@@ -87,6 +87,8 @@ export function DateField({ label, hint, error, value, onValueChange, id: suppli
         const nextDisplay = event.target.value;
         setDisplayValue(nextDisplay);
         const parsed = parseDisplayDate(nextDisplay);
+        // Invalid visible input must not submit the previous valid date to a financial action.
+        event.currentTarget.setCustomValidity(nextDisplay && !parsed ? 'dd/MM/yyyy' : '');
         if (parsed) onValueChange(parsed);
         else if (!nextDisplay) onValueChange('');
       }}

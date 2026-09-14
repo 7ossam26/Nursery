@@ -1,4 +1,5 @@
 import { billingEn,billingAr } from '../features/finance/billing-copy.js';
+import { collectionsEn,collectionsAr } from '../features/finance/collections-copy.js';
 import { organizationEnglish, organizationArabic } from '../features/organization/copy.js';
 import { childrenEnglish, childrenArabic } from '../features/children/copy.js';
 import { licensingEnglish, licensingArabic } from '../features/licensing/copy.js';
@@ -22,7 +23,7 @@ const en = {
   ...examsEnglish,
   ...homeworkEnglish,
   ...communicationEnglish,
-  ...financeEn,...billingEn,
+  ...financeEn,...billingEn,...collectionsEn,
   'auth.signIn': 'Sign in',
   'auth.username': 'Username',
   'auth.password': 'Password',
@@ -157,7 +158,7 @@ const ar: Record<MessageKey, string> = {
   ...examsArabic,
   ...homeworkArabic,
   ...communicationArabic,
-  ...financeAr,...billingAr,
+  ...financeAr,...billingAr,...collectionsAr,
   'auth.signIn': 'تسجيل الدخول',
   'auth.username': 'اسم المستخدم',
   'auth.password': 'كلمة السر',

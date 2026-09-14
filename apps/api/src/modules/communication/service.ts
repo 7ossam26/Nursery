@@ -13,6 +13,11 @@ const currentTarget = `(a.id is null or a.target->>'kind' in ('NURSERY','PARENTS
  or (a.target->>'kind'='BRANCH' and c.branch_id::text=a.target->>'id')
  or (a.target->>'kind'='CLASSROOM' and c.classroom_id::text=a.target->>'id'))`;
 const currentSource = `s.recipient_ids @> array[$1::uuid] and c.status='ACTIVE' and l.active and l.can_read and l.can_notify
+ and (s.module_key is distinct from 'FINANCE' or l.can_finance)
+ and (s.kind<>'OVERDUE' or exists(select 1 from finance_reminders fn join installment_balances fb on fb.id=fn.installment_id where s.event_key='finance:'||fn.id::text and fb.remaining>0 and fb.due_on<timezone('Africa/Cairo',now())::date))
+ and (s.kind<>'RECEIPT' or exists(select 1 from receipts fr where s.event_key='receipt:'||fr.id::text and not exists(
+   select 1 from jsonb_array_elements(fr.lines) line where not exists(select 1 from children fc join guardian_child_links fl on fl.child_id=fc.id
+    where fc.id=(line->>'childId')::uuid and fl.guardian_id=$1 and fc.status='ACTIVE' and fl.active and fl.can_read and fl.can_finance))))
  and (s.module_key is null or exists(select 1 from module_settings m where m.module_key=s.module_key and m.enabled)) and ${currentTarget}`;
 const sourceJoins = `parent_notification_sources s join children c on c.id=s.child_id
  join guardian_child_links l on l.child_id=c.id and l.guardian_id=$1 left join announcements a on a.id=s.announcement_id`;
@@ -123,6 +128,7 @@ export class CommunicationService {
       where n.guardian_id=$1 and ${currentSource} order by n.id,s.child_id`;
   }
   private href(n: ParentNotification & { announcementId: string | null }) {
+    if(n.kind==='RECEIPT'||n.kind==='OVERDUE') return `/parent/payments?childId=${n.childId}`;
     return n.announcementId ? `/parent/notices/${n.announcementId}` : `/parent/children/${n.childId}${n.date ? `?date=${n.date}` : ''}`;
   }
   async notifications(token: string,raw: unknown): Promise<NotificationPage> {

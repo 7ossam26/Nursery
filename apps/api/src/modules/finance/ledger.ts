@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { postObligation,type Transaction } from '@nursery/db';
-import { feeCategoryInputSchema,obligationInputSchema,financeQuerySchema,type Capability,type Child } from '@nursery/contracts';
+import { feeCategoryInputSchema,obligationInputSchema,financeQuerySchema,outstandingQuerySchema,type OutstandingPage,type CollectionOptions,type Capability,type Child } from '@nursery/contracts';
+import { cairoIsoDate } from '@nursery/domain';
 import { denied,requireCapability,requireRecord,requireBranch,type Policy } from '../organization/policy.js';
 import { resolveChild,requireChild,requireGuardianChild } from '../children/policy.js';
 import { FinancialCore,financeScope,invalid } from './core.js';
@@ -8,6 +9,55 @@ import { FinancialCore,financeScope,invalid } from './core.js';
 export type DueItem={id:string;obligation_id:string;child_id:string;branch_id:string;classroom_id:string|null;child_code:string;child_name:string;category_name:string;category_kind:string;remaining:string;issued_on:string;due_on:string};
 export class LedgerService {
   constructor(readonly core:FinancialCore) {}
+  async parentOptions(token:string) {
+    return this.core.children.withPolicy(token,async(tx,p)=>{
+      if(p.account.kind!=='GUARDIAN'||p.account.mustChangePassword) throw denied();
+      const enabled=Boolean((await tx.query("select 1 from module_settings where module_key='FINANCE' and enabled")).rowCount);
+      const children=enabled?(await tx.query<{id:string;fullName:string}>(`select c.id,c.full_name as "fullName" from children c join guardian_child_links l on l.child_id=c.id where l.guardian_id=$1 and l.active and l.can_read and l.can_finance and c.status='ACTIVE' order by c.id for share of c,l`,[p.account.id])).rows:[];
+      return {enabled,children};
+    });
+  }
+  async collectionOptions(token:string):Promise<CollectionOptions> {
+    return this.core.children.withPolicy(token,async(tx,p)=>{
+      requireCapability(p,'finance.read');
+      const canCollect=p.account.capabilities.includes('payments.record') && Boolean((await tx.query("select 1 from module_settings where module_key='FINANCE' and enabled")).rowCount);
+      const branches=(await tx.query<CollectionOptions['branches'][number]>('select id,code,name from branches where ($1::boolean or id=any($2::uuid[])) order by code',[p.account.kind==='SYSTEM',p.scope.branchIds])).rows;
+      const classrooms=(await tx.query<CollectionOptions['classrooms'][number]>('select id,branch_id as "branchId",name from classrooms where ($1::boolean or branch_id=any($2::uuid[])) and ($3::boolean or id=any($4::uuid[])) order by name',[p.account.kind==='SYSTEM',p.scope.branchIds,p.account.kind==='SYSTEM'||p.scope.mode==='BRANCH',p.scope.classroomIds])).rows;
+      // Destination identities are available to scoped collectors; branch cash balances are never included.
+      const accounts=canCollect ? (await tx.query<CollectionOptions['accounts'][number]>(`select a.id,a.branch_id as "branchId",a.code,a.name,a.type,d.account_id=a.id as "isDefault" from treasury_accounts a join branch_treasury_defaults d on d.branch_id=a.branch_id where ($1::boolean or a.branch_id=any($2::uuid[])) order by a.code`,[p.account.kind==='SYSTEM',p.scope.branchIds])).rows:[];
+      const categories=(await tx.query<CollectionOptions['categories'][number]>('select id,name from fee_categories order by name limit 100')).rows;
+      const canRemind=p.account.capabilities.includes('billing.manage') && Boolean((await tx.query("select 1 from module_settings where module_key='FINANCE' and enabled")).rowCount);
+      return {canCollect,canRemind,scopeMode:p.scope.mode,branches,classrooms,categories,accounts};
+    });
+  }
+  async outstanding(token:string,raw:unknown):Promise<OutstandingPage> {
+    const q=outstandingQuerySchema.parse(raw);
+    return this.core.children.withPolicy(token,async(tx,p)=>{
+      let predicate:string;let values:unknown[];
+      if(p.account.kind==='GUARDIAN') {
+        if(!q.childId||q.branchId||q.classroomId||q.categoryId) throw denied();
+        await this.core.enabled(tx);await requireGuardianChild(tx,p,q.childId,'read');await requireGuardianChild(tx,p,q.childId,'finance');
+        predicate='o.child_id=$1';values=[q.childId];
+      } else {
+        const scope=financeScope(p,'finance.read','o');predicate=scope.sql;values=[...scope.values];
+        if(q.branchId) requireBranch(p,q.branchId);
+        for(const [key,column] of [['branchId','branch_id'],['classroomId','classroom_id'],['categoryId','category_id'],['childId','child_id']] as const) if(q[key]) {values.push(q[key]);predicate+=` and o.${column}=$${values.length}`;}
+      }
+      values.push(cairoIsoDate());const today=values.length;
+      let filter='true';
+      if(q.status) {values.push(q.status);filter+=` and status=$${values.length}`;}
+      if(q.timing) filter+=q.timing==='OVERDUE'?' and overdue':' and remaining::numeric>0 and not overdue';
+      values.push(q.limit,q.offset);
+      return (await tx.query<OutstandingPage>(`with scoped as (
+        select b.id,b.obligation_id as "obligationId",o.child_id as "childId",o.child_code as "childCode",o.child_name as "childName",o.branch_id as "branchId",o.classroom_id as "classroomId",o.category_id as "categoryId",o.category_name as "categoryName",o.category_kind as "categoryKind",o.description,b.due_on::text as "dueOn",b.amount::text,b.allocated::text,b.credited::text,b.adjustments::text,b.remaining::text,
+        case when b.remaining=0 then 'PAID' when b.allocated+b.credited>0 then 'PARTIAL' else 'UNPAID' end as status,
+        (b.remaining>0 and b.due_on<$${today}::date) as overdue
+        from installment_balances b join obligations o on o.id=b.obligation_id where ${predicate}
+      ),visible as (select * from scoped where ${filter})
+      select coalesce((select sum(remaining::numeric)::text from visible),'0') as "totalRemaining",(select count(*)::int from visible) as "totalCount",
+      coalesce((select json_agg(page) from (select * from visible order by "dueOn",id limit $${values.length-1} offset $${values.length}) page),'[]') as items`,values)).rows[0];
+    });
+  }
   async category(token:string,raw:unknown) {
     const input=feeCategoryInputSchema.parse(raw);
     return this.core.children.withPolicy(token,(tx,p)=>this.core.operation(tx,p,input.operationId,'CATEGORY_CREATE',input,'billing.manage',async()=>{

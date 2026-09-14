@@ -80,12 +80,20 @@ export class PaymentService {
       for(const line of r.lines) requireRecord(p,'finance.read',{branchId:r.branchId,classroomId:line.classroomId??undefined,childId:line.childId});
     }
   }
-  async getReceipt(token:string,id:string):Promise<Receipt> {
-    return this.core.children.withPolicy(token,async(tx,p)=>{const r=(await tx.query<Receipt>(`select ${receiptColumns} from receipts r where r.id=$1`,[id])).rows[0];if(!r) throw denied();await this.authorizeReceipt(tx,p,r);return r;});
+  async receiptInTransaction(tx:Transaction,p:Policy,id:string):Promise<Receipt> {
+    const r=(await tx.query<Receipt>(`select ${receiptColumns} from receipts r where r.id=$1`,[id])).rows[0];if(!r||!r.lines.length) throw denied();await this.authorizeReceipt(tx,p,r);return r;
   }
-  async receipts(token:string,raw:unknown) {
+  async getReceipt(token:string,id:string):Promise<Receipt> {
+    return this.core.children.withPolicy(token,(tx,p)=>this.receiptInTransaction(tx,p,id));
+  }
+  async receipts(token:string,raw:unknown,childId?:string) {
     const q=financeQuerySchema.parse(raw);
     return this.core.children.withPolicy(token,async(tx,p)=>{
+      if(p.account.kind==='GUARDIAN') {
+        if(!childId||q.branchId) throw denied();await this.core.enabled(tx);await requireGuardianChild(tx,p,childId,'read');await requireGuardianChild(tx,p,childId,'finance');
+        return (await tx.query<Receipt>(`select ${receiptColumns} from receipts r where exists(select 1 from jsonb_array_elements(r.lines) line where line->>'childId'=$2)
+          and not exists(select 1 from jsonb_array_elements(r.lines) line where not exists(select 1 from children c join guardian_child_links l on l.child_id=c.id where c.id=(line->>'childId')::uuid and l.guardian_id=$1 and c.status='ACTIVE' and l.active and l.can_read and l.can_finance)) order by r.collected_on desc,r.reference desc limit $3 offset $4`,[p.account.id,childId,q.limit,q.offset])).rows;
+      }
       requireCapability(p,'finance.read');if(q.branchId) requireBranch(p,q.branchId);
       return (await tx.query<Receipt>(`select ${receiptColumns} from receipts r where ($1::boolean or r.branch_id=any($2::uuid[]))
         and ($3::boolean or not exists(select 1 from jsonb_array_elements(r.lines) l where l->>'classroomId' is null or not ((l->>'classroomId')::uuid=any($4::uuid[]))))

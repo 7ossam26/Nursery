@@ -16,8 +16,9 @@ import { refreshParentScope } from './ParentLive.js';
 
 export function ParentFrame({ children }: { children: ReactNode }) {
  const { t }=useLocale(); const auth=useAuth(); const contact=useScoped<{ name: string;whatsappNumber: string|null }>('parent/contact');
+ const finance=useScoped<{enabled:boolean;children:{id:string}[]}>('parent/payment-options');
  if (auth.session?.account.kind!=='GUARDIAN') return <main><p>{t('auth.forbidden')}</p></main>;
- return <main className="organization-page parent-hub"><LanguageSwitcher /><nav aria-label={t('hub.today')}><Link to="/parent/today">{t('hub.today')}</Link><Link to="/parent/children">{t('children.title')}</Link><Link to="/parent/notifications">{t('hub.notifications')}</Link><Link to="/parent/notices">{t('hub.notices')}</Link><Link to="/account">{t('auth.account')}</Link></nav>{children}{contact.data?.whatsappNumber && <a href={whatsAppLink(contact.data.whatsappNumber)} target="_blank" rel="noopener noreferrer">{t('safety.whatsapp')} — {contact.data.name}</a>}</main>;
+ return <main className="organization-page parent-hub"><LanguageSwitcher /><nav aria-label={t('hub.today')}><Link to="/parent/today">{t('hub.today')}</Link><Link to="/parent/children">{t('children.title')}</Link>{!!finance.data?.children.length&&<Link to="/parent/payments">{t('collections.parent')}</Link>}<Link to="/parent/notifications">{t('hub.notifications')}</Link><Link to="/account">{t('auth.account')}</Link></nav>{children}{contact.data?.whatsappNumber && <a href={whatsAppLink(contact.data.whatsappNumber)} target="_blank" rel="noopener noreferrer">{t('safety.whatsapp')} — {contact.data.name}</a>}</main>;
 }
 function TodayChild({ childId,date }: { childId: string;date: string }) {
  const { t }=useLocale(); const safety=useScoped<GuardianSafetyView>(`parent/children/${childId}/safety`); const day=useScoped<DailyLearning>(`learning/children/${childId}/daily?date=${date}`); const [historyDate,setHistoryDate]=useState(date); const exam=day.data?.slots.some((s) => s.definition.kind==='EXAM'); const homework=day.data?.slots.some((s) => s.definition.kind==='HOMEWORK');

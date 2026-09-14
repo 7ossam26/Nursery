@@ -1,6 +1,6 @@
 import { it,expect } from 'vitest';
 import { financeFixture } from '../helpers/finance.js';
-import { startBillingWorker,BILLING_QUEUE } from '../../apps/worker/src/billing.js';
+import { startBillingWorker,BILLING_QUEUE,REMINDER_QUEUE } from '../../apps/worker/src/billing.js';
 import { monthStart,cairoIsoDate,nextMonth } from '@nursery/domain';
 it('pg-boss persists the Cairo schedule, executes startup work, and restarts without duplicate occurrences',async()=>{
  const f=await financeFixture();const schema=`boss_test_${crypto.randomUUID().replaceAll('-','')}`;const errors:Error[]=[];
@@ -12,12 +12,15 @@ it('pg-boss persists the Cairo schedule, executes startup work, and restarts wit
   expect(await count()).toBe(24);
   boss=await startBillingWorker(f.config.databaseUrl,f.database,e=>errors.push(e),schema);
   await expect.poll(count,{timeout:20000}).toBe(33);
-  const schedules=await boss.getSchedules();expect(schedules).toMatchObject([{name:BILLING_QUEUE,cron:'* * * * *',timezone:'Africa/Cairo'}]);
+  const reminderJob=await boss.send(REMINDER_QUEUE,{});await expect.poll(async()=> (await boss!.getJobById(REMINDER_QUEUE,reminderJob!))?.state,{timeout:20000}).toBe('completed');
+  const reminderCount=async()=>Number((await f.database.pool.query('select count(*) n from finance_reminders')).rows[0].n);const notices=await reminderCount();expect(notices).toBeGreaterThan(0);
+  const schedules=await boss.getSchedules();expect(schedules).toEqual(expect.arrayContaining([expect.objectContaining({name:BILLING_QUEUE,cron:'* * * * *',timezone:'Africa/Cairo'})]));
   await boss.stop({graceful:true});boss=undefined;
   boss=await startBillingWorker(f.config.databaseUrl,f.database,e=>errors.push(e),schema);
   const job=await boss.send(BILLING_QUEUE,{});
   await expect.poll(async()=> (await boss!.getJobById(BILLING_QUEUE,job!))?.state,{timeout:20000}).toBe('completed');
   expect(await count()).toBe(33);expect(errors).toEqual([]);
+  const retryReminder=await boss.send(REMINDER_QUEUE,{});await expect.poll(async()=> (await boss!.getJobById(REMINDER_QUEUE,retryReminder!))?.state,{timeout:20000}).toBe('completed');expect(await reminderCount()).toBe(notices);
   expect((await f.database.pool.query('select next_period::text from billing_agreements where id=$1',[a.id])).rows[0].next_period).toBe(nextMonth(monthStart(cairoIsoDate())));
  } finally {
   await boss?.stop({graceful:true});

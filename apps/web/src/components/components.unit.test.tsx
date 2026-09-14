@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor,fireEvent } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import axe from 'axe-core';
 import { useState } from 'react';
@@ -9,7 +9,7 @@ import { ComponentPreview } from '../features/design-system/ComponentPreview.js'
 import { LanguageSwitcher } from '../layout/AppShell.js';
 import { LocaleProvider, useLocale } from '../i18n/LocaleProvider.js';
 import { Modal } from './Modal.js';
-import { Button } from './controls.js';
+import { Button,DateField } from './controls.js';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -25,6 +25,12 @@ function LocaleHarness() {
 }
 
 describe('component accessibility and interaction', () => {
+  it('blocks invalid visible business dates instead of submitting the previous valid date',()=>{
+    function Harness() {const [value,setValue]=useState('2026-09-14');return <form><DateField label="Collection date" value={value} onValueChange={setValue} required/></form>;}
+    render(<Harness/>);const input=screen.getByLabelText('Collection date',{exact:false}) as HTMLInputElement;
+    expect(input.value).toBe('14/09/2026');fireEvent.change(input,{target:{value:'31/02/2026'}});expect(input.validity.customError).toBe(true);expect(input.form!.checkValidity()).toBe(false);
+    fireEvent.change(input,{target:{value:'15/09/2026'}});expect(input.validity.customError).toBe(false);expect(input.form!.checkValidity()).toBe(true);
+  });
   it('switches copy and document direction without changing a stored business value', async () => {
     const user = userEvent.setup();
     render(<LocaleProvider><LocaleHarness /></LocaleProvider>);

@@ -21,7 +21,25 @@ export const creditReceiptInputSchema = z.object({ operationId: uuid,childId: uu
 export const applyCreditInputSchema = z.object({ operationId: uuid,creditId: uuid,appliedOn: z.iso.date(),allocations: z.array(allocationSchema).min(1).max(100) }).strict().refine(v=>new Set(v.allocations.map(a=>a.installmentId)).size===v.allocations.length);
 export const financeQuerySchema = z.object({ branchId: uuid.optional(),limit: z.coerce.number().int().min(1).max(50).default(50),offset: z.coerce.number().int().min(0).max(100000).default(0) }).strict();
 export type CollectionInput = z.infer<typeof collectionInputSchema>;
+export type CreditReceiptInput = z.infer<typeof creditReceiptInputSchema>;
 export type TreasuryAccount = { id: string;branchId: string;code: string;name: string;type: z.infer<typeof accountTypeSchema>;openedOn: string;balance: string;isDefault: boolean;defaultVersion: number };
 export type FinanceOptions = { branches: { id: string;code: string;name: string }[];canManage: boolean };
 export type Receipt = { id: string;reference: string;branchId: string;branchCode: string;accountId: string;accountCode: string;method: z.infer<typeof accountTypeSchema>;collectedOn: string;payerName: string;externalReference: string;amount: string;kind: 'PAYMENT'|'CREDIT';lines: { childId: string;childCode: string;childName: string;classroomId: string|null;installmentId: string|null;categoryName: string;amount: string }[] };
 export type PaymentResult = { operationId: string;receiptIds: string[] };
+export const outstandingQuerySchema = z.object({
+  branchId: uuid.optional(),classroomId: uuid.optional(),categoryId: uuid.optional(),childId: uuid.optional(),
+  status: z.enum(['UNPAID','PARTIAL','PAID']).optional(),timing: z.enum(['OVERDUE','UPCOMING']).optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20),offset: z.coerce.number().int().min(0).max(100000).default(0)
+}).strict();
+export type OutstandingItem = {
+  id:string;obligationId:string;childId:string;childCode:string;childName:string;branchId:string;classroomId:string|null;
+  categoryId:string;categoryName:string;categoryKind:'TUITION'|'BUS'|'TRIP'|'ADDITIONAL';description:string;
+  dueOn:string;amount:string;allocated:string;credited:string;adjustments:string;remaining:string;
+  status:'UNPAID'|'PARTIAL'|'PAID';overdue:boolean;
+};
+export type OutstandingPage = {items:OutstandingItem[];totalRemaining:string;totalCount:number};
+export type CollectionOptions = {
+  canCollect:boolean;canRemind:boolean;scopeMode:'BRANCH'|'CLASSROOM';branches:{id:string;code:string;name:string}[];
+  classrooms:{id:string;branchId:string;name:string}[];categories:{id:string;name:string}[];
+  accounts:{id:string;branchId:string;code:string;name:string;type:'CASH'|'BANK'|'WALLET';isDefault:boolean}[];
+};
