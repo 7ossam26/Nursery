@@ -4,6 +4,8 @@ This document fixes important ownership and invariants. Each phase adds the actu
 
 ## Public API conventions
 
+Phase 08 implementation: [CHECKPOINT_ENGINE.md](CHECKPOINT_ENGINE.md) defines the version/snapshot schema, strict `/api/v1/learning` actions, expected revisions, idempotency, correction chains, scoped outbox and built-in adapter transaction protocol. Runtime inputs live in packages/contracts/src/learning.ts; migration 0006_learning.sql follows 0005.
+
 Use /api/v1. Responses contain data plus safe metadata; errors use code, messageKey, fieldErrors, requestId, and retryable. Do not expose database errors or raw internal reasons.
 
 Use UUID resource IDs, date-only YYYY-MM-DD strings for business dates, UTC ISO timestamps for audit events, and integer-string piastre amounts. Pagination has a bounded limit. Sorting/filter fields are allowlisted.

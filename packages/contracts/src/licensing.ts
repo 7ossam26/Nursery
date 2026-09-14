@@ -112,7 +112,7 @@ export type NurserySettings = NurserySettingsInput & { version: number; updatedA
 export const saveNurserySettingsSchema = z.object({ expectedVersion: versionSchema, value: nurserySettingsInputSchema }).strict();
 export type Branding = { name: string; logoPath: string | null; theme: ThemeTokens };
 
-export const moduleKeys = ['FINANCE', 'ATTENDANCE', 'EXAMS', 'HOMEWORK', 'HEALTH', 'PICKUP', 'INCIDENTS'] as const;
+export const moduleKeys = ['FINANCE', 'ATTENDANCE', 'EXAMS', 'HOMEWORK', 'HEALTH', 'PICKUP', 'INCIDENTS', 'CUSTOM_CHECKPOINTS'] as const;
 export const moduleKeySchema = z.enum(moduleKeys);
 export type ModuleKey = z.infer<typeof moduleKeySchema>;
 export type ModuleSetting = { moduleKey: ModuleKey; enabled: boolean; version: number; updatedAt: string };
@@ -124,6 +124,7 @@ export type ModuleChangeInput = z.infer<typeof moduleChangeInputSchema>;
 const moduleImpacts: Record<ModuleKey, string[]> = {
   FINANCE: ['Pauses new billing/payroll generation and disables paid transport, paid events, collections, and treasury reports.', 'Existing financial records and history are retained.'],
   ATTENDANCE: ['Removes the attendance checkpoint from today\'s daily bar and stops new attendance tasks.', 'Published attendance history is retained.'],
+  CUSTOM_CHECKPOINTS: ['Hides custom checkpoints from current operations and guardian views.', 'Published custom checkpoint history is retained.'],
   EXAMS: ['Removes the exam checkpoint from today\'s daily bar and stops new exam tasks.', 'Published exam history is retained.'],
   HOMEWORK: ['Removes the homework checkpoint from today\'s daily bar and stops new homework tasks.', 'Published homework history is retained.'],
   HEALTH: ['Hides the parent health section and stops new health-entry tasks.', 'Existing emergency information remains in the restricted staff emergency panel (D26).'],

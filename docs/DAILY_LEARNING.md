@@ -2,6 +2,8 @@
 
 Implements R06–R07. See D14–D18 for progress defaults.
 
+Phase 08 engine and custom-checkpoint implementation: [CHECKPOINT_ENGINE.md](CHECKPOINT_ENGINE.md), with concrete defaults D34. Specialized built-in forms and parent live-delivery UI remain in Phases 09–12.
+
 ## Configuration
 
 A checkpoint has a stable ID, built-in kind or custom kind, bilingual name, safe icon key, order, enabled flag, and immutable configuration versions. Only Superadmin changes definitions. Every branch has the same available definitions.

@@ -2,7 +2,7 @@ import type { SVGProps } from 'react';
 
 export type IconName =
   | 'home' | 'children' | 'wallet' | 'bell' | 'more' | 'calendar' | 'classroom' | 'learning'
-  | 'overview' | 'finance' | 'staff' | 'support' | 'settings' | 'check' | 'warning' | 'close' | 'arrow';
+  | 'overview' | 'finance' | 'staff' | 'support' | 'settings' | 'check' | 'warning' | 'close' | 'arrow' | 'star';
 
 const paths: Record<IconName, string> = {
   home: 'M3 11.5 12 4l9 7.5V21h-6v-6H9v6H3z',
@@ -19,6 +19,7 @@ const paths: Record<IconName, string> = {
   support: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Zm0-6v.01M9.1 9a3 3 0 1 1 4.2 2.75c-.8.45-1.3 1-1.3 2.25',
   settings: 'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0-13v3m0 13v3m9.5-9.5h-3m-13 0h-3m16.2-6.2-2.1 2.1m-9.2 9.2-2.1 2.1m13.4 0-2.1-2.1M7.4 7.9 5.3 5.8',
   check: 'm4 12 5 5L20 6',
+  star: 'm12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z',
   warning: 'M12 3 2 21h20Zm0 6v5m0 3v.01',
   close: 'M5 5l14 14M19 5 5 19',
   arrow: 'M5 12h14m-6-6 6 6-6 6'

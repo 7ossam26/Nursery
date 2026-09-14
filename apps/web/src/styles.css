@@ -237,3 +237,10 @@ p { line-height: 1.5; }
 .organization-choices { display: grid; gap: 0.5rem; border: 1px solid var(--color-border); border-radius: 0.75rem; min-width: 0; }
 .organization-choices label { display: flex; align-items: center; gap: 0.75rem; min-height: 2.75rem; overflow-wrap: anywhere; }
 .organization-choices input { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
+.learning-slots { display: grid; gap: 0.75rem; padding-inline-start: 1.5rem; }
+.learning-status { overflow-wrap: anywhere; border-inline-start: 0.25rem solid currentColor; padding-inline-start: 0.75rem; }
+.learning-status--success { color: var(--color-success); }
+.learning-status--warning { color: var(--color-warning); }
+.learning-status--error { color: var(--color-error); }
+.organization-page fieldset { min-inline-size: 0; }
+.organization-page progress { max-inline-size: 100%; }
