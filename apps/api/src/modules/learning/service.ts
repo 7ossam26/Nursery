@@ -124,7 +124,12 @@ export class LearningService {
   }
   // Adapter boundary: call inside ChildService.withPolicy, and wrap the whole adapter write in operation().
   // Specialized payload tables are owned/validated by Phases 09–11 in this SAME transaction.
-  async appendInTransaction(tx: Transaction,p: Policy,kind: CheckpointDefinition['kind'],raw: unknown,action: LearningEvent['action']): Promise<LearningEvent> {
+  // `aggregateTransition` is a deliberate, narrow extension for Phase 10: several exams recorded on the
+  // same day share one EXAM slot, so a new detailed exam result can transition into an unchanged aggregate
+  // status (e.g. still AWAITING_RESULT while another exam remains ungraded). It never applies outside EXAM
+  // and never weakens the public STATUS_NOTE transition rule (changed status, unchanged note).
+  async appendInTransaction(tx: Transaction,p: Policy,kind: CheckpointDefinition['kind'],raw: unknown,action: LearningEvent['action'],options: { aggregateTransition?: boolean } = {}): Promise<LearningEvent> {
+    if (options.aggregateTransition && kind !== 'EXAM') throw invalid();
     const input = action === 'CORRECTION' ? checkpointCorrectionSchema.parse(raw) : checkpointPublicationSchema.parse(raw);
     await tx.query('select pg_advisory_xact_lock_shared($1)',[CONFIG_LOCK]);
     const child = await this.authorizedChild(tx,p,input.childId,true);
@@ -136,7 +141,7 @@ export class LearningService {
     const previous = (await tx.query<LearningEvent>(`select ${eventColumns} from learning_events e where e.slot_id=$1 order by revision desc limit 1`,[slot.id])).rows[0];
     if ((previous?.revision ?? 0)!==input.expectedVersion) throw stale();
     if ((action==='PUBLISH') !== !previous) throw invalid();
-    if (action==='TRANSITION' && (previous!.note !== (input.note ?? null) || previous!.statusId===input.statusId)) throw invalid();
+    if (action==='TRANSITION' && !options.aggregateTransition && (previous!.note !== (input.note ?? null) || previous!.statusId===input.statusId)) throw invalid();
     const event: LearningEvent = { id: randomUUID(),revision: input.expectedVersion+1,previousId: previous?.id ?? null,action,statusId: status.id,note: input.note ?? null,reason: 'reason' in input ? String(input.reason) : null };
     await tx.query('insert into learning_events(id,slot_id,configuration_id,definition_id,status_id,revision,previous_id,previous_revision,action,note,reason,actor_id) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',[event.id,slot.id,snapshot.configuration_id,input.definitionId,event.statusId,event.revision,event.previousId,previous?.revision ?? null,action,event.note,event.reason,p.account.id]);
     await this.children.audit(tx,p,{ ...child,branchId: snapshot.branch_id },`learning.${action.toLowerCase()}`,previous ?? null,{ ...event,childId: child.id,date: input.date,definitionId: input.definitionId });

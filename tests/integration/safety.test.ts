@@ -93,7 +93,8 @@ describe('Phase 07 health notes, authorized pickup, incidents and notification e
 
   it('A31: disabling HEALTH keeps the staff emergency view, disabling PICKUP/INCIDENTS keeps history; all three block new entries and parent sections',async () => {
     const family = await f.onboardFamily('MODULE'); const staff = await f.safetyStaff(['health.read','health.manage','pickup.record','pickup.manage','incidents.read','incidents.manage'],[f.a.id]);
-    expect((await f.licensing.modules(f.root.token)).map((m) => m.moduleKey).sort()).toEqual(['ATTENDANCE','EXAMS','FINANCE','HEALTH','HOMEWORK','INCIDENTS','PICKUP']);
+    // Phase 08 added CUSTOM_CHECKPOINTS to module_settings after this Phase 07 assertion was written.
+    expect((await f.licensing.modules(f.root.token)).map((m) => m.moduleKey).sort()).toEqual(['ATTENDANCE','CUSTOM_CHECKPOINTS','EXAMS','FINANCE','HEALTH','HOMEWORK','INCIDENTS','PICKUP']);
     const contact = await f.safety.createHealthEntry(staff.token,family.childId,{ kind: 'EMERGENCY_CONTACT',title: 'Neighbour',body: '',mobile: '01000000015',severity: 'INFO' });
     const auth = await f.safety.createAuthorization(family.first.token,family.childId,person('Module Uncle','01000000016',today(),null));
     const incident = await f.safety.reportIncident(staff.token,family.childId,{ occurredOn: today(),occurredTime: '11:30',description: 'Bumped head on the slide',actionTaken: 'Ice applied; observed for 30 minutes',guardianInformed: true,contactMethod: 'CALL',followUp: null });

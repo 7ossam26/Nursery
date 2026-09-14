@@ -45,3 +45,4 @@ export const authResponseSchema = z.object({ data: z.object({ account: currentAc
 export type AuthResponse = z.infer<typeof authResponseSchema>;
 export * from './learning.js';
 export * from './attendance.js';
+export * from './exams.js';

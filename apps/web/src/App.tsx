@@ -10,6 +10,7 @@ import { LicensingScreen, SettingsScreen } from './features/licensing/screen.js'
 import { ChildrenScreen, ChildDetailScreen, GuardianChildrenScreen, GuardianChildScreen } from './features/children/screens.js';
 import { LearningConfigurationScreen, TeacherLearningScreen } from './features/learning/screens.js';
 import { TeacherAttendanceScreen } from './features/attendance/screens.js';
+import { TeacherExamsScreen } from './features/exams/screens.js';
 
 const DevelopmentPreview = import.meta.env.DEV
   ? lazy(() => import('./features/design-system/ComponentPreview.js').then(({ ComponentPreview }) => ({ default: ComponentPreview })))
@@ -41,6 +42,7 @@ function AuthRoutes() {
     <Route path="/administration/checkpoints" element={<AuthGate><LearningConfigurationScreen /></AuthGate>} />
     <Route path="/teacher/learning" element={<AuthGate><TeacherLearningScreen /></AuthGate>} />
     <Route path="/teacher/today" element={<AuthGate><TeacherAttendanceScreen /></AuthGate>} />
+    <Route path="/teacher/exams" element={<AuthGate><TeacherExamsScreen /></AuthGate>} />
     <Route path="/support/licenses" element={<AuthGate><LicensingScreen /></AuthGate>} />
     <Route path="/administration/children" element={<AuthGate><ChildrenScreen /></AuthGate>} />
     <Route path="/administration/children/:id" element={<AuthGate><ChildDetailScreen /></AuthGate>} />

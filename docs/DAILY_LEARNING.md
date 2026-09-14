@@ -2,7 +2,7 @@
 
 Implements R06–R07. See D14–D18 for progress defaults.
 
-Phase 08 engine and custom-checkpoint implementation: [CHECKPOINT_ENGINE.md](CHECKPOINT_ENGINE.md), with concrete defaults D34. Phase 09 attendance implementation: [ATTENDANCE.md](ATTENDANCE.md), with concrete defaults D35. Exam, homework, and parent live-delivery work remain in Phases 10–12.
+Phase 08 engine and custom-checkpoint implementation: [CHECKPOINT_ENGINE.md](CHECKPOINT_ENGINE.md), with concrete defaults D34. Phase 09 attendance implementation: [ATTENDANCE.md](ATTENDANCE.md), with concrete defaults D35. Phase 10 exam implementation: [EXAMS.md](EXAMS.md), with concrete defaults D36. Homework and parent live-delivery work remain in Phases 11–12.
 
 ## Configuration
 
