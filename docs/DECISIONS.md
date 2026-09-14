@@ -66,6 +66,12 @@ Baseline 2026-09-13. U = explicit user decision; D = engineering/product default
 
 ## Change procedure
 
+### 2026-09-14 — Phase 09 attendance and calendar defaults (D35)
+
+R06–R07, D06–D07, D14–D17: attendance reuses `learning.read`/`learning.publish` and the Phase 08 single-transaction adapter instead of introducing parallel authorization or publication paths. A classroom roster is a date-effective, currently authorized page of at most 100 active children. Missing remains explicit; bulk-present is a user action that selects only the reviewed unpublished page. PRESENT and ABSENT resolve the attendance slot. NO_CLASS is a new immutable snapshotted status with NOT_APPLICABLE meaning, introduced by migration 0007 in a configuration version effective no earlier than the next Cairo date. The explicit no-class action applies only to a wholly unpublished reviewed page; larger rosters use further pages under the existing D34 boundary.
+
+Guardian planned absence is an advisory current/future inclusive range, bounded to 366 days and normalized to one mutable row per guardian/child/date. Identical submissions do not duplicate rows; a changed reason updates only dates without confirmed attendance and is audited. It never publishes attendance. An actual ABSENT event without a planned notice stages one append-only unexpected-absence alert for that effective event. Phase 12 owns delivery and recipient revalidation. Detailed attendance, learning event, audit, operation result, scoped outbox, and alert staging commit atomically. No arrival/departure field exists. See [ATTENDANCE.md](ATTENDANCE.md).
+
 ### 2026-09-14 — Phase 08 checkpoint and publication defaults (D34)
 
 R06/U09/U10/U13, D14–D18: configuration is a whole immutable numbered set, effective the next Cairo date. All saved definition/status IDs are permanent; retire with enabled=false, and create a new ID to change semantic meaning. Each definition retains an enabled pending status; built-in outcome mappings remain available and cannot be repurposed. Optional enabled dates are inclusive. Several saves on one date retain every version; new reports select the highest version effective on their date. Lazy historical snapshots use retained date-effective placement and lifecycle records. No server draft store is introduced; forms hold input in memory until explicit publication.

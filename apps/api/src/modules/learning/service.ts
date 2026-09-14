@@ -72,13 +72,13 @@ export class LearningService {
       requireCapability(p,'learning.read'); return { modules: [...await this.modules(tx)].sort(),canPublish: p.account.capabilities.includes('learning.publish'),scopeRevision: p.scope.revision };
     });
   }
-  private async authorizedChild(tx: Transaction,p: Policy,id: string,write = false) {
+  async authorizedChild(tx: Transaction,p: Policy,id: string,write = false) {
     if (p.account.kind === 'GUARDIAN') { if (write) throw denied(); return (await requireGuardianChild(tx,p,id,'read')).child; }
     const child = await resolveChild(tx,id,write); requireChild(p,write ? 'learning.publish' : 'learning.read',child);
     if (write && (child.status !== 'ACTIVE' || !child.classroomId)) throw denied();
     return child;
   }
-  private async snapshot(tx: Transaction,child: Child,date: string,create: boolean): Promise<Snapshot | undefined> {
+  async snapshot(tx: Transaction,child: Child,date: string,create: boolean): Promise<Snapshot | undefined> {
     if (date > this.today() || date < child.birthDate) throw invalid();
     let snapshot = (await tx.query<Snapshot>('select id,configuration_id,branch_id,classroom_id from daily_snapshots where child_id=$1 and business_date=$2',[child.id,date])).rows[0];
     if (snapshot || !create) return snapshot;
@@ -96,9 +96,7 @@ export class LearningService {
     }
     return snapshot;
   }
-  async daily(token: string,id: string,date: string): Promise<DailyLearning> {
-    z.uuid().parse(id); z.iso.date().parse(date);
-    return this.children.withPolicy(token,async (tx,p) => {
+  async dailyInTransaction(tx: Transaction,p: Policy,id: string,date: string): Promise<DailyLearning> {
       await tx.query('select pg_advisory_xact_lock_shared($1)',[CONFIG_LOCK]);
       const child = await this.authorizedChild(tx,p,id); const snapshot = await this.snapshot(tx,child,date,child.status==='ACTIVE');
       const modules = await this.modules(tx); const slots: DailySlot[] = [];
@@ -112,7 +110,10 @@ export class LearningService {
         slots.sort((a,b) => a.definition.order-b.definition.order || a.definition.id.localeCompare(b.definition.id));
       }
       return { childId: id,date,snapshotId: snapshot?.id ?? null,branchId: snapshot?.branch_id ?? child.branchId,classroomId: snapshot?.classroom_id ?? child.classroomId,slots,progress: learningProgress(slots),canPublish: child.status==='ACTIVE' && child.classroomId!==null && p.account.capabilities.includes('learning.publish') };
-    });
+  }
+  async daily(token: string,id: string,date: string): Promise<DailyLearning> {
+    z.uuid().parse(id); z.iso.date().parse(date);
+    return this.children.withPolicy(token,(tx,p) => this.dailyInTransaction(tx,p,id,date));
   }
   async roster(token: string,offset = 0) {
     z.number().int().min(0).max(100000).parse(offset);

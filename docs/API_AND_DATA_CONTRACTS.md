@@ -38,7 +38,7 @@ The runtime schemas live in `packages/contracts/src/index.ts`; routes, defaults,
 | Children | children; child_status_history; child_classroom_history; guardian_child_links(permission flags); contact records; files |
 | Safety | pickup_authorizations(valid_on/range, restricted flag); date-only pickup_records(call_confirmed); health_notes; allergies; incidents |
 | Learning config | checkpoint_definitions; checkpoint_versions; status_versions(progress meaning, built-in mapping); daily_snapshots |
-| Learning records | immutable learning_events(child, date, checkpoint snapshot, revision, supersedes, reason); attendance payloads |
+| Learning records | immutable learning_events(child, date, checkpoint snapshot, revision, supersedes, reason); attendance_records(event, mapped presence, optional absence reason); guardian/date planned-absence advisories; append-only unexpected-absence alert boundary |
 | Exams | subjects; exam_types; exams(grade_format, maximum, date, class, version); result_events |
 | Homework | assignments(class, assigned_on, due_on, version); recipients; child outcome_events |
 | Communication | announcements; recipients; acknowledgments; notifications(unique event/recipient); change_outbox |

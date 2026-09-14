@@ -1,15 +1,18 @@
 # Project state
 
-Baseline: 2026-09-13. Phase 08 is complete (2026-09-14).
+Baseline: 2026-09-13. Phase 09 is complete (2026-09-14).
 
 ## Active state
 
-- Current phase: 08 — Versioned checkpoints and publication engine — COMPLETE; acceptance gate satisfied 2026-09-14.
-- Delivered: immutable configuration/status versions and child/date snapshots; seeded Attendance/Exam/Homework semantics; custom status/note checkpoints; append-only publication, transition and reasoned correction chains; expected revisions and actor-scoped idempotency; atomic audit/outbox; bilingual Superadmin configuration and teacher individual/classroom forms with scoped revalidation.
-- Evidence: prerequisite children 10/10; unit 49/49; focused real PostgreSQL 9/9 (learning 7, migration upgrade/rerun 2); bilingual DOM/HTTP 2/2 with no HTTP 5xx and axe checks; workspace typecheck/lint/build and diff check passed. Latest exact commands, limitations and corrected interim failures are in HANDOFF.md and CHECKPOINT_ENGINE.md.
-- Runtime/migration: pinned Node 24.19.0/npm 11.1.0; disposable PostgreSQL 18.4 at 127.0.0.1:55407 left running (PID 19720 at final check). Migration 0006 tested in isolated schemas only; no operator/live migration, .env or deployment. Apply after 0005 and explicitly assign learning.read/publish. CUSTOM_CHECKPOINTS starts enabled; learning.configure is SYSTEM-only.
-- Limits: built-in forms/adapters remain Phases 09–11; parent hub/SSE dispatch remains Phase 12. Build warns about a 522.71 kB minified main chunk. The unrelated prior auth DOM reset timing issue remains open; no unrelated suites were rerun.
-- Last completed phase: 08. Next executable phase: 09 — Attendance and daily classroom reports — only when requested. Stop; do not continue automatically.
+- Current phase: 09 — Attendance and daily classroom reports — COMPLETE; acceptance gate satisfied 2026-09-14.
+- Delivered so far: migration 0007 adds explicit snapshotted NO_CLASS semantics, append-only attendance payloads, editable/deduplicated per-day guardian notices, and unexpected-absence alert staging. Strict contracts and `/api/v1/attendance` routes use the Phase 08 operation/authorization/append transaction boundary. Classroom drafts publish only selected children; corrections append; current day/detail/history and explicit no-class actions are implemented.
+- Evidence: unit 50/50 passed via direct pinned Node/Vitest. Focused real PostgreSQL attendance checks pass individually, including explicit missing/absent/present, advisory notice dedupe, outbox-linked absence staging, A10 separate-actor correction race, A02 scope, A06 blocked guardian, A31 module disable, and no-class N/A. Migration upgrade/rerun passed 2/2 alongside the first attendance run. Two interim fixture API-shape errors were corrected and rerun; the affected A02/A06/A31 test now passes.
+- UI checkpoint: bilingual teacher classroom task at `/teacher/today` provides explicit bulk selection, per-child status/reason review, missing-state progress, no-class action, correction/history; guardian child detail includes authoritative current attendance and advisory date-range notice. D35 and ATTENDANCE.md record calendar/publication defaults and the Phase 12 boundary.
+- UI evidence: `tests/e2e/attendance.test.tsx` passed 2/2 (English and Egyptian Arabic) with real HTTP/PostgreSQL, no captured HTTP 5xx, and axe checks. Interim failures exposed and corrected a test cleanup import, test account locale setup, invalid nested forms, and an exact-label query; final rerun passed.
+- Final evidence: unit 50/50; focused real PostgreSQL attendance+migration 8/8; directly affected Phase 08 learning regression 7/7; bilingual DOM/HTTP 2/2 with no HTTP 5xx and axe checks; workspace typecheck and build passed; changed API/web/contracts lint passed; diff check passed. Exact commands and corrected interim failures are in HANDOFF.md and ATTENDANCE.md.
+- Runtime/migration: pinned Node 24.19.0/npm 11.1.0; disposable PostgreSQL 18.4 remains listening at 127.0.0.1:55407 (PID 19720 at final check). Migration 0007 was tested only in isolated schemas; no operator/live migration, environment file, or deployment.
+- Limits: reviewed classroom pages are bounded to 100 children; parent live delivery remains Phase 12. Build warns about a 536.03 kB minified main chunk. No manual browser/visual or performance claim. The unrelated prior auth DOM reset timing issue remains open.
+- Last completed phase: 09. Next executable phase: 10 — Exams, grades, and corrections — only when requested. Stop; do not continue automatically.
 
 ## Phase ledger
 
@@ -23,7 +26,7 @@ Baseline: 2026-09-13. Phase 08 is complete (2026-09-14).
 | 06 | Children, guardians, onboarding, and documents | COMPLETE | 10 children + 7 licensing + 9 organization + 2 migration PostgreSQL checks (28/28); unit 41/41; bilingual DOM/HTTP 3/3; workspace type/lint/build and audit passed. See CHILDREN_AND_DOCUMENTS.md. |
 | 07 | Health notes, authorized pickup, and incidents | COMPLETE | Safety 4 + all suites 45/45 PostgreSQL checks (migration 0005 upgrade/rerun included); unit 47/47; bilingual DOM/HTTP safety 2/2, children 3/3; workspace type/lint/build and audit passed. Pre-existing auth e2e timing failure unchanged. See SAFETY.md. |
 | 08 | Versioned checkpoints and publication engine | COMPLETE | Unit 49/49; focused PostgreSQL 9/9 incl. correction race, scope/module checks and migration upgrade/rerun; bilingual DOM/HTTP 2/2; workspace typecheck/lint/build and diff check passed. See CHECKPOINT_ENGINE.md. |
-| 09 | Attendance and daily classroom reports | NOT STARTED | None |
+| 09 | Attendance and daily classroom reports | COMPLETE | Unit 50/50; PostgreSQL attendance+migration 8/8 plus learning regression 7/7; bilingual DOM/HTTP 2/2; typecheck/build/changed lint/diff passed. See ATTENDANCE.md. |
 | 10 | Exams, grades, and corrections | NOT STARTED | None |
 | 11 | Homework assignments and individual completion | NOT STARTED | None |
 | 12 | Parent hub, announcements, and live notifications | NOT STARTED | None |
