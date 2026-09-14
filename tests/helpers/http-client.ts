@@ -1,8 +1,10 @@
 import { AuthClient } from '../../apps/web/src/features/auth/client.js';
 // Real TCP API adapter supplies the cookie/origin behavior jsdom lacks; no browser automation.
-export function httpClient(origin: string, appOrigin: string,live=false) {
+// `gate.offline` simulates a dropped network at the browser fetch boundary (no request leaves).
+export function httpClient(origin: string, appOrigin: string,live=false,gate: { offline: boolean } = { offline: false }) {
   const jar = new Map<string,string>();
   const transport: typeof fetch = async (path,options = {}) => {
+    if (gate.offline) throw new TypeError('Failed to fetch');
     const headers = new Headers(options.headers);
     headers.set('cookie',[...jar].map(([name,value]) => `${name}=${value}`).join('; '));
     if (options.method !== 'GET') headers.set('origin',appOrigin);

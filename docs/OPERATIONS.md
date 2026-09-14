@@ -8,6 +8,8 @@ Use one versioned application image for API and worker entry points, a separatel
 
 Dokploy routes the domain to the API/web service and terminates TLS. Serve /api/v1 and the web client from one origin. Configure SPA route fallback, proxy trust, upload limits, SSE heartbeat/buffering/timeouts, and health checks. PostgreSQL is not exposed publicly.
 
+Phase22 PWA assets: the web build emits `/sw.js`, `/manifest.webmanifest` and `/icons/*` next to the hashed bundle. Serve `/sw.js` from the site root with `Cache-Control: no-cache` (or a short max-age) and the correct JavaScript type so browsers pick up new versions; hashed `/assets/*` may be cached long-term; `index.html` must not be cached long-term. Never serve API responses with cacheable headers. See [PWA_AND_NETWORK.md](PWA_AND_NETWORK.md).
+
 Docker Compose is the recommended reproducible delivery format supported by Dokploy. Also document native process equivalents for development or later operations; do not build two competing deployment systems. A separate Nginx image is optional, not a prerequisite.
 
 ## Required deployment inputs

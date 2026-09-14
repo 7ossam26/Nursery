@@ -1,7 +1,8 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Navigate, Link } from 'react-router';
 import { Button, TextField, SelectField } from '../../components/controls.js';
-import { LanguageSwitcher } from '../../layout/AppShell.js';
+import { LanguageSwitcher, useInsideShell } from '../../layout/AppShell.js';
+import { SessionShell } from '../../layout/SessionShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import { catalogs, type MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from './AuthProvider.js';
@@ -12,7 +13,9 @@ function errorKey(error: unknown): MessageKey {
   return error instanceof AuthError && error.detail.messageKey in catalogs.en ? error.detail.messageKey as MessageKey : 'auth.networkError';
 }
 function Frame({ title, children }: { title: MessageKey; children: ReactNode }) {
-  const { t } = useLocale();
+  const { t } = useLocale(); const embedded = useInsideShell();
+  // Inside the session shell the header already carries branding and language; the card stays.
+  if (embedded) return <main className="landing landing--embedded"><section className="landing__card auth-card"><h1>{t(title)}</h1>{children}</section></main>;
   return <main className="landing"><div className="landing__language"><LanguageSwitcher /></div><section className="landing__card auth-card"><div className="brand-mark" aria-hidden="true">ن</div><h1>{t(title)}</h1>{children}</section></main>;
 }
 export function AuthGate({ children }: { children: ReactNode }) {
@@ -22,7 +25,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (auth.suspended) return <Frame title="licensing.suspendedTitle"><p role="alert">{t('licensing.suspendedBody')}</p><Button onClick={auth.signedOut}>{t('auth.backToLogin')}</Button></Frame>;
   if (!auth.session) return <Navigate to={auth.expired ? '/session-expired' : '/login'} replace />;
   if (auth.session.account.mustChangePassword) return <PasswordScreen forced />;
-  return children;
+  return <SessionShell>{children}</SessionShell>;
 }
 export function LoginScreen({ expired = false }: { expired?: boolean }) {
   const auth = useAuth(); const { t } = useLocale();

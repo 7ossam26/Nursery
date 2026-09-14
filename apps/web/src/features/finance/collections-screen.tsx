@@ -4,12 +4,12 @@ import type { CollectionInput,CreditReceiptInput,CollectionOptions,OutstandingIt
 import { cairoIsoDate,egpToPiastres,formatDateOnly,formatEgp,piastres } from '@nursery/domain';
 import { Button,DateField,SelectField,TextField } from '../../components/controls.js';
 import { Card } from '../../components/surfaces.js';
-import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import type { MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
 import { AuthError } from '../auth/client.js';
 import { errorKey,useScoped } from '../children/scoped.js';
+import { connectivity } from '../connectivity/bus.js';
 import { ReceiptCard } from './receipt-card.js';
 
 const money=(amount:string)=>formatEgp(piastres(BigInt(amount)));
@@ -48,6 +48,7 @@ export function CollectionsScreen() {
  }
  function submit(event:FormEvent) {
   event.preventDefault();if(pending.current||busy||!confirmed||!options.data) return;
+  if(connectivity.state==='offline') {setMessage('network.offline');return;}
   try {
    if(credit) {
     if(selected.length!==1||!creditReason.trim()) throw new Error();
@@ -75,7 +76,7 @@ export function CollectionsScreen() {
   setCredit(false);setConfirmed(false);setMessage(null);setReceiptIds([]);
  }
  function remind(item:OutstandingItem) {if(locked||pending.current) return;pending.current={path:`finance/installments/${item.id}/reminders`,kind:'REMINDER_RESEND',input:{operationId:crypto.randomUUID()}};void send();}
- return <main className="organization-page"><LanguageSwitcher/><Link to="/account">{t('auth.account')}</Link><Link to="/administration/child-transfers">{t('childTransfer.title')}</Link><h1>{t('collections.title')}</h1>
+ return <main className="organization-page"><Link to="/administration/child-transfers">{t('childTransfer.title')}</Link><h1>{t('collections.title')}</h1>
  {(options.error||balances.error)&&<p role="alert">{t(options.error||balances.error!)}</p>}{!options.data&&!options.error&&<p role="status">{t('state.loading')}</p>}{message&&<p role={uncertain?'alert':'status'}>{t(message)}</p>}
  {!balances.data&&!balances.error&&<p role="status">{t('state.loading')}</p>}
  {uncertain&&<><Button disabled={busy} onClick={()=>{void check();}}>{t('finance.check')}</Button>{canRetry&&<Button disabled={busy} onClick={()=>{void send();}}>{t('finance.retry')}</Button>}</>}

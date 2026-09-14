@@ -14,6 +14,9 @@
   --color-background: #fff7fa;
   --color-action: #be185d;
   --color-action-hover: #9d174d;
+  --color-action-foreground: #ffffff;
+  --color-error-foreground: #ffffff;
+  --color-brand-foreground: #111827;
   --color-success: #166534;
   --color-success-surface: #dcfce7;
   --color-warning: #92400e;
@@ -64,13 +67,13 @@ p { line-height: 1.5; }
 [dir="rtl"] .button:hover .icon, [dir="rtl"] .button-link:hover .icon { transform: translateX(-0.12rem); }
 .button:active, .button-link:active { transform: translateY(1px); }
 .button:disabled { cursor: not-allowed; opacity: 0.55; }
-.button--primary, .button-link { color: white; background: var(--color-action); }
+.button--primary, .button-link { color: var(--color-action-foreground, white); background: var(--color-action); }
 .button--primary:hover, .button-link:hover { background: var(--color-action-hover); }
 .button--secondary { color: var(--color-action); background: var(--color-surface); border-color: var(--color-action); }
 .button--secondary:hover { background: #fff1f7; }
 .button--quiet { color: var(--color-text); background: transparent; }
 .button--quiet:hover { background: #f3f4f6; }
-.button--danger { color: white; background: var(--color-error); }
+.button--danger { color: var(--color-error-foreground, white); background: var(--color-error); }
 .button--icon { width: var(--control-minimum); padding: 0; border-radius: 999px; }
 .button-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 
@@ -81,7 +84,7 @@ p { line-height: 1.5; }
 .app-shell { min-height: 100vh; display: grid; grid-template: auto 1fr / 15.5rem minmax(0, 1fr); grid-template-areas: "header header" "sidebar main"; }
 .app-shell--parent { font-size: 1.125rem; }
 .shell-header { grid-area: header; position: sticky; inset-block-start: 0; z-index: 20; min-width: 0; display: flex; align-items: center; gap: 0.8rem; min-height: 4.5rem; padding: 0.65rem clamp(1rem, 3vw, 2rem); border-block-end: 1px solid #f2d7e3; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); }
-.brand-mark { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; flex: 0 0 auto; border-radius: 0.9rem; color: var(--color-text); background: var(--color-brand); font-size: 1.4rem; font-weight: 900; box-shadow: 0 5px 0 var(--color-peach); }
+.brand-mark { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; flex: 0 0 auto; border-radius: 0.9rem; color: var(--color-brand-foreground, var(--color-text)); background: var(--color-brand); font-size: 1.4rem; font-weight: 900; box-shadow: 0 5px 0 var(--color-peach); }
 .brand-mark--large { width: 4rem; height: 4rem; font-size: 2rem; border-radius: 1.2rem; }
 .shell-header__title { min-width: 0; display: flex; flex-direction: column; }
 .shell-header__title strong, .shell-header__title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -249,3 +252,19 @@ p { line-height: 1.5; }
 .parent-hub nav a, .parent-hub summary, .parent-hub > a { display: inline-flex; align-items: center; min-block-size: 44px; padding: 0.5rem; }
 .parent-hub .notice-body { white-space: pre-wrap; }
 .parent-hub section, .parent-hub ul { min-inline-size: 0; max-inline-size: 100%; }
+/* Phase 22: session shell embedding, support area, connection/update notices, contact action. */
+.landing--embedded { min-height: auto; padding: 0; background: none; place-items: start stretch; }
+.landing--embedded .landing__card { width: min(42rem, 100%); }
+.shell-main > .organization-page { padding: 0; }
+.navigation-group--support { padding: 0.75rem; border-radius: var(--radius-medium); color: var(--color-support); background: var(--color-support-surface); }
+.navigation-group--support h2, .navigation-group--support a { color: var(--color-support); }
+.navigation-group--support a.active { background: white; box-shadow: inset 3px 0 var(--color-support); }
+.account-button { text-decoration: none; }
+.button-link--contact { margin-block-start: 1rem; justify-self: start; }
+.update-notice { position: sticky; inset-block-start: 0; z-index: 25; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.75rem; padding: 0.65rem 1rem; border-block-end: 1px solid #c7d2fe; color: var(--color-support); background: var(--color-support-surface); font-weight: 700; }
+.modal__body p + p { margin-block-start: 0.75rem; }
+.stale-notice { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.9rem; border-radius: var(--radius-small); color: var(--color-warning); background: var(--color-warning-surface); font-weight: 650; }
+@media (max-width: 767px) {
+  .app-shell--administration .navigation-group--support { padding: 0.25rem 0.5rem; }
+  .update-notice { position: static; }
+}

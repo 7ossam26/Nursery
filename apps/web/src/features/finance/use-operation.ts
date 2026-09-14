@@ -3,6 +3,7 @@ import type { MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
 import { AuthError } from '../auth/client.js';
 import { errorKey } from '../children/scoped.js';
+import { connectivity } from '../connectivity/bus.js';
 
 // Same FinancialCore protocol used by collections: a frozen actor-scoped request, then
 // status lookup before offering the identical retry. Nothing is queued or persisted.
@@ -18,7 +19,7 @@ export function useFinancialOperation(onSaved:(result?:unknown)=>void) {
   finally {setBusy(false);}
  }
  function submit(path:string,input:Record<string,unknown>) {
-  if(pending.current||busy) return;pending.current={path,body:{...input,operationId:crypto.randomUUID()}};void send();
+  if(pending.current||busy) return;if(connectivity.state==='offline') {setMessage('network.offline');return;}pending.current={path,body:{...input,operationId:crypto.randomUUID()}};void send();
  }
  async function check() {
   if(!pending.current||busy) return;setBusy(true);

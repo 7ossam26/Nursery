@@ -19,10 +19,11 @@ export function Modal({ open, title, children, closeLabel, onClose, footer }: Re
     if (!dialog) return;
     if (open && !dialog.open) {
       returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      dialog.showModal();
+      // Scripted DOM environments may lack the dialog API; the attribute keeps the content reachable.
+      if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', '');
       dialog.querySelector<HTMLElement>('[data-modal-initial-focus]')?.focus();
     } else if (!open && dialog.open) {
-      dialog.close();
+      if (typeof dialog.close === 'function') dialog.close(); else dialog.removeAttribute('open');
       returnFocusRef.current?.focus();
     }
   }, [open]);

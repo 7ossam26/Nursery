@@ -1,10 +1,8 @@
 import { useEffect,useRef,useState,type FormEvent } from 'react';
-import { Link } from 'react-router';
 import { importColumnHelp,importErrorHelp,importKindTitles,importSheetTitles,importText,type ImportBatch,type ImportCommitResult,type ImportKind,type ImportOptions,type ImportPreview } from '@nursery/contracts';
 import { formatDateOnly,formatEgp,piastres,cairoIsoDate } from '@nursery/domain';
 import { Button,SelectField } from '../../components/controls.js';
 import { Card,ResponsiveTable } from '../../components/surfaces.js';
-import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import type { MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
@@ -71,7 +69,7 @@ export function ImportsScreen() {
   finally {setBusy(false);setFile(null);if(fileInput.current) fileInput.current.value='';}
  }
  async function open(id:string) {setBusy(true);setError(null);try {setBatch(await auth.client.business<ImportBatch>(`imports/${id}`));} catch(caught) {setError(errorKey(caught));auth.handleError(caught);} finally {setBusy(false);}}
- return <main className="organization-page"><LanguageSwitcher/><Link to="/account">{t('common.back')}</Link><h1>{t('imports.title')}</h1><p>{t('imports.help')}</p>
+ return <main className="organization-page"><h1>{t('imports.title')}</h1><p>{t('imports.help')}</p>
   {options.error&&<p role="alert">{t(options.error)}</p>}{!options.data&&!options.error&&<p role="status">{t('state.loading')}</p>}
   {options.data&&<>
    <Card title={t('imports.template')}><p>{t('imports.limits',{rows:options.data.limits.maxRowsPerSheet,kb:Math.floor(options.data.limits.maxFileBytes/1024)})}</p>

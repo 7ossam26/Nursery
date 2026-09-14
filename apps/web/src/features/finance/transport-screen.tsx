@@ -4,7 +4,6 @@ import type { Activity,BusSubscription,TransportOptions } from '@nursery/contrac
 import { cairoIsoDate,egpToPiastres,formatDateOnly,formatEgp,piastres } from '@nursery/domain';
 import { Button,DateField,SelectField,TextField } from '../../components/controls.js';
 import { Card } from '../../components/surfaces.js';
-import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import type { MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
@@ -52,5 +51,5 @@ function ManagedBody({rosterOnly,canTransportRead,canActivitiesRead,canTransport
 }
 export function TransportScreen({rosterOnly=false}:{rosterOnly?:boolean}){
  const {t}=useLocale(),auth=useAuth(),caps=auth.session!.account.capabilities;const canTransportRead=caps.includes('transport.read'),canActivitiesRead=caps.includes('activities.read'),canTransportManage=caps.includes('transport.manage'),canActivitiesManage=caps.includes('activities.manage'),managed=canTransportManage||canActivitiesManage;
- return <main className="organization-page"><LanguageSwitcher/><Link to="/account">{t('auth.account')}</Link>{!rosterOnly&&<Link to="/administration/collections">{t('collections.title')}</Link>}<h1>{t(rosterOnly?'transport.rosterTitle':'transport.title')}</h1><p>{t(rosterOnly?'transport.rosterHelp':'transport.help')}</p>{managed?<ManagedBody rosterOnly={rosterOnly} canTransportRead={canTransportRead} canActivitiesRead={canActivitiesRead} canTransportManage={canTransportManage} canActivitiesManage={canActivitiesManage} canFinance={caps.includes('finance.read')}/>:<>{!rosterOnly&&canTransportRead&&<BusList canManage={false} enabled={false}/>} {canActivitiesRead&&<ActivityList canManage={false} canFinance={caps.includes('finance.read')} enabled={false}/>} {!canTransportRead&&!canActivitiesRead&&<p role="alert">{t('auth.forbidden')}</p>}</>}</main>;
+ return <main className="organization-page">{!rosterOnly&&<Link to="/administration/collections">{t('collections.title')}</Link>}<h1>{t(rosterOnly?'transport.rosterTitle':'transport.title')}</h1><p>{t(rosterOnly?'transport.rosterHelp':'transport.help')}</p>{managed?<ManagedBody rosterOnly={rosterOnly} canTransportRead={canTransportRead} canActivitiesRead={canActivitiesRead} canTransportManage={canTransportManage} canActivitiesManage={canActivitiesManage} canFinance={caps.includes('finance.read')}/>:<>{!rosterOnly&&canTransportRead&&<BusList canManage={false} enabled={false}/>} {canActivitiesRead&&<ActivityList canManage={false} canFinance={caps.includes('finance.read')} enabled={false}/>} {!canTransportRead&&!canActivitiesRead&&<p role="alert">{t('auth.forbidden')}</p>}</>}</main>;
 }

@@ -1,15 +1,13 @@
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { Link } from 'react-router';
 import { cairoIsoDate, formatDateOnly } from '@nursery/domain';
 import type { AttendanceClassroomDraft, AttendanceDailyReport, AttendancePresence, AttendanceRecord } from '@nursery/contracts';
 import { Button, SelectField, TextField } from '../../components/controls.js';
-import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import type { MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
 import { errorKey, useScoped } from '../children/scoped.js';
 
-function Frame({ children }: { children: ReactNode }) { const { t }=useLocale(); return <main className="organization-page"><LanguageSwitcher /><Link to="/account">{t('auth.account')}</Link>{children}</main>; }
+function Frame({ children }: { children: ReactNode }) { return <main className="organization-page">{children}</main>; }
 type Choice={ include: boolean; statusId: string; absenceReason: string };
 const labelFor=(presence: AttendancePresence) => presence==='PRESENT' ? 'attendance.present' : presence==='ABSENT' ? 'attendance.absent' : 'attendance.noClass';
 

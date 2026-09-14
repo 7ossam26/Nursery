@@ -41,18 +41,19 @@ describe('Phase 15 collection UI with real HTTP/PostgreSQL',()=>{
  },60000);
  it.each(['en','ar-EG'] as const)('A06/D19: parent finance is readonly, scoped and cleared on manual block in %s',async locale=>{
   window.localStorage.clear();f=await financeFixture(false);const c=await f.child('PARENTCOLLECTIONUI'),foreign=await f.child('FOREIGNUI');const due=await f.charge(c.childId,'10000');await f.charge(foreign.childId,'20000');
-  await f.payments.collect(f.root.token,f.collect(due.installmentIds[0],'2500'));
+  const paid=await f.payments.collect(f.root.token,f.collect(due.installmentIds[0],'2500'));
   const parent=await f.parent(c.guardianIds[0],c.credentials[0].username,c.credentials[0].temporaryPassword);await f.app.auth.setLocale(parent.token,locale);
   const origin=await f.app.listen({host:'127.0.0.1',port:0}),client=httpClient(origin,f.config.appOrigin);await client.login(c.credentials[0].username,`Permanent guardian secret ${c.guardianIds[0]}`);
   const t=(key:Parameters<typeof translate>[1])=>translate(locale,key);
   const view=render(<MemoryRouter initialEntries={['/parent/payments']}><LocaleProvider userLocale={locale}><App authClient={client}/></LocaleProvider></MemoryRouter>);
   await screen.findAllByText('EGP 75.00',{},{timeout:15000});expect(screen.queryByText(/FOREIGNUI/)).toBeNull();expect(screen.queryByRole('button',{name:t('collections.collect')})).toBeNull();
-  expect((await screen.findByRole('link',{name:t('collections.download')})).getAttribute('href')).toMatch(/\/api\/v1\/finance\/receipts\/.*\/download/);
-  await waitFor(()=>expect(within(screen.getByRole('navigation',{name:t('hub.today')})).getAllByRole('link')).toHaveLength(5));
+  // The PDF button uses the authenticated client (no bare href). Rendering itself is verified in the node-environment receipts suite: vitest's jsdom realm breaks pdf-lib's Uint8Array check.
+  expect((await screen.findByRole('button',{name:t('collections.download')})).hasAttribute('disabled')).toBe(false);
+  await waitFor(()=>expect(within(screen.getByRole('navigation',{name:t('nav.main')})).getAllByRole('link')).toHaveLength(5));
   expect((await axe.run(view.container,{rules:{'color-contrast':{enabled:false}}})).violations).toEqual([]);
   await f.database.pool.query('update guardian_child_links set can_finance=false where guardian_id=$1',[c.guardianIds[0]]);
-  await waitFor(()=>expect(screen.queryAllByText('EGP 75.00')).toHaveLength(0),{timeout:15000});expect(screen.queryByRole('link',{name:t('collections.download')})).toBeNull();
+  await waitFor(()=>expect(screen.queryAllByText('EGP 75.00')).toHaveLength(0),{timeout:15000});expect(screen.queryByRole('button',{name:t('collections.download')})).toBeNull();
   await f.licensing.blockAccount(f.root.token,c.guardianIds[0],{reason:'Manual administration action',publicMessage:'Contact the nursery desk'});
-  await screen.findByText('Contact the nursery desk',{},{timeout:15000});expect(screen.queryAllByText('EGP 75.00')).toHaveLength(0);expect(screen.queryByRole('link',{name:t('collections.download')})).toBeNull();expect(screen.queryByText(/PARENTCOLLECTIONUI/)).toBeNull();
+  await screen.findByText('Contact the nursery desk',{},{timeout:15000});expect(screen.queryAllByText('EGP 75.00')).toHaveLength(0);await expect(client.downloadFile(`finance/receipts/${paid.receiptIds[0]}/download`)).rejects.toMatchObject({detail:{code:'ACCOUNT_BLOCKED'}});expect(screen.queryByRole('button',{name:t('collections.download')})).toBeNull();expect(screen.queryByText(/PARENTCOLLECTIONUI/)).toBeNull();
  },60000);
 });

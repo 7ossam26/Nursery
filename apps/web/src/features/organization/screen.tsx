@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router';
 import type { AgeGroup, Branch, Capability, Classroom, OrganizationContext, Role, StaffAssignment } from '@nursery/contracts';
 import { Button, SelectField, TextField } from '../../components/controls.js';
 import { Card } from '../../components/surfaces.js';
-import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import { catalogs, type MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
@@ -114,7 +112,7 @@ export function OrganizationScreen() {
     } catch (caught) { latestAuth.current.handleError(caught); setError(caught instanceof AuthError && caught.detail.messageKey in catalogs.en ? caught.detail.messageKey as MessageKey : 'auth.networkError'); }
     finally { setBusy(false); }
   }
-  return <main className="organization-page"><header><LanguageSwitcher /><h1>{t('organization.title')}</h1><Link to="/account">{t('auth.account')}</Link></header>
+  return <main className="organization-page"><header><h1>{t('organization.title')}</h1></header>
     {error && <p role="alert">{t(error)}</p>}{notice && <p role="status">{t(notice)}</p>}
     {!context ? <p role="status">{t(error ? 'state.noPermissionBody' : 'state.loading')}</p> : <>
       <nav aria-label={t('organization.title')}>{(['branches','classrooms','age-groups','roles','staff'] as const).filter((v) => v !== 'roles' && v !== 'staff' || can(v === 'roles' ? 'roles.define' : 'users.assign_roles')).map((v) => <Button variant={tab === v ? 'primary' : 'secondary'} key={v} aria-pressed={tab === v} onClick={() => { setTab(v); setEditing(null); setOffset(0); setError(null); }}>{t(`organization.${v}`)}</Button>)}</nav>

@@ -7,7 +7,6 @@ import { ParentFrame } from '../communication/screens.js';
 import { onboardingInputSchema, learningDateSchema, defaultLinkPermissions, MAX_DOCUMENT_BYTES, type Child, type ChildDetail, type ChildrenOptions, type GuardianOption, type GuardianLink, type GuardianChild, type GuardianChildDetail, type LinkPermissions, type OnboardingInput, type OnboardingResult } from '@nursery/contracts';
 import { Button, SelectField, TextField } from '../../components/controls.js';
 import { Card } from '../../components/surfaces.js';
-import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import { type MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
@@ -17,7 +16,7 @@ import { GuardianAttendancePanel } from '../attendance/screens.js';
 import { GuardianExamHistoryPanel } from '../exams/screens.js';
 import { GuardianHomeworkHistoryPanel } from '../homework/screens.js';
 
-function Frame({ children }: { children: ReactNode }) { const { t } = useLocale(); return <main className="organization-page"><header><LanguageSwitcher /><h1>{t('children.title')}</h1><Link to="/account">{t('auth.account')}</Link></header>{children}</main>; }
+function Frame({ children }: { children: ReactNode }) { const { t } = useLocale(); return <main className="organization-page"><header><h1>{t('children.title')}</h1></header>{children}</main>; }
 function Permissions({ value,onChange }: { value: LinkPermissions; onChange: (v: LinkPermissions) => void }) {
   const { t } = useLocale(); return <fieldset className="organization-choices"><legend>{t('children.guardians')}</legend>{(['read','finance','pickup','notify'] as const).map((key) => <label key={key}><input type="checkbox" checked={value[key]} onChange={(e) => onChange({ ...value,[key]: e.target.checked })} />{t(`children.${key}`)}</label>)}</fieldset>;
 }

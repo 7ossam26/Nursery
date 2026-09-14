@@ -1,8 +1,6 @@
 import { useRef,useState,type FormEvent } from 'react';
-import { Link } from 'react-router';
 import { Button,SelectField,TextField } from '../../components/controls.js';
 import { Card } from '../../components/surfaces.js';
-import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { agreementDraftSchema,type AgreementTerms,type BillingAgreement,type BillingAllocation,type CatchupPreview } from '@nursery/contracts';
 import { piastres,formatDateOnly,billingAllocations,cairoIsoDate,egpToPiastres,formatEgp,monthStart,nextMonth } from '@nursery/domain';
 import { useLocale } from '../../i18n/LocaleProvider.js';
@@ -90,6 +88,6 @@ export function BillingWorkspace({initialChildIds=[]}:{initialChildIds?:string[]
  <Button disabled={!offset} onClick={()=>setOffset(offset-20)}>{t('hub.previous')}</Button><Button disabled={list.data?.length!==20} onClick={()=>setOffset(offset+20)}>{t('hub.next')}</Button><Button onClick={()=>list.reload()}>{t('children.refresh')}</Button>
  </fieldset></>;
 }
-export function BillingScreen() {const {t}=useLocale();return <main className="organization-page"><LanguageSwitcher /><Link to="/account">{t('auth.account')}</Link><h1>{t('billing.title')}</h1><BillingWorkspace /></main>;}
+export function BillingScreen() {const {t}=useLocale();return <main className="organization-page"><h1>{t('billing.title')}</h1><BillingWorkspace /></main>;}
 
 

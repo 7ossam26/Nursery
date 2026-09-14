@@ -1,9 +1,7 @@
 import { useState,type FormEvent } from 'react';
-import { Link } from 'react-router';
 import { cairoIsoDate,formatDateOnly } from '@nursery/domain';
 import type { CheckpointStatus,DailyLearning,HomeworkAssignment,HomeworkRoster,HomeworkOutcome,HomeworkHistoryEntry } from '@nursery/contracts';
 import { Button,SelectField,TextField } from '../../components/controls.js';
-import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import type { MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
@@ -60,7 +58,7 @@ function ClassroomWork({ classroomId,date,children,canPublish }: { classroomId: 
 }
 export function TeacherHomeworkScreen() {
  const { t }=useLocale(); const [date,setDate]=useState(cairoIsoDate()); const [selected,setSelected]=useState(''); const [offset,setOffset]=useState(0); const roster=useScoped<ChildRow[]>(`learning/roster?offset=${offset}`); const context=useScoped<{ modules: string[]; canPublish: boolean }>('learning/context'); const classrooms=roster.data?.filter((c,i,all) => all.findIndex((v) => v.classroomId===c.classroomId)===i) ?? []; const id=classrooms.some((c) => c.classroomId===selected) ? selected : classrooms[0]?.classroomId;
- return <main className="organization-page"><LanguageSwitcher /><Link to="/account">{t('auth.account')}</Link><h1>{t('homework.title')}</h1>{(roster.error || context.error) && <p role="alert">{t(roster.error ?? context.error!)}</p>}
+ return <main className="organization-page"><h1>{t('homework.title')}</h1>{(roster.error || context.error) && <p role="alert">{t(roster.error ?? context.error!)}</p>}
  {context.data && !context.data.modules.includes('HOMEWORK') && <p role="alert">{t('learning.disabled')}</p>}{context.data?.modules.includes('HOMEWORK') && <><Button disabled={offset===0} onClick={() => { setOffset(offset-100); setSelected(''); }}>{t('homework.previous')}</Button><Button disabled={!roster.data || roster.data.length<100} onClick={() => { setOffset(offset+100); setSelected(''); }}>{t('homework.next')}</Button><TextField label={t('homework.date')} type="date" max={cairoIsoDate()} value={date} onChange={(e) => setDate(e.target.value)} /><SelectField label={t('homework.classroom')} value={id ?? ''} onChange={(e) => setSelected(e.target.value)}>{classrooms.map((c) => <option key={c.classroomId} value={c.classroomId}>{c.classroomName}</option>)}</SelectField>{id && date && <ClassroomWork key={`${id}/${date}`} classroomId={id} date={date} children={roster.data!.filter((c) => c.classroomId===id)} canPublish={context.data.canPublish} />}</>}</main>;
 }
 export function GuardianHomeworkHistoryPanel({ childId,date }: { childId: string;date?: string }) {

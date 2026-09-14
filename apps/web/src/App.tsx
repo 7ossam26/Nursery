@@ -24,6 +24,8 @@ import { TeacherAttendanceScreen } from './features/attendance/screens.js';
 import { TeacherExamsScreen } from './features/exams/screens.js';
 import { TeacherHomeworkScreen } from './features/homework/screens.js';
 import { ParentLive } from './features/communication/ParentLive.js';
+import { ConnectivityProvider } from './features/connectivity/ConnectivityProvider.js';
+import { UpdateNotice } from './pwa/UpdateNotice.js';
 import { TreasuryScreen } from './features/finance/screen.js';
 import { AnnouncementPublishScreen,ParentTodayScreen,ParentNoticesScreen,ParentNoticeScreen,ParentNotificationsScreen } from './features/communication/screens.js';
 
@@ -46,7 +48,7 @@ function AuthRoutes() {
   const { session } = useAuth(); const { setLocale } = useLocale();
   const userLocale = session?.account.locale;
   useEffect(() => { if (userLocale) setLocale(userLocale); }, [userLocale, setLocale]);
-  return <><ParentLive /><Routes>
+  return <><ParentLive /><UpdateNotice /><Routes>
     <Route path="/login" element={<LoginScreen />} />
     <Route path="/administration/reports" element={<AuthGate><ReportsScreen/></AuthGate>} />
     <Route path="/administration/imports" element={<AuthGate><ImportsScreen/></AuthGate>} />
@@ -88,5 +90,5 @@ function AuthRoutes() {
   </Routes></>;
 }
 export function App({ authClient }: { authClient?: AuthClient }) {
-  return <BrandingProvider><AuthProvider client={authClient}><AuthRoutes /></AuthProvider></BrandingProvider>;
+  return <BrandingProvider><AuthProvider client={authClient}><ConnectivityProvider><AuthRoutes /></ConnectivityProvider></AuthProvider></BrandingProvider>;
 }

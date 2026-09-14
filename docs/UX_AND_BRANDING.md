@@ -72,3 +72,5 @@ Loading, empty, no permission, blocked parent, paused child, expired license, co
 Financial submit buttons remain disabled during an operation and offer status recovery after uncertainty. Client disabling supplements server idempotency.
 
 Keep authenticated data out of PWA caches. On blocking/logout/scope loss clear in-memory child queries and close live subscriptions before showing the access message.
+
+Phase22 implementation: the session shell (`apps/web/src/layout/SessionShell.tsx`) applies the persona navigation above with capability/scope filtering (parent: Today, My children, Payments when permitted, Notifications, More; teacher: Today, Learning, Homework, Exams, More; administration: Daily work, Finance, Nursery management and a separate Support & setup group). Connection problem, stale data, update-available and uncertain-outcome states are implemented in `features/connectivity` and `pwa`; derived theme foregrounds in `features/licensing/theme.ts`. See [PWA_AND_NETWORK.md](PWA_AND_NETWORK.md).

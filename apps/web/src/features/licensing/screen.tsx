@@ -7,7 +7,6 @@ import { themeTokenKeys, validateThemeContrast } from '@nursery/contracts';
 import { formatEgp, piastres } from '@nursery/domain';
 import { Button, DateField, SelectField, TextField } from '../../components/controls.js';
 import { Card } from '../../components/surfaces.js';
-import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import { catalogs, type MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
@@ -84,7 +83,7 @@ export function LicensingScreen() {
 
   const can = (key: string) => auth.session?.account.capabilities.includes(key) ?? false;
 
-  return <main className="organization-page"><header><LanguageSwitcher /><h1>{t('licensing.title')}</h1><Link to="/account">{t('auth.account')}</Link></header>
+  return <main className="organization-page"><header><h1>{t('licensing.title')}</h1></header>
     {error && <p role="alert">{t(error)}</p>}{notice && <p role="status">{notice}</p>}
     {!context ? <p role="status">{t('state.loading')}</p> : <>
       <Card title={t('licensing.status')}>
@@ -219,7 +218,7 @@ function BrandingCard() {
 export function SettingsScreen() {
   const auth = useAuth(); const { t } = useLocale();
   const can = (key: string) => auth.session?.account.capabilities.includes(key) ?? false;
-  return <main className="organization-page"><header><LanguageSwitcher /><h1>{t('licensing.settingsTitle')}</h1><Link to="/account">{t('auth.account')}</Link></header>
+  return <main className="organization-page"><header><h1>{t('licensing.settingsTitle')}</h1></header>
     {can('branding.manage') && <BrandingCard />}
     {can('modules.manage') && <ModulesCard />}
     {can('users.manage_staff') && <>

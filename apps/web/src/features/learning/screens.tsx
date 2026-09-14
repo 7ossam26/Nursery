@@ -1,16 +1,14 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { Link } from 'react-router';
 import { cairoIsoDate, formatDateOnly } from '@nursery/domain';
 import { checkpointIcons, progressMeanings, statusThemes, type CheckpointConfiguration, type CheckpointDefinition, type CheckpointStatus, type DailyLearning, type DailySlot, type LearningEvent } from '@nursery/contracts';
 import { Button, SelectField, TextField } from '../../components/controls.js';
 import { Icon } from '../../components/Icon.js';
-import { LanguageSwitcher } from '../../layout/AppShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import type { MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
 import { errorKey, useScoped } from '../children/scoped.js';
 
-function Frame({ children }: { children: ReactNode }) { const { t } = useLocale(); return <main className="organization-page"><LanguageSwitcher /><Link to="/account">{t('auth.account')}</Link>{children}</main>; }
+function Frame({ children }: { children: ReactNode }) { return <main className="organization-page">{children}</main>; }
 function newStatus(order: number,meaning: CheckpointStatus['meaning'] = 'PENDING'): CheckpointStatus { return { id: crypto.randomUUID(),label: { en: meaning==='PENDING' ? 'Pending' : meaning==='RESOLVED' ? 'Recorded' : 'Not applicable','ar-EG': meaning==='PENDING' ? 'لسه مستني' : meaning==='RESOLVED' ? 'اتسجل' : 'مش مطلوب' },order,enabled: true,meaning,theme: 'neutral',outcome: null }; }
 function newDefinition(order: number): CheckpointDefinition { return { id: crypto.randomUUID(),kind: 'STATUS_NOTE',label: { en: 'New checkpoint','ar-EG': 'متابعة جديدة' },icon: 'learning',order,enabled: true,enabledFrom: null,enabledUntil: null,statuses: progressMeanings.map((meaning,i) => newStatus(i,meaning)) }; }
 function Labels({ value,onChange }: { value: CheckpointStatus['label']; onChange: (v: CheckpointStatus['label']) => void }) {
