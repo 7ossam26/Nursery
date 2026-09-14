@@ -1,12 +1,20 @@
 # Current handoff
 
-Updated: 2026-09-14 — Phase19 COMPLETE; Phase20 NOT STARTED.
+Updated: 2026-09-14 — Phase20 COMPLETE; final safe checkpoint.
+
+## Phase20 final evidence
+
+The disposable PostgreSQL18.4 UTF8 cluster at `127.0.0.1:55421` ran fresh isolated schemas and all migrations through `0021_reports_exports`; no live nursery was migrated or deployed. `npm run test:integration -- --maxWorkers=1` passed 30 files/173 tests in 693.26s. This includes the complete migration path, Phase19→0021 upgrade/rerun, all 24 report kinds, A21/A24/A26 financial/payroll reconciliation, real pg-boss queue startup/retry/restart/idempotency, row caps, creator/cross-user/branch/classroom scope isolation, expiry cleanup, private HTTP paths and current authorization.
+
+`npm run test:e2e -- --maxWorkers=1` passed 20 files/51 real bilingual DOM/HTTP checks in 503.10s; `npm run test:unit` passed 22 files/67 tests in 8.50s. Full workspace `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` all exited zero. The only emitted warnings are existing pg client deprecation, Vite chunk size, and local Node/npm-versus-pinned version mismatch.
+
+Actual render QA: regenerated ignored `output/phase20` files were reopened with ExcelJS to validate worksheet structure/localized headers/RTL/typed dates/numeric EGP/exact piastres/formula escaping; PDFDocument and `pdfinfo` validated PDF1.7 A4, unencrypted/no forms or JavaScript and exact report metadata. Poppler-rendered English/Arabic collection samples (one page) and 30-row long-text reports (six pages) were visually inspected with no truncated rows or footer. Query plans (`EXPLAIN ANALYZE BUFFERS FORMAT JSON`) are recorded in [MANAGEMENT_REPORTS.md](MANAGEMENT_REPORTS.md): populated cash4.524ms, collections2.509ms, outstanding4.340ms, accounts0.369ms, payroll0.806ms, unpaid0.220ms; selective 10,031-child fixture used `children_scope` at0.45ms.
 
 ## Next executable action
 
-Stop here. When Phase20 is explicitly requested, read AGENTS.md, PROJECT_STATE.md, this handoff, its phase file and only its listed references; inspect actual diff/code. Reuse canonical scoped payroll balances and `payroll_cash_sources` for management reports/PDF/Excel. Advances plus positive final salary settlement are actual payroll outflows; basic salary/unsnapshotted forecast are not another expense. No live deployment, browser automation, subagents or model changes.
+Phase20 is complete. The disposable PG cluster was safely stopped after final inspection. Stop here; do not begin Phase21 unless explicitly requested. Port55420 remains an environment-only bind failure, while55421 was the supported local disposable runtime.
 
-## Completed behavior and precise files
+## Completed Phase19 behavior and precise files
 
 Detailed evidence and migration implications: [EMPLOYEE_PAYROLL.md](EMPLOYEE_PAYROLL.md). Defaults D47. Full changed-file list is there.
 

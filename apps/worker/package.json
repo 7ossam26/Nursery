@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@nursery/api": "*",
     "@nursery/db": "0.1.0",
     "@nursery/domain": "0.1.0",
     "dotenv": "17.4.2",

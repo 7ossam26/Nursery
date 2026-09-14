@@ -1,14 +1,16 @@
 # Project state
 
-Baseline: 2026-09-13. Phase 19 complete (2026-09-14).
+Baseline: 2026-09-13. Phase 20 complete (2026-09-14).
 
 ## Active state
 
-- Phase19 — Employee financials and monthly payroll — COMPLETE (2026-09-14). Profiles/optional creation or later STAFF login, immutable future salary/month attribution, adjustments/cap, immediate advances, full final payout once, explicit no-cash settlement, old unpaid history and bilingual real payroll/receipt-data UI implemented. Defaults D47 and detailed files/commands/equations: [EMPLOYEE_PAYROLL.md](EMPLOYEE_PAYROLL.md).
-- Final PostgreSQL payroll12 + actual migration upgrade/rerun3 =15/15 passed81.50s. Shared finance/spending/correction/closing regression checkpoint45/45 passed183.34s. Final bilingual real HTTP/DOM payroll4 + shared-operation spending4 =8/8 passed64.07s; units3/3 passed767ms; final workspace lint/typecheck/build and diff check passed. Failures/fixes and independent source/cash reconciliation are recorded in the evidence document, not skipped.
-- Migration0020 verified in fresh isolated schemas after0019 and idempotently rerun. No persistent/live nursery database was migrated. Disposable PostgreSQL18.4 UTF8 loopback55420 cluster stopped after verification; its files remain reusable. Its early public0020 schema is not final evidence.
-- Limits: observed Node25.2.1/npm11.6.2 differs from repository pins24.19.0/11.1.0; bundle and pg deprecation warnings remain. No pinned-runtime/VPS performance, mobile screenshot or live deployment claim. Settled payroll stays immutable; no correction endpoint. PDF/Excel files remain Phase20.
-- Next: Phase20 — Management reports and PDF/Excel exports — NOT STARTED. Stop here until requested. No subagents, browser automation, model changes or live deployment. Independently unresolved Phase12 screenshot handoff remains unchanged.
+- Phase20 — Management reports and PDF/Excel exports — COMPLETE. `npm run test:integration -- --maxWorkers=1` passed 30 files/173 real-PostgreSQL tests in 693.26s, including fresh complete migrations through `0021_reports_exports`, Phase19→0021 upgrade/rerun, A21/A24/A26 reconciliation, all 24 report kinds, scope isolation, pg-boss retry/restart, creator-only private downloads, expiry cleanup, row-cap failure, and formula injection defense. `npm run test:e2e -- --maxWorkers=1` passed 20 files/51 bilingual real-HTTP/DOM tests in 503.10s; `npm run test:unit` passed 22 files/67 tests in 8.50s; workspace typecheck, lint, build, and diff check passed. Detailed commands, raw plan data, and render validation: [MANAGEMENT_REPORTS.md](MANAGEMENT_REPORTS.md).
+
+- Query evidence uses `EXPLAIN ANALYZE BUFFERS FORMAT JSON`: a populated fixture (101 obligations, 81 receipts, 85 treasury movements, one payroll advance) measured cash 4.524ms, collections 2.509ms, outstanding 4.340ms, accounts 0.369ms, payroll 0.806ms, unpaid payroll 0.220ms. A 10,031-child fixture measured selective child scope 0.45ms using `children_scope`, capacity 3.28ms, cash 0.66ms, outstanding 0.18ms and payroll 0.62ms. These are local fixture observations, not deployment guarantees.
+
+- Final artifacts were regenerated in ignored `output/phase20`: ExcelJS reopened English/Arabic workbooks and asserted sheet, localized headers, typed dates, exact piastres, numeric EGP, RTL and no formulas. PDFDocument and `pdfinfo` verified PDF 1.7, A4, unencrypted, no forms/JavaScript, correct metadata; Poppler rendering and visual review verified one-page collection reports and six-page 30-row long-text reports without clipping. Disposable PostgreSQL18.4 was safely stopped after verification; no live nursery was touched.
+
+- Known non-gate warnings: the existing pg client deprecation warning, Vite >500kB chunk warning, and observed Node/npm version mismatch versus package pins. No deployment, browser automation, subagents, or Phase21 work occurred. Next phase: 21 — Excel templates, validation preview, and atomic import.
 
 ## Phase ledger
 
@@ -33,7 +35,7 @@ Baseline: 2026-09-13. Phase 19 complete (2026-09-14).
 | 17 | Child branch transfer and outstanding debt ownership | COMPLETE | PostgreSQL56/56 regression + final11/11; bilingual HTTP/DOM2/2; units4/4; migration0017 upgrade/rerun; type/lint/build/diff passed. See CHILD_BRANCH_TRANSFERS.md. |
 | 18 | Bus subscriptions, trips, and participation | COMPLETE | PostgreSQL A20/A32/A01/A02/A31 plus atomic cancellation/Phase16 regressions11/11; migration0018–0019 upgrade/rerun2/2; bilingual HTTP/DOM5/5; units4/4; lint/type/build/diff passed. D46/F09. |
 | 19 | Employee financials and monthly payroll | COMPLETE | Final PostgreSQL payroll/upgrade-rerun15/15; financial regression checkpoint45/45; final bilingual HTTP/DOM/shared-operation8/8; units3/3; lint/type/build/diff passed. D47; see EMPLOYEE_PAYROLL.md. |
-| 20 | Management reports and PDF/Excel exports | NOT STARTED | None |
+| 20 | Management reports and PDF/Excel exports | COMPLETE | Real PostgreSQL integration 30 files/173 tests; bilingual real-HTTP/DOM 20 files/51 tests; units 22 files/67 tests; fresh migration through 0021, pg-boss lifecycle/security/retry, all 24 report kinds, XLSX/PDF content/visual validation, query plans, workspace type/lint/build and diff check passed. See MANAGEMENT_REPORTS.md. |
 | 21 | Excel templates, validation preview, and atomic import | NOT STARTED | None |
 | 22 | PWA, network recovery, and usability hardening | NOT STARTED | None |
 | 23 | Dokploy deployment assets, backup, restore, and support | NOT STARTED | None |

@@ -14,10 +14,12 @@ import { communicationEnglish, communicationArabic } from '../features/communica
 import { financeEn,financeAr } from '../features/finance/copy.js';
 import { transportEn,transportAr } from '../features/finance/transport-copy.js';
 import { payrollEn,payrollAr } from '../features/finance/payroll-copy.js';
+import { reportsEn,reportsAr } from '../features/reports/copy.js';
 export const supportedLocales = ['en', 'ar-EG'] as const;
 export type Locale = (typeof supportedLocales)[number];
 
 const en = {
+  ...reportsEn,
   ...organizationEnglish,
   ...childrenEnglish,
   ...licensingEnglish,
@@ -153,6 +155,7 @@ const en = {
 export type MessageKey = keyof typeof en;
 
 const ar: Record<MessageKey, string> = {
+  ...reportsAr,
   ...organizationArabic,
   ...childrenArabic,
   ...licensingArabic,

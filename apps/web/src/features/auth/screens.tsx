@@ -98,6 +98,7 @@ export function AccountScreen() {
     <Link to="/change-password">{t('auth.changePassword')}</Link><LogoutButton />
     {auth.session!.account.kind==='GUARDIAN' && <><Link to="/parent/today">{t('hub.today')}</Link><Link to="/parent/children">{t('children.title')}</Link></>}
     {auth.session!.account.capabilities.includes('announcements.manage') && <Link to="/administration/announcements">{t('hub.publish')}</Link>}
+    {auth.session!.account.capabilities.some(c=>['finance.read','children.read','learning.read','transport.read','activities.read','incidents.read','documents.manage'].includes(c)) && <Link to="/administration/reports">{t('reports.title')}</Link>}
     {auth.session!.account.capabilities.includes('finance.read') && <Link to="/administration/billing">{t('billing.title')}</Link>}
     {auth.session!.account.capabilities.includes('finance.read') && <Link to="/administration/collections">{t('collections.title')}</Link>}
     {(auth.session!.account.capabilities.includes('transport.read')||auth.session!.account.capabilities.includes('transport.manage')) && <Link to="/administration/transport">{t('transport.title')}</Link>}

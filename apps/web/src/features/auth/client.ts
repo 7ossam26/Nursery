@@ -47,6 +47,13 @@ export class AuthClient {
   async business<T>(path: string,method = 'GET',body?: unknown): Promise<T> {
     const result = await this.request(`/api/v1/${path}`,method,body) as { data: T }; return result.data;
   }
+  async downloadReport(id:string) {
+    const revision=this.revision;
+    const response=await this.transport(`/api/v1/reports/exports/${encodeURIComponent(id)}/download`,{method:'GET',credentials:'same-origin',cache:'no-store'});
+    if(!response.ok) {const parsed=apiErrorSchema.safeParse(await response.json());if(parsed.success)throw new AuthError(parsed.data);throw new Error('Unexpected API response');}
+    if(response.status===202)return null;
+    const bytes=await response.blob();if(revision!==this.revision)throw new Error('Superseded session response');return bytes;
+  }
   // Public and unauthenticated: safe to call before sign-in so the login screen reflects nursery branding.
   async branding<T>(): Promise<T> {
     const result = await this.request('/api/v1/licensing/branding') as { data: T };

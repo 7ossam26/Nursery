@@ -61,7 +61,9 @@ describe('Phase 10 bilingual exams DOM/HTTP scripts with real PostgreSQL',() => 
     const parentClient=httpClient(origin,f.config.appOrigin); await parentClient.login('parent-uiexa',`Permanent guardian secret ${child.guardianIds[0]}`);
     const parentView=mount(parentClient,locale,`/parent/children/${child.childIds[0]}`);
     await screen.findByText(t('exams.historyTitle'),{},{ timeout: 15000 });
-    const list=await screen.findByRole('list',{},{ timeout: 15000 });
+    const history=screen.getByRole('heading',{ name: t('exams.historyTitle') }).closest('section');
+    if(!history) throw new Error('Exam history section is missing');
+    const list=await within(history).findByRole('list',{},{ timeout: 15000 });
     await within(list).findByText(/10\.00/,{},{ timeout: 15000 });
     expect((await axe.run(parentView.container,{ rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
   },60000);

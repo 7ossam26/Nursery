@@ -6,7 +6,7 @@ import { createDatabase } from '@nursery/db';
 import { expect, it } from 'vitest';
 
 loadDotenv({ quiet: true });
-it.each([3,5,18])('upgrades an actual Phase %i schema once, preserves identity/reservations, and does not reseed edited roles on rerun',async (phase) => {
+it.each([3,5,18,19])('upgrades an actual Phase %i schema once, preserves identity/reservations, and does not reseed edited roles on rerun',async (phase) => {
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL required for real PostgreSQL migration verification');
   const admin = createDatabase(process.env.DATABASE_URL); const schema = `phase04_migration_${crypto.randomUUID().replaceAll('-','')}`;
   await admin.pool.query(`create schema ${schema}`);
@@ -19,7 +19,7 @@ it.each([3,5,18])('upgrades an actual Phase %i schema once, preserves identity/r
   }
   try {
     await database.pool.query('create table schema_migrations(name text primary key,applied_at timestamptz not null default now())');
-    for (const name of phase===18 ? (await readdir(resolve('packages/db/src/migrations'))).filter(name=>name.endsWith('.sql')&&name<'0020').sort() : ['0000_installation_baseline.sql','0001_authentication.sql',...(phase>=5 ? ['0002_organization_policy.sql','0003_licensing_settings.sql'] : [])]) {
+    for (const name of phase>=18 ? (await readdir(resolve('packages/db/src/migrations'))).filter(name=>name.endsWith('.sql')&&name<(phase===19?'0021':'0020')).sort() : ['0000_installation_baseline.sql','0001_authentication.sql',...(phase>=5 ? ['0002_organization_policy.sql','0003_licensing_settings.sql'] : [])]) {
       await database.pool.query(await readFile(resolve('packages/db/src/migrations',name),'utf8'));
       await database.pool.query('insert into schema_migrations(name) values($1)',[name]);
     }
@@ -32,7 +32,7 @@ it.each([3,5,18])('upgrades an actual Phase %i schema once, preserves identity/r
       await database.pool.query("update roles set name='Before upgrade' where name='Teacher'");
     }
     const oldSeats = phase>=5 ? (await database.pool.query('select * from seat_reservations')).rows : [];
-    const first = await migrate(); expect(first.code).toBe(0); expect(first.output).toBe(phase===18 ? 'Applied 0020_employee_payroll.sql\n' : (phase===3 ? 'Applied 0002_organization_policy.sql\nApplied 0003_licensing_settings.sql\n' : '')+'Applied 0004_children_guardians.sql\nApplied 0005_safety.sql\nApplied 0006_learning.sql\nApplied 0007_attendance.sql\nApplied 0008_exams.sql\nApplied 0009_homework.sql\nApplied 0010_communication.sql\nApplied 0011_financial_core.sql\nApplied 0012_billing.sql\nApplied 0013_collections.sql\nApplied 0014_spending.sql\nApplied 0015_closing.sql\nApplied 0016_corrections_refunds.sql\nApplied 0017_child_branch_transfers.sql\nApplied 0018_bus_trips_activities.sql\nApplied 0019_trip_reduction_invariant.sql\nApplied 0020_employee_payroll.sql\n');
+    const first = await migrate(); expect(first.code).toBe(0); expect(first.output).toBe(phase===19 ? 'Applied 0021_reports_exports.sql\n' : phase===18 ? 'Applied 0020_employee_payroll.sql\nApplied 0021_reports_exports.sql\n' : (phase===3 ? 'Applied 0002_organization_policy.sql\nApplied 0003_licensing_settings.sql\n' : '')+'Applied 0004_children_guardians.sql\nApplied 0005_safety.sql\nApplied 0006_learning.sql\nApplied 0007_attendance.sql\nApplied 0008_exams.sql\nApplied 0009_homework.sql\nApplied 0010_communication.sql\nApplied 0011_financial_core.sql\nApplied 0012_billing.sql\nApplied 0013_collections.sql\nApplied 0014_spending.sql\nApplied 0015_closing.sql\nApplied 0016_corrections_refunds.sql\nApplied 0017_child_branch_transfers.sql\nApplied 0018_bus_trips_activities.sql\nApplied 0019_trip_reduction_invariant.sql\nApplied 0020_employee_payroll.sql\nApplied 0021_reports_exports.sql\n');
     if (phase>=5) {
       expect((await database.pool.query('select * from seat_reservations')).rows).toEqual(oldSeats);
       expect((await database.pool.query("select count(*)::int as count from roles where name='Before upgrade'")).rows[0].count).toBe(1);
@@ -43,7 +43,7 @@ it.each([3,5,18])('upgrades an actual Phase %i schema once, preserves identity/r
     await database.pool.query("update roles set name='Edited template' where name=any($1::text[])",[['Teacher','Before upgrade']]);
     const second = await migrate(); expect(second.code).toBe(0); expect(second.output).toBe('');
     expect((await database.pool.query("select count(*)::int as count from roles where name='Edited template'")).rows[0].count).toBe(1);
-    expect((await database.pool.query('select count(*)::int as count from schema_migrations')).rows[0].count).toBe(21);
+    expect((await database.pool.query('select count(*)::int as count from schema_migrations')).rows[0].count).toBe(22);
   } finally {
     await database.close();
     if (!/^phase04_migration_[a-f0-9]{32}$/.test(schema)) throw new Error('Invalid fixture schema');
