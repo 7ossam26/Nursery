@@ -18,6 +18,9 @@ export class FinancialCore {
     if (!(await tx.query("select 1 from module_settings where module_key='FINANCE' and enabled")).rowCount) throw new SafeError('MODULE_DISABLED','finance.disabled',false,403);
   }
   date(value: string) { if(value>cairoIsoDate()) throw invalid(); }
+  async cashDateOpen(tx:Transaction,accountIds:string[],date:string,exemptId:string|null=null) {
+    if((await tx.query("select 1 from daily_closing_heads where account_id=any($1::uuid[]) and action='COUNTED' and business_date>=$2 and ($3::uuid is null or id<>$3)",[accountIds,date,exemptId])).rowCount) throw new SafeError('VALIDATION_ERROR','closing.closedDate',false,409);
+  }
   branch(p: Policy,capability: Capability,branchId: string) { requireRecord(p,capability,{branchId}); }
   async operation<T>(tx: Transaction,p: Policy,operationId: string,action: string,input: unknown,capability: Capability,authorize:()=>Promise<FinanceResource[]>,work:()=>Promise<T>,revalidateReplay?:()=>Promise<void>): Promise<T> {
     await this.enabled(tx); requireCapability(p,capability);

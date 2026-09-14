@@ -1,0 +1,10 @@
+import { z } from 'zod';
+import { amountSchema,financeQuerySchema } from './finance.js';
+const uuid=z.uuid().transform(v=>v.toLowerCase()),reason=z.string().trim().min(1).max(500);
+export const closingInputSchema=z.object({operationId:uuid,accountId:uuid,on:z.iso.date(),countedAmount:amountSchema,expectedRevision:z.number().int().min(0),reason}).strict();
+export const reopenInputSchema=z.object({operationId:uuid,expectedRevision:z.number().int().positive(),reason}).strict();
+export const closingAdjustmentInputSchema=reopenInputSchema.extend({effectiveOn:z.iso.date()}).strict();
+export const closingQuerySchema=financeQuerySchema.extend({accountId:uuid.optional()}).strict();
+export const closingCurrentQuerySchema=z.object({accountId:uuid,on:z.iso.date()}).strict();
+export type DailyClosing={id:string;accountId:string;accountCode:string;branchId:string;on:string;revision:number;isCurrent:boolean;action:'COUNTED'|'REOPENED';expected:string;counted:string;difference:string;reason:string;actor:string;adjustmentId:string|null;adjustmentDate:string|null};
+export type ClosingOptions={accounts:{id:string;code:string;name:string;branchId:string;balance:string}[];canCount:boolean;canCorrect:boolean};

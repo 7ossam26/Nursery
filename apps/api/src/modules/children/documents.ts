@@ -1,6 +1,6 @@
-import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, lstat, open, readFile, readdir, realpath, unlink } from 'node:fs/promises';
-import { isAbsolute, relative, resolve } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { lstat,readdir,unlink } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import sharp from 'sharp';
 import { PDFDocument, PDFDict, PDFName, PDFRawStream, PDFArray, type PDFObject } from 'pdf-lib';
 import { documentInputSchema, MAX_DOCUMENT_BYTES } from '@nursery/contracts';
@@ -9,10 +9,10 @@ import type { ChildService } from './service.js';
 import { requireChild, resolveChild } from './policy.js';
 import { denied, requireCapability } from '../organization/policy.js';
 import { SafeError } from '../../errors.js';
+import { PrivateDocumentStore,documentHash as hash } from './private-store.js';
 
 const FILE_LOCK = 7190602;
 const invalid = () => new SafeError('VALIDATION_ERROR','children.invalidDocument',false,400);
-const hash = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
 export async function validateDocument(bytes: Buffer,mimeType: 'application/pdf' | 'image/png' | 'image/jpeg'): Promise<Buffer> {
   if (!bytes.length || bytes.length > MAX_DOCUMENT_BYTES) throw invalid();
   try {
@@ -46,17 +46,8 @@ export async function validateDocument(bytes: Buffer,mimeType: 'application/pdf'
 }
 
 export class ChildDocumentService {
-  constructor(readonly children: ChildService,private readonly configuredRoot: string) {}
-  private async root() {
-    const path = resolve(this.configuredRoot,'child-documents');
-    const web = resolve('apps/web'); const rel = relative(web,path);
-    if (!rel.startsWith('..') && !isAbsolute(rel)) throw new Error('Private storage cannot be inside the web application');
-    await mkdir(path,{ recursive: true,mode: 0o700 });
-    if ((await lstat(path)).isSymbolicLink()) throw new Error('Private storage cannot be a symlink');
-    const actual = await realpath(path); const actualRel = relative(web,actual);
-    if (!actualRel.startsWith('..') && !isAbsolute(actualRel)) throw new Error('Private storage resolves inside the web application');
-    return actual;
-  }
+  readonly store:PrivateDocumentStore;
+  constructor(readonly children: ChildService,configuredRoot: string) {this.store=new PrivateDocumentStore(configuredRoot,'child-documents');}
   async upload(token: string,childId: string,raw: unknown) {
     z.uuid().parse(childId); const input = documentInputSchema.parse(raw); const key = randomUUID(); let path: string | undefined;
     try {
@@ -64,9 +55,7 @@ export class ChildDocumentService {
         const child = await resolveChild(tx,childId,true); requireChild(p,'documents.manage',child);
         await tx.query('select pg_advisory_xact_lock_shared($1)',[FILE_LOCK]);
         const bytes = await validateDocument(Buffer.from(input.contentBase64,'base64'),input.mimeType);
-        const root = await this.root(); path = resolve(root,`${key}.blob`);
-        const handle = await open(path,'wx',0o600);
-        try { await handle.writeFile(bytes); await handle.sync(); } finally { await handle.close(); }
+        path=await this.store.write(key,bytes);
         const id = randomUUID();
         await tx.query('insert into child_documents(id,child_id,branch_id,name,expires_on,storage_key,mime_type,byte_size,sha256,created_by) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',[id,childId,child.branchId,input.name,input.expiresOn,key,input.mimeType,bytes.length,hash(bytes),p.account.id]);
         await this.children.audit(tx,p,child,'document.uploaded',null,{ id,name: input.name,expiresOn: input.expiresOn,mimeType: input.mimeType,byteSize: bytes.length });
@@ -93,9 +82,7 @@ export class ChildDocumentService {
       const doc = (await tx.query<{ storage_key: string; mime_type: string; sha256: string; retired: boolean }>('select storage_key,mime_type,sha256,retired from child_documents where id=$1 for share',[id])).rows[0];
       if (!doc || doc.retired) throw denied();
       await tx.query('select pg_advisory_xact_lock_shared($1)',[FILE_LOCK]);
-      const path = resolve(await this.root(),`${z.uuid().parse(doc.storage_key)}.blob`);
-      const stat = await lstat(path); if (!stat.isFile() || stat.isSymbolicLink() || stat.size > MAX_DOCUMENT_BYTES) throw new Error('Invalid private file');
-      const bytes = await readFile(path); if (hash(bytes) !== doc.sha256) throw new Error('Private file integrity failure');
+      const bytes=await this.store.read(doc.storage_key,doc.sha256);
       await this.children.audit(tx,p,child,'document.downloaded',null,{ id });
       return { bytes,mimeType: doc.mime_type,filename: `${id}.${doc.mime_type === 'application/pdf' ? 'pdf' : doc.mime_type === 'image/png' ? 'png' : 'jpg'}` };
     });
@@ -114,7 +101,7 @@ export class ChildDocumentService {
   async cleanup(token: string) {
     return this.children.withPolicy(token,async (tx,p) => {
       requireCapability(p,'support.access'); await tx.query('select pg_advisory_xact_lock($1)',[FILE_LOCK]);
-      const root = await this.root(); const referenced = new Set((await tx.query<{ storage_key: string }>('select storage_key from child_documents')).rows.map((r) => r.storage_key)); let removed = 0;
+      const root = await this.store.root(); const referenced = new Set((await tx.query<{ storage_key: string }>('select storage_key from child_documents')).rows.map((r) => r.storage_key)); let removed = 0;
       for (const entry of await readdir(root,{ withFileTypes: true })) {
         if (!entry.isFile() || !/^[0-9a-f-]{36}\.blob$/.test(entry.name)) continue;
         const key = entry.name.slice(0,-5); if (!z.uuid().safeParse(key).success || referenced.has(key)) continue;

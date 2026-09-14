@@ -1,0 +1,20 @@
+import { z } from 'zod';
+import { amountSchema,positiveAmountSchema,accountTypeSchema,financeQuerySchema } from './finance.js';
+import { capabilityKeys } from './organization.js';
+import { documentInputSchema } from './children.js';
+
+const uuid=z.uuid().transform(v=>v.toLowerCase());
+const reason=z.string().trim().min(1).max(500);
+export const expenseCategoryInputSchema=z.object({operationId:uuid,code:z.string().trim().toUpperCase().regex(/^[A-Z0-9_-]{1,32}$/).refine(v=>!['SALARY','PAYROLL','ADVANCE'].includes(v)),name:z.string().trim().min(1).max(120)}).strict();
+export const expenseInputSchema=z.object({operationId:uuid,branchId:uuid,classroomId:uuid.nullable(),categoryId:uuid,amount:positiveAmountSchema,dueOn:z.iso.date(),note:reason}).strict();
+export const expenseActionInputSchema=z.object({operationId:uuid,reason}).strict();
+export const expenseDocumentInputSchema=documentInputSchema.extend({operationId:uuid}).strict();
+export type ExpenseDocument={id:string;name:string;expiresOn:string|null;mimeType:'application/pdf'|'image/jpeg'|'image/png';byteSize:number};
+export const expensePaymentInputSchema=z.object({operationId:uuid,accountId:uuid,method:accountTypeSchema,paidOn:z.iso.date(),externalReference:z.string().trim().max(120),reason}).strict();
+export const expenseSettingsInputSchema=z.object({operationId:uuid,expectedVersion:z.number().int().positive(),approvalThreshold:amountSchema,approvingCapability:z.enum(capabilityKeys),reason}).strict();
+export const transferInputSchema=z.object({operationId:uuid,sourceAccountId:uuid,destinationAccountId:uuid,amount:positiveAmountSchema,effectiveOn:z.iso.date(),reason,externalReference:z.string().trim().max(120)}).strict().refine(v=>v.sourceAccountId!==v.destinationAccountId);
+export const expenseQuerySchema=financeQuerySchema.extend({classroomId:uuid.optional(),state:z.enum(['PENDING','APPROVED','PAID','CANCELLED']).optional()}).strict();
+export type Expense={id:string;branchId:string;classroomId:string|null;categoryId:string;categoryName:string;amount:string;dueOn:string;note:string;state:'PENDING'|'APPROVED'|'PAID'|'CANCELLED';settlementId:string|null;accountId:string|null;method:'CASH'|'BANK'|'WALLET'|null;paidOn:string|null};
+export type ExpensePage={items:Expense[];totalPending:string;totalPaid:string;totalCount:number};
+export type ExpenseSettings={approvalThreshold:string;approvingCapability:typeof capabilityKeys[number];version:number};
+export type SpendingOptions={branches:{id:string;code:string;name:string}[];classrooms:{id:string;branchId:string;name:string}[];categories:{id:string;code:string;name:string}[];accounts:{id:string;branchId:string;code:string;name:string;type:'CASH'|'BANK'|'WALLET'}[];settings:ExpenseSettings;canManage:boolean;canPay:boolean;canApprove:boolean;canConfigure:boolean;canTransfer:boolean};

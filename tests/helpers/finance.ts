@@ -15,6 +15,11 @@ export async function reconcileFinance(database:Database) {
  union all select 'negative-credit' from credit_balances where remaining<0
  union all select 'branch-mismatch' from receipt_allocations a join receipts r on r.id=a.receipt_id join installments i on i.id=a.installment_id join obligations o on o.id=i.obligation_id where r.branch_id<>o.branch_id
  union all select 'missing-operation' from receipts r left join financial_operations f on f.actor_id=r.actor_id and f.operation_id=r.operation_id where f.operation_id is null
+ union all select 'expense-cash' from expense_settlements s where s.amount<>(select -coalesce(sum(m.amount),0) from treasury_movements m where m.expense_settlement_id=s.id)
+ union all select 'expense-source' from expense_settlements s join expenses e on e.id=s.expense_id where s.amount<>e.amount or s.branch_id<>e.branch_id
+ union all select 'transfer-conservation' from account_transfers t where 2<>(select count(*) from treasury_movements m where m.transfer_id=t.id) or 0<>(select coalesce(sum(m.amount),0) from treasury_movements m where m.transfer_id=t.id)
+ union all select 'closing-adjustment-cash' from closing_adjustments j where j.amount<>(select coalesce(sum(m.amount),0) from treasury_movements m where m.closing_adjustment_id=j.id)
+ union all select 'closing-adjustment-source' from closing_adjustments j join daily_closings c on c.id=j.closing_id where j.amount<>c.difference or j.account_id<>c.account_id
  `)).rows;
  return rows.map(r=>r.problem);
 }

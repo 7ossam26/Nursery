@@ -21,6 +21,8 @@ export class TreasuryService {
     if(!receipt || !receipt.lines.length) throw denied();
     for(const line of receipt.lines) requireRecord(p,'payments.record',{branchId:receipt.branch_id,classroomId:line.classroomId??undefined,childId:line.childId});
     await this.lockAccounts(tx,p,[receipt.account_id]);
+    const date=(await tx.query<{collected_on:string}>('select collected_on::text from receipts where id=$1',[receiptId])).rows[0].collected_on;
+    await this.core.cashDateOpen(tx,[receipt.account_id],date);
     const posted=await tx.query(`insert into treasury_movements(id,account_id,kind,receipt_id,amount,effective_on,reason,actor_id)
       select $1,account_id,'RECEIPT',id,amount,collected_on,'External receipt',$2 from receipts where id=$3`,[randomUUID(),p.account.id,receiptId]);
     if(posted.rowCount!==1) throw invalid();
