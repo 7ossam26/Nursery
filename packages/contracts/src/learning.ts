@@ -20,10 +20,10 @@ export type CheckpointDefinition = z.infer<typeof checkpointDefinitionSchema>;
 export type CheckpointConfiguration = { id: string; version: number; effectiveOn: string; definitions: CheckpointDefinition[] };
 export type CheckpointPublication = z.infer<typeof checkpointPublicationSchema>;
 export type LearningEvent = { id: string; revision: number; previousId: string | null; action: 'PUBLISH' | 'TRANSITION' | 'CORRECTION'; statusId: string; note: string | null; reason: string | null };
-export type DailySlot = { definition: CheckpointDefinition; status: CheckpointStatus; event: LearningEvent | null };
+export type DailySlot = { definition: CheckpointDefinition; status: CheckpointStatus; event: LearningEvent | null; homework?: import('./homework.js').HomeworkReporting };
 export type DailyLearning = { childId: string; date: string; snapshotId: string | null; branchId: string; classroomId: string | null; slots: DailySlot[]; progress: { completed: number; total: number; hidden: boolean }; canPublish: boolean };
-export function learningProgress(slots: Pick<DailySlot,'event' | 'status'>[]) {
-  return { completed: slots.filter((s) => s.event !== null && s.status.meaning !== 'PENDING').length, total: slots.length, hidden: slots.length === 0 };
+export function learningProgress(slots: Pick<DailySlot,'event' | 'status' | 'homework'>[]) {
+  return { completed: slots.filter((s) => s.homework ? s.homework.reported && s.homework.meaning !== 'PENDING' : s.event !== null && s.status.meaning !== 'PENDING').length, total: slots.length, hidden: slots.length === 0 };
 }
 // Stable semantic mappings: labels and colors never drive reporting.
 export const builtInMeanings: Record<string, CheckpointStatus['meaning']> = { UNRECORDED: 'PENDING', PRESENT: 'RESOLVED', ABSENT: 'RESOLVED', NO_CLASS: 'NOT_APPLICABLE', AWAITING_RESULT: 'PENDING', RESULT_PUBLISHED: 'RESOLVED', NO_EXAM: 'NOT_APPLICABLE', CHILD_ABSENT: 'NOT_APPLICABLE', NOT_ASSIGNED: 'PENDING', AWAITING_REVIEW: 'PENDING', COMPLETED: 'RESOLVED', NOT_COMPLETED: 'RESOLVED', EXCUSED: 'NOT_APPLICABLE', NO_HOMEWORK: 'NOT_APPLICABLE' };

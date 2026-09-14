@@ -8,6 +8,7 @@ import { SafeError } from '../../errors.js';
 import type { ChildService } from '../children/service.js';
 import { requireChild, requireGuardianChild, resolveChild, staffChildScope } from '../children/policy.js';
 import { denied, requireCapability, requireRecord, stale, type Policy } from '../organization/policy.js';
+import { homeworkReporting } from '../homework/reporting.js';
 
 const CONFIG_LOCK = 7190801;
 const invalid = () => new SafeError('VALIDATION_ERROR','learning.invalid',false,400);
@@ -105,7 +106,8 @@ export class LearningService {
         for (const row of rows) {
           if (!modules.has(checkpointModule[row.definition.kind])) continue;
           const status = row.event ? row.definition.statuses.find((s) => s.id===row.event!.statusId)! : ordered(row.definition.statuses).find((s) => s.enabled && s.meaning==='PENDING')!;
-          slots.push({ ...row,status });
+          const homework = row.definition.kind==='HOMEWORK' ? await homeworkReporting(tx,p,id,date) : undefined;
+          slots.push({ ...row,status: homework?.reported ? row.definition.statuses.find((s) => s.enabled && s.outcome===homework.outcome)! : status,...(homework ? { homework } : {}) });
         }
         slots.sort((a,b) => a.definition.order-b.definition.order || a.definition.id.localeCompare(b.definition.id));
       }
@@ -124,12 +126,12 @@ export class LearningService {
   }
   // Adapter boundary: call inside ChildService.withPolicy, and wrap the whole adapter write in operation().
   // Specialized payload tables are owned/validated by Phases 09–11 in this SAME transaction.
-  // `aggregateTransition` is a deliberate, narrow extension for Phase 10: several exams recorded on the
-  // same day share one EXAM slot, so a new detailed exam result can transition into an unchanged aggregate
-  // status (e.g. still AWAITING_RESULT while another exam remains ungraded). It never applies outside EXAM
+  // Built-in EXAM/HOMEWORK details share one slot. Their aggregate transition can retain a status
+  // while another individual outcome is missing. Homework due rules are projected from retained details.
+  // This option never applies outside EXAM/HOMEWORK
   // and never weakens the public STATUS_NOTE transition rule (changed status, unchanged note).
   async appendInTransaction(tx: Transaction,p: Policy,kind: CheckpointDefinition['kind'],raw: unknown,action: LearningEvent['action'],options: { aggregateTransition?: boolean } = {}): Promise<LearningEvent> {
-    if (options.aggregateTransition && kind !== 'EXAM') throw invalid();
+    if (options.aggregateTransition && kind !== 'EXAM' && kind !== 'HOMEWORK') throw invalid();
     const input = action === 'CORRECTION' ? checkpointCorrectionSchema.parse(raw) : checkpointPublicationSchema.parse(raw);
     await tx.query('select pg_advisory_xact_lock_shared($1)',[CONFIG_LOCK]);
     const child = await this.authorizedChild(tx,p,input.childId,true);

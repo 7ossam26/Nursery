@@ -97,7 +97,7 @@ export function AccountScreen() {
     <Link to="/change-password">{t('auth.changePassword')}</Link><LogoutButton />
     {auth.session!.account.kind==='GUARDIAN' && <Link to="/parent/children">{t('children.title')}</Link>}
     {auth.session!.account.capabilities.includes('learning.configure') && <Link to="/administration/checkpoints">{t('learning.configuration')}</Link>}
-    {auth.session!.account.capabilities.includes('learning.read') && <><Link to="/teacher/today">{t('attendance.title')}</Link><Link to="/teacher/exams">{t('exams.title')}</Link><Link to="/teacher/learning">{t('learning.title')}</Link></>}
+    {auth.session!.account.capabilities.includes('learning.read') && <><Link to="/teacher/today">{t('attendance.title')}</Link><Link to="/teacher/homework">{t('homework.title')}</Link><Link to="/teacher/exams">{t('exams.title')}</Link><Link to="/teacher/learning">{t('learning.title')}</Link></>}
     {auth.session!.account.capabilities.includes('children.read') && <Link to="/administration/children">{t('children.title')}</Link>}
     {auth.session!.account.capabilities.includes('organization.read') && <Link to="/administration/organization">{t('organization.title')}</Link>}
     {(['branding.manage', 'modules.manage', 'users.manage_staff', 'users.create_parent', 'parents.block'] as const).some((key) => auth.session!.account.capabilities.includes(key)) && <Link to="/administration/settings">{t('licensing.settingsTitle')}</Link>}
