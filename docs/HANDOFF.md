@@ -1,10 +1,43 @@
 # Current handoff
 
-Updated: 2026-09-15 — Phase25 COMPLETE (documentation only); post-Phase-25 release closure in progress in the same session (N25-01 fixed, Phase 12 conflict analyzed, user acceptance walkthrough executed — all below). No live deployment, migration, subagent or browser automation.
+Updated: 2026-09-15 — Phase25 COMPLETE (documentation only); post-Phase-25 release closure COMPLETE in the same
+session (N25-01 fixed, Phase 12 conflict analyzed, user acceptance walkthrough executed, final gates re-run,
+Dokploy qualification recorded — detailed sections below). No live deployment, migration, subagent or browser
+automation was performed at any point.
 
 ## Release candidate
 
-Unchanged from Phase 24: base f108715f20f3d614643c4f92ad8ef61ceeba6459 (phase23) plus the phase24 diff (candidate hash in [candidate.json](evidence/phase24/candidate.json)). Phase 25 adds no application code, dependency, or schema change; schema remains 0023 (24 migrations including 0000).
+Unchanged from Phase 24: base f108715f20f3d614643c4f92ad8ef61ceeba6459 (phase23) plus the phase24 diff (candidate hash in [candidate.json](evidence/phase24/candidate.json)). Phase 25 adds no application code, dependency, or schema change; schema remains 0023 (24 migrations including 0000). The post-Phase-25 release-closure work adds the N25-01 fix (two one-line screen changes plus tests) as the only application-code change; schema remains 0023.
+
+## Final summary (post-Phase-25 release closure)
+
+**1. VERIFIED** (real evidence, this session or reconfirmed unchanged):
+- N25-01 fixed and regression-tested (real HTTP/PostgreSQL, en+ar-EG).
+- User acceptance walkthrough executed for real: 88 PASS / 0 FAIL / 5 NOT EXECUTED (manual-only) — [evidence/final/WALKTHROUGH_RESULTS.md](evidence/final/WALKTHROUGH_RESULTS.md).
+- Final gates re-run, none regressed: PostgreSQL 185/185, unit 119/119, DOM/UI 62/62 (0 error logs), recovery 3/3, performance all targets met, typecheck/lint/build/diff-check all passed — [evidence/final/FINAL_GATES.md](evidence/final/FINAL_GATES.md).
+- Native (non-Docker) operator sequence: fresh install (24 migrations) + idempotent rerun, bootstrap, API/worker startup, health/readiness, real backup creation + real `pg_restore` restore validation with data/files/session-revocation confirmed — [evidence/final/operator-sequence.txt](evidence/final/operator-sequence.txt), [evidence/final/DOKPLOY_QUALIFICATION.md](evidence/final/DOKPLOY_QUALIFICATION.md).
+- No application defect was found by the executed walkthrough.
+
+**2. BLOCKED BY ENVIRONMENT** (unchanged from Phase 23/24, re-confirmed still true):
+- B24-01: no Docker on this host — image build, Compose startup, TLS/reverse-proxy, container network isolation.
+- B24-02: no real VPS/domain/off-host backup destination supplied.
+- E24-01: host Node/npm differ from the pinned Linux target; SIGTERM graceful-drain untested on Windows.
+
+**3. MANUAL CHECK REQUIRED** (the tech lead's own required action; cannot be done by this session):
+- Phase 12's screenshot handoff — conflict analyzed in [DECISIONS.md](DECISIONS.md), exact capture action named there; still BLOCKED, not waived.
+- The walkthrough's 5 physical-browser rows: 360px layout, keyboard focus order, `prefers-reduced-motion`, RTL visual alignment, and visual dd/MM/yyyy+EGP rendering (M24-01).
+- Production-mode environment validation, an installation-ID mismatch refusal, rollback-from-older-schema, the support bundle, and maintenance-lock concurrency were not re-executed this session (their Phase 23/24 evidence stands) — a future session with Docker/VPS access should re-verify these together with the Docker items.
+
+**4. KNOWN LIMITATIONS** (documented, not defects):
+- S24-01: `npm audit` reports 2 moderate ExcelJS→uuid findings, 0 high/critical; reviewed, not blindly "fixed."
+- L24-01: local performance fixture is small; re-measure at real installation scale.
+
+**5. REMAINING DEPLOYMENT REQUIREMENTS** (before any live nursery deployment):
+- A Docker/Dokploy host to actually build and run the pinned image and Compose stack.
+- Real deployment inputs: domain, fresh `INSTALLATION_ID`, `SESSION_SECRET`, `POSTGRES_PASSWORD`, `BACKUP_ENCRYPTION_KEY` (kept off-server), an off-host backup destination, support contact text, and license validity/grace/capacities — see OPERATIONS.md "Required deployment inputs".
+- The tech lead's device/browser pass over the walkthrough's manual rows and the Phase 12 screenshot capture.
+
+**Final repository status: READY FOR DEPLOYMENT QUALIFICATION** — every gate this environment can run passed with real evidence; live deployment is gated only on Docker/Dokploy/VPS availability and the deployment inputs above, not on any known defect.
 
 ## Post-Phase-25 release closure — N25-01 fixed
 
@@ -62,4 +95,4 @@ is not re-claimed here. Full itemized result: [docs/evidence/final/DOKPLOY_QUALI
 
 Unchanged live-release qualifications from Phase 24 (Docker/Dokploy build and TLS/SSE, real VPS/domain/off-host backup qualification, pinned Linux Node/npm + SIGTERM check, physical 360px/RTL/keyboard/screenshot/PWA manual review) are listed in [KNOWN_ISSUES.md](KNOWN_ISSUES.md). The user acceptance walkthrough's script-executable rows are now done (see above); its 5 physical-browser rows and Phase 12's screenshot handoff remain the tech lead's own required manual work. Phase 12's screenshot handoff remains unresolved under the same conflict recorded since Phase 12 (browser automation is prohibited and no waiver was given); Phase 25 does not resolve it and its ledger status stays IN PROGRESS. A post-Phase-25 conflict analysis in [DECISIONS.md](DECISIONS.md) confirms it cannot be resolved from existing repository evidence and names the exact manual capture action; it remains BLOCKED (manual), not waived.
 
-This is the last planned phase (01–25); N25-01 is now fixed. The next real operator actions are, in order: (1) the tech lead performs the exact manual screenshot capture named in `docs/DECISIONS.md` to close the Phase 12 conflict (or explicitly waives it there); (2) the tech lead executes `docs/USER_ACCEPTANCE_WALKTHROUGH.md` on an actual device/browser and records results; (3) when a Docker/Dokploy host and real deployment inputs (domain, `INSTALLATION_ID`, secrets, off-host backup destination — see OPERATIONS.md "Required deployment inputs") become available, the actual Dokploy deployment and its smoke checks. No further numbered phase is defined in this plan; a new requirement should go through `prompts/CHANGE_REQUEST.md`. This release-closure session continues past the Phase 12 conflict into an executed walkthrough and further gates; see PROJECT_STATE.md's active summary for the current point reached.
+This is the last planned phase (01–25); N25-01 is now fixed. The next real operator actions are, in order: (1) the tech lead performs the exact manual screenshot capture named in `docs/DECISIONS.md` to close the Phase 12 conflict (or explicitly waives it there); (2) the tech lead performs the walkthrough's 5 remaining physical-browser rows (the script-executable rows are already done — see the Final summary above); (3) when a Docker/Dokploy host and real deployment inputs (domain, `INSTALLATION_ID`, secrets, off-host backup destination — see OPERATIONS.md "Required deployment inputs") become available, the actual Dokploy deployment and its smoke checks. No further numbered phase is defined in this plan; a new requirement should go through `prompts/CHANGE_REQUEST.md`. This release-closure session's achievable work is complete; see the Final summary above and PROJECT_STATE.md for the full evidence trail.

@@ -77,4 +77,14 @@ Phase24 execution evidence is now recorded in [ACCEPTANCE_EVIDENCE.md](ACCEPTANC
 
 Phase25 creates [USER_GUIDES.md](USER_GUIDES.md) (role-based operator guides) and [USER_ACCEPTANCE_WALKTHROUGH.md](USER_ACCEPTANCE_WALKTHROUGH.md) (the manual scenario referenced above, with blank result fields and every open Phase24 issue carried forward). It documents only; A01–A38 acceptance itself still requires the tech lead to execute that walkthrough and record real results.
 
+The post-Phase-25 release-closure session (no new phase; there is no Phase 26) fixed N25-01, analyzed the Phase 12
+screenshot conflict (still BLOCKED, manual — see [DECISIONS.md](DECISIONS.md)), and actually executed the script-
+executable portion of the walkthrough referenced above as real HTTP against the real application and PostgreSQL:
+88 PASS / 0 FAIL / 5 NOT EXECUTED (physical-browser rows only). No application defect was found. Every established
+gate was re-run with none regressed, and the native (non-Docker) portion of Dokploy/production qualification was
+recorded. This closure work does still not establish the manual/physical rows of A35, nor Docker/Dokploy/VPS
+qualification (B24-01/B24-02, unchanged). See [docs/evidence/final/](evidence/final/) for the complete evidence
+(WALKTHROUGH_RESULTS.md, FINAL_GATES.md, DOKPLOY_QUALIFICATION.md, operator-sequence.txt) and
+[docs/HANDOFF.md](HANDOFF.md) for the categorized final summary.
+
 For each future requirement change, update this mapping, DECISIONS.md, relevant domain specifications, and affected unexecuted phase files.
