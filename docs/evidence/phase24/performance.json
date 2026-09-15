@@ -1,0 +1,64 @@
+{
+  "environment": {
+    "recordedAt": "2026-09-15T02:14:58.681Z",
+    "baseCommit": "f108715f20f3d614643c4f92ad8ef61ceeba6459",
+    "node": "v25.2.1",
+    "os": "win32 10.0.22621",
+    "cpu": "Intel(R) Core(TM) i7-7820HQ CPU @ 2.90GHz",
+    "logicalCpus": 8,
+    "memoryGiB": 15.863815307617188,
+    "postgres": "PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35227, 64-bit",
+    "database": "Disposable schema on the explicitly configured DATABASE_URL; no URL/credentials stored",
+    "poolMax": 10
+  },
+  "fixture": {
+    "branches": 2,
+    "classrooms": 3,
+    "children": 300,
+    "staff": 50,
+    "guardians": 30,
+    "obligations": 300,
+    "attendancePublished": 100,
+    "concurrency": 5,
+    "samples": 100,
+    "date": "2026-09-15"
+  },
+  "method": "Fastify inject elapsed includes authentication, service SQL/locks, transaction commit and JSON serialization; excludes network/TLS. 5 warmups per read; nearest-rank p95. Writes are distinct real payments without warmup. Live is loopback HTTP publication-to-invalidation plus authenticated fresh history, not browser paint.",
+  "timings": {
+    "outstanding": {
+      "samples": 100,
+      "p50Ms": 161.41339999999764,
+      "p95Ms": 264.6106,
+      "maxMs": 567.5385999999999
+    },
+    "attendance": {
+      "samples": 100,
+      "p50Ms": 189.21160000000236,
+      "p95Ms": 260.8983999999982,
+      "maxMs": 267.38150000000314
+    },
+    "guardianHistory": {
+      "samples": 100,
+      "p50Ms": 54.88960000000225,
+      "p95Ms": 67.03799999999319,
+      "maxMs": 98.23960000000079
+    },
+    "collection": {
+      "samples": 100,
+      "p50Ms": 95.18899999999849,
+      "p95Ms": 132.75280000000203,
+      "maxMs": 200.36300000000483
+    },
+    "liveFreshRead": {
+      "samples": 10,
+      "p50Ms": 1008.352899999998,
+      "p95Ms": 1196.9035000000003,
+      "maxMs": 1196.9035000000003
+    }
+  },
+  "targets": {
+    "readsP95Under500ms": true,
+    "collectionsP95Under1000ms": true,
+    "liveAllUnder5000ms": true
+  }
+}

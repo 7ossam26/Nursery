@@ -15,6 +15,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:recovery": "vitest run --config vitest.recovery.config.ts",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "test:release": "vitest run --config vitest.release.config.ts",
     "db:migrate": "npm run db:migrate -w @nursery/db",
     "db:seed:demo": "npm run db:seed:demo -w @nursery/db",
     "auth:bootstrap": "tsx apps/api/src/auth-command.ts bootstrap",

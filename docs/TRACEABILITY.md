@@ -73,4 +73,6 @@ Input: Nursery_Management_Business_Requirements_V1.md. The latest conversation a
 
 Phase 24 fills ACCEPTANCE_EVIDENCE.md with the actual build, environment, scenario/command, result, and issue link. Phase 25 creates the user-led walkthrough. This file must not be used to imply those checks already passed.
 
+Phase24 execution evidence is now recorded in [ACCEPTANCE_EVIDENCE.md](ACCEPTANCE_EVIDENCE.md), with explicit partial/manual/blocked distinctions and release issues in [KNOWN_ISSUES.md](KNOWN_ISSUES.md). R04/R06/R07 release fixes restore A02/A09/A10 roster reachability beyond100 children and remove the measured repeated attendance-query bottleneck (D52). No new V1 feature or schema migration is introduced. See the evidence document for the current gate result; this mapping alone still does not establish acceptance.
+
 For each future requirement change, update this mapping, DECISIONS.md, relevant domain specifications, and affected unexecuted phase files.

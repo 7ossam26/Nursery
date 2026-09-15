@@ -1,4 +1,5 @@
 import { AuthClient } from '../../apps/web/src/features/auth/client.js';
+import { trackHttpRequest } from './http-drain.js';
 // Real TCP API adapter supplies the cookie/origin behavior jsdom lacks; no browser automation.
 // `gate.offline` simulates a dropped network at the browser fetch boundary (no request leaves).
 export function httpClient(origin: string, appOrigin: string,live=false,gate: { offline: boolean } = { offline: false }) {
@@ -8,7 +9,7 @@ export function httpClient(origin: string, appOrigin: string,live=false,gate: { 
     const headers = new Headers(options.headers);
     headers.set('cookie',[...jar].map(([name,value]) => `${name}=${value}`).join('; '));
     if (options.method !== 'GET') headers.set('origin',appOrigin);
-    const response = await fetch(`${origin}${String(path)}`,{ ...options,headers });
+    const response = await trackHttpRequest(origin,fetch(`${origin}${String(path)}`,{ ...options,headers }));
     for (const entry of response.headers.getSetCookie()) {
       const [pair] = entry.split(';'); const split = pair.indexOf('='); const name = pair.slice(0,split); const value = pair.slice(split+1);
       if (value) jar.set(name,value); else jar.delete(name);

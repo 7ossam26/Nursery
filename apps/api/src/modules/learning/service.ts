@@ -10,7 +10,7 @@ import { requireChild, requireGuardianChild, resolveChild, staffChildScope } fro
 import { denied, requireCapability, requireRecord, stale, type Policy } from '../organization/policy.js';
 import { homeworkReporting } from '../homework/reporting.js';
 
-const CONFIG_LOCK = 7190801;
+export const CONFIG_LOCK = 7190801;
 const invalid = () => new SafeError('VALIDATION_ERROR','learning.invalid',false,400);
 const off = () => new SafeError('MODULE_DISABLED','learning.disabled',false,403);
 export const checkpointModule: Record<CheckpointDefinition['kind'],ModuleKey> = { ATTENDANCE: 'ATTENDANCE', EXAM: 'EXAMS', HOMEWORK: 'HOMEWORK', STATUS_NOTE: 'CUSTOM_CHECKPOINTS' };
@@ -70,7 +70,9 @@ export class LearningService {
   }
   async context(token: string) {
     return this.children.withPolicy(token,async (tx,p) => {
-      requireCapability(p,'learning.read'); return { modules: [...await this.modules(tx)].sort(),canPublish: p.account.capabilities.includes('learning.publish'),scopeRevision: p.scope.revision };
+      const scope = staffChildScope(p,'learning.read');
+      const classrooms = (await tx.query<{ classroomId: string; classroomName: string }>(`select c.id as "classroomId",c.name as "classroomName" from classrooms c where ${scope.sql.replaceAll('c.classroom_id','c.id')} order by c.name,c.id`,scope.values)).rows;
+      return { modules: [...await this.modules(tx)].sort(),canPublish: p.account.capabilities.includes('learning.publish'),scopeRevision: p.scope.revision,classrooms };
     });
   }
   async authorizedChild(tx: Transaction,p: Policy,id: string,write = false) {

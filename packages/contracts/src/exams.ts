@@ -50,7 +50,7 @@ export const examResultClassroomPublicationSchema = z.object({
 export const examResultCorrectionSchema = examResultEntrySchema.extend({
   examId: z.uuid(), operationId: z.uuid(), reason: z.string().trim().min(1).max(500)
 });
-export const examNoExamDaySchema = z.object({ classroomId: z.uuid(), date: z.iso.date(), operationId: z.uuid() }).strict();
+export const examNoExamDaySchema = z.object({ classroomId: z.uuid(), date: z.iso.date(), operationId: z.uuid(), offset: z.number().int().min(0).max(100000).optional() }).strict();
 export const examHistoryQuerySchema = z.object({
   subjectId: z.uuid().optional(), typeId: z.uuid().optional(),
   from: z.iso.date().optional(), until: z.iso.date().optional(),

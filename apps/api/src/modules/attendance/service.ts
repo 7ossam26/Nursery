@@ -5,11 +5,12 @@ import { cairoIsoDate } from '@nursery/domain';
 import {
   attendanceClassroomPublicationSchema, attendanceCorrectionSchema, noClassDaySchema, plannedAbsenceSchema,
   type AttendanceClassroomDraft, type AttendanceDailyReport, type AttendancePresence, type AttendanceRecord,
-  type AttendanceRosterEntry, type CheckpointPublication, type LearningEvent, type PlannedAbsence
+  type AttendanceRosterEntry, type CheckpointPublication, type LearningEvent, type PlannedAbsence, type Child, type CheckpointDefinition
 } from '@nursery/contracts';
 import { SafeError } from '../../errors.js';
 import type { ChildService } from '../children/service.js';
-import { requireGuardianChild, resolveChild } from '../children/policy.js';
+import { requireGuardianChild, resolveChild, childProjection, requireChild } from '../children/policy.js';
+import { CONFIG_LOCK } from '../learning/service.js';
 import type { LearningService } from '../learning/service.js';
 import { denied, requireRecord, type Policy } from '../organization/policy.js';
 
@@ -33,31 +34,46 @@ export class AttendanceService {
     return classroom;
   }
 
-  private async rosterInTransaction(tx: Transaction,p: Policy,classroomId: string,date: string): Promise<AttendanceClassroomDraft> {
+  private async rosterInTransaction(tx: Transaction,p: Policy,classroomId: string,date: string,offset=0): Promise<AttendanceClassroomDraft> {
+    z.number().int().min(0).max(100000).parse(offset);
     z.uuid().parse(classroomId); z.iso.date().parse(date); if (date>this.today()) throw invalid();
     await this.requireEnabled(tx); const classroom = await this.classroomMeta(tx,p,classroomId);
-    const children = (await tx.query<{ id: string; fullName: string }>(`
-      select c.id,c.full_name as "fullName" from children c
+    await tx.query('select pg_advisory_xact_lock_shared($1)',[CONFIG_LOCK]);
+    const children = (await tx.query<Child>(`
+      select ${childProjection} from children c
       where c.status='ACTIVE' and c.classroom_id=$1
         and (select h.classroom_id from child_classroom_history h where h.child_id=c.id and h.effective_on<=$2 order by h.effective_on desc,h.created_at desc,h.id desc limit 1)=$1
         and (select h.new_status from child_status_history h where h.child_id=c.id and h.effective_on<=$2 order by h.effective_on desc,h.created_at desc,h.id desc limit 1)='ACTIVE'
-      order by c.full_name,c.id limit 100`,[classroomId,date])).rows;
+      order by c.full_name,c.id limit 100 offset $3 for share of c`,[classroomId,date,offset])).rows;
+    const ids=children.map(child=>child.id);
+    // Current placement is frozen by the same shared row locks as ordinary child reads.
+    const existing = new Set((await tx.query<{child_id:string}>('select child_id from daily_snapshots where child_id=any($1::uuid[]) and business_date=$2',[ids,date])).rows.map(row=>row.child_id));
+    for (const child of children) {
+      requireChild(p,'learning.read',child);
+      if (date<child.birthDate) throw invalid();
+      if (!existing.has(child.id)) await this.learning.snapshot(tx,child,date,true);
+    }
+    // Project just attendance in two bounded queries. Computing every child's full daily
+    // report also queried homework and module settings N times for an attendance page.
+    const rows=(await tx.query<{childId:string;definition:CheckpointDefinition;record:AttendanceRecord|null}>(`
+      select d.child_id as "childId",v.definition,
+        (select jsonb_build_object('event',jsonb_build_object('id',e.id,'revision',e.revision,'previousId',e.previous_id,'action',e.action,'statusId',e.status_id,'note',e.note,'reason',e.reason),'presence',a.presence,'absenceReason',a.absence_reason)
+          from learning_events e join attendance_records a on a.event_id=e.id where e.slot_id=s.id order by e.revision desc limit 1) as record
+      from daily_snapshots d join daily_slots s on s.snapshot_id=d.id join checkpoint_versions v on v.configuration_id=s.configuration_id and v.definition_id=s.definition_id
+      where d.child_id=any($1::uuid[]) and d.business_date=$2 and v.definition->>'kind'='ATTENDANCE'`,[ids,date])).rows;
+    const byChild=new Map(rows.map(row=>[row.childId,row]));
+    const notices=(await tx.query<PlannedAbsence&{childId:string}>('select child_id as "childId",business_date::text as date,reason,version from attendance_planned_absences where child_id=any($1::uuid[]) and business_date=$2 order by guardian_id',[ids,date])).rows;
     const entries: AttendanceRosterEntry[] = [];
     for (const child of children) {
-      const day = await this.learning.dailyInTransaction(tx,p,child.id,date);
-      const slot = day.slots.find((value) => value.definition.kind==='ATTENDANCE');
-      if (!slot) continue;
-      let record: AttendanceRecord | null = null;
-      if (slot.event) record = (await tx.query<AttendanceRecord>(`select $1::jsonb as event,presence,absence_reason as "absenceReason" from attendance_records where event_id=$2`,[JSON.stringify(slot.event),slot.event.id])).rows[0] ?? null;
-      const notices = (await tx.query<PlannedAbsence>('select business_date::text as date,reason,version from attendance_planned_absences where child_id=$1 and business_date=$2 order by guardian_id',[child.id,date])).rows;
-      entries.push({ childId: child.id,fullName: child.fullName,definition: slot.definition,record,notices });
+      const row=byChild.get(child.id); if (!row) continue;
+      entries.push({ childId: child.id,fullName: child.fullName,definition: row.definition,record: row.record,notices: notices.filter(n=>n.childId===child.id).map(({date,reason,version})=>({date,reason,version})) });
     }
     const complete = entries.filter((entry) => entry.record!==null).length;
     return { classroomId,classroomName: classroom.name,date,entries,complete,total: entries.length,noClass: entries.length>0 && entries.every((entry) => entry.record?.presence==='NO_CLASS') };
   }
 
-  async classroom(token: string,classroomId: string,date: string) {
-    return this.children.withPolicy(token,(tx,p) => this.rosterInTransaction(tx,p,classroomId,date));
+  async classroom(token: string,classroomId: string,date: string,offset=0) {
+    return this.children.withPolicy(token,(tx,p) => this.rosterInTransaction(tx,p,classroomId,date,offset));
   }
 
   private async prepare(tx: Transaction,p: Policy,classroomId: string,date: string,entries: { childId: string; statusId: string; absenceReason: string | null; expectedVersion: number }[],allowNoClass: boolean) {
@@ -119,7 +135,7 @@ export class AttendanceService {
     return this.children.withPolicy(token,(tx,p) => {
       let prepared: Prepared[] = [];
       return this.learning.operation(tx,p,input.operationId,{ kind: 'ATTENDANCE',action: 'NO_CLASS',input },async () => {
-        const roster = await this.rosterInTransaction(tx,p,input.classroomId,input.date); if (!roster.entries.length) throw invalid();
+        const roster = await this.rosterInTransaction(tx,p,input.classroomId,input.date,input.offset); if (!roster.entries.length) throw invalid();
         const entries = roster.entries.map((entry) => ({ childId: entry.childId,statusId: entry.definition.statuses.find((status) => status.outcome==='NO_CLASS')?.id ?? '',absenceReason: null,expectedVersion: 0 }));
         prepared=await this.prepare(tx,p,input.classroomId,input.date,entries,true);
       },async () => { const events: LearningEvent[]=[]; for (const value of prepared) events.push(await this.append(tx,p,value,'PUBLISH')); return events; });

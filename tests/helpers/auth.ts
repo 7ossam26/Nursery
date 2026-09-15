@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { createDatabase, applyMigrations } from '@nursery/db';
 import { buildApp } from '../../apps/api/src/app.js';
 import { hashPassword } from '../../apps/api/src/modules/auth/crypto.js';
+import { drainHttpRequests } from './http-drain.js';
 
 loadDotenv({ quiet: true });
 export async function authFixture(https = true) {
@@ -29,6 +30,8 @@ export async function authFixture(https = true) {
     return { id, username, password: secret };
   }
   return { app, database, config, account, secret, async close() {
+    const address = app.server.address();
+    if (address && typeof address !== 'string') await drainHttpRequests(`http://127.0.0.1:${address.port}`);
     // Scripted DOM pollers can leave a keep-alive socket mid-request at teardown; Fastify's 'idle' force-close then waits the
     // full 72s keepAliveTimeout for it. Disposable fixtures destroy remaining sockets first; production shutdown is unchanged.
     app.server.closeAllConnections();

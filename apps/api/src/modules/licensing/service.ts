@@ -59,10 +59,10 @@ export class LicensingService {
     return this.withPolicy(token, async (tx, p) => {
       requireCapability(p, 'licensing.manage');
       const limits = await this.limitsRow(tx);
-      const [parentReserved, employeeReserved, renewalPayments] = await Promise.all([
-        this.activeCount(tx, 'PARENT'), this.activeCount(tx, 'EMPLOYEE'),
-        tx.query<RenewalPayment>('select id,recorded_at as "recordedAt",period_start::text as "periodStart",period_end::text as "periodEnd",amount_piastres as "amountPiastres",method,note,recorded_by as "recordedBy" from license_renewal_payments order by recorded_at desc limit 50').then((r) => r.rows)
-      ]);
+      // A PostgreSQL transaction has one connection; do not overlap client queries.
+      const parentReserved = await this.activeCount(tx, 'PARENT');
+      const employeeReserved = await this.activeCount(tx, 'EMPLOYEE');
+      const renewalPayments = (await tx.query<RenewalPayment>('select id,recorded_at as "recordedAt",period_start::text as "periodStart",period_end::text as "periodEnd",amount_piastres as "amountPiastres",method,note,recorded_by as "recordedBy" from license_renewal_payments order by recorded_at desc limit 50')).rows;
       return { limits, status: this.status(limits), parentReserved, employeeReserved, estimatePiastres: limits ? estimatePeriodTotalPiastres(limits) : null, renewalPayments };
     });
   }

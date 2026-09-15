@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { cairoIsoDate, formatDateOnly } from '@nursery/domain';
 import type { ExamCatalogItem, ExamClassroomDraft, ExamDefinition, ExamHistoryEntry, ExamResult, GradeFormat } from '@nursery/contracts';
 import { Button, SelectField, TextField } from '../../components/controls.js';
@@ -71,8 +71,9 @@ function ResultCorrection({ exam,childId,slotRevision,current,reload }: { exam: 
   </fieldset></form></details>;
 }
 
-function ExamRoster({ examId }: { examId: string }) {
-  const { t }=useLocale(); const auth=useAuth(); const state=useScoped<ExamClassroomDraft>(`exams/${examId}/roster`); const draft=state.data;
+function ExamRosterPage({ examId,offset,onHasNext }: { examId: string; offset:number; onHasNext:(value:boolean)=>void }) {
+  const { t }=useLocale(); const auth=useAuth(); const state=useScoped<ExamClassroomDraft>(`exams/${examId}/roster?offset=${offset}`); const draft=state.data;
+  useEffect(()=>{onHasNext(draft?.entries.length===100);},[draft,onHasNext]);
   const [choices,setChoices]=useState<Record<string,Choice>>({}); const [operationId,setOperation]=useState(crypto.randomUUID()); const [busy,setBusy]=useState(false); const [error,setError]=useState<MessageKey|null>(null); const [saved,setSaved]=useState(false);
   const effective=useMemo(() => draft ? Object.fromEntries(draft.entries.map((entry) => [entry.childId,choices[entry.childId] ?? { include: false,outcome: 'RESULT' as const,score: '',label: draft.exam.labelOptions?.[0] ?? '',comment: '' }])) : {},[draft,choices]);
   const edit=(next: Record<string,Choice>) => { setChoices(next); setOperation(crypto.randomUUID()); setSaved(false); };
@@ -99,26 +100,30 @@ function ExamRoster({ examId }: { examId: string }) {
   </section>;
 }
 
+function ExamRoster({examId}:{examId:string}) {
+  const {t}=useLocale(); const [offset,setOffset]=useState(0); const [hasNext,setHasNext]=useState(false);
+  return <><nav aria-label={t('exams.rosterTitle')}><Button disabled={offset===0} onClick={()=>setOffset(offset-100)}>{t('homework.previous')}</Button><Button disabled={!hasNext||offset>=100000} onClick={()=>setOffset(offset+100)}>{t('homework.next')}</Button></nav><ExamRosterPage key={offset} examId={examId} offset={offset} onHasNext={setHasNext}/></>;
+}
 function ClassroomExams({ classroomId,date }: { classroomId: string; date: string }) {
   const { t }=useLocale(); const auth=useAuth();
   const catalog=useScoped<{ subjects: ExamCatalogItem[]; types: ExamCatalogItem[] }>('exams/catalog');
   const examsList=useScoped<ExamDefinition[]>(`exams?classroomId=${classroomId}&date=${date}`);
-  const [examId,setExamId]=useState(''); const [busy,setBusy]=useState(false); const [error,setError]=useState<MessageKey|null>(null); const [saved,setSaved]=useState(false); const [operationId,setOperation]=useState(crypto.randomUUID());
-  async function noExam() { setBusy(true); setError(null); try { await auth.client.business('exams/no-exam-day','POST',{ classroomId,date,operationId }); setSaved(true); setOperation(crypto.randomUUID()); examsList.reload(); } catch(caught) { setError(errorKey(caught)); auth.handleError(caught); } finally { setBusy(false); } }
+  const [noExamOffset,setNoExamOffset]=useState(0); const [examId,setExamId]=useState(''); const [busy,setBusy]=useState(false); const [error,setError]=useState<MessageKey|null>(null); const [saved,setSaved]=useState(false); const [operationId,setOperation]=useState(crypto.randomUUID());
+  async function noExam() { setBusy(true); setError(null); try { await auth.client.business('exams/no-exam-day','POST',{ classroomId,date,operationId,...(noExamOffset ? {offset:noExamOffset} : {}) }); setSaved(true); setOperation(crypto.randomUUID()); examsList.reload(); } catch(caught) { setError(errorKey(caught)); auth.handleError(caught); } finally { setBusy(false); } }
   const selectedExam=examsList.data?.some((exam) => exam.id===examId) ? examId : examsList.data?.[0]?.id;
   return <section>
     {catalog.data && <CreateExam classroomId={classroomId} date={date} subjects={catalog.data.subjects.filter((s) => s.enabled)} types={catalog.data.types.filter((s) => s.enabled)} reload={examsList.reload} />}
     <h2>{t('exams.listTitle')}</h2>{examsList.error && <p role="alert">{t(examsList.error)}</p>}{error && <p role="alert">{t(error)}</p>}{saved && <p role="status">{t('exams.saved')}</p>}
     {examsList.data?.length ? <><SelectField label={t('exams.listTitle')} value={selectedExam} onChange={(e) => setExamId(e.target.value)}>{examsList.data.map((exam) => <option key={exam.id} value={exam.id}>{exam.name} — {exam.subjectName}</option>)}</SelectField>
       {selectedExam && <ExamRoster key={selectedExam} examId={selectedExam} />}</> :
-      <><p>{t('exams.empty')}</p><p>{t('exams.noExamHelp')}</p><Button variant="secondary" disabled={busy} onClick={() => { void noExam(); }}>{t('exams.noExam')}</Button></>}
+      <><p>{t('exams.empty')}</p><p>{t('exams.noExamHelp')}</p><Button disabled={busy||noExamOffset===0} onClick={()=>{setNoExamOffset(noExamOffset-100);setOperation(crypto.randomUUID());setSaved(false);}}>{t('homework.previous')}</Button><Button disabled={busy||noExamOffset>=100000} onClick={()=>{setNoExamOffset(noExamOffset+100);setOperation(crypto.randomUUID());setSaved(false);}}>{t('homework.next')}</Button><p>{noExamOffset+1}–{noExamOffset+100}</p><Button variant="secondary" disabled={busy} onClick={() => { void noExam(); }}>{t('exams.noExam')}</Button></>}
   </section>;
 }
 
 type RosterChild={ id: string; classroomId: string; classroomName: string };
 export function TeacherExamsScreen() {
-  const { t }=useLocale(); const [date,setDate]=useState(cairoIsoDate()); const roster=useScoped<RosterChild[]>('learning/roster?offset=0');
-  const classrooms=roster.data?.filter((child,index,all) => all.findIndex((value) => value.classroomId===child.classroomId)===index) ?? [];
+  const { t }=useLocale(); const [date,setDate]=useState(cairoIsoDate()); const roster=useScoped<{classrooms:RosterChild[]}>('learning/context');
+  const classrooms=roster.data?.classrooms ?? [];
   const [selected,setSelected]=useState(''); const classroomId=classrooms.some((value) => value.classroomId===selected) ? selected : classrooms[0]?.classroomId;
   return <Frame><h1>{t('exams.title')}</h1><ExamCatalogPanel />
     <TextField label={t('exams.date')} type="date" max={cairoIsoDate()} value={date} onChange={(e) => setDate(e.target.value)} />

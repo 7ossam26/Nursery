@@ -32,13 +32,13 @@ export class ExamService {
     requireRecord(p,'learning.read',{ branchId: classroom.branch_id,classroomId });
     return classroom;
   }
-  private async classroomRoster(tx: Transaction,classroomId: string,date: string) {
+  private async classroomRoster(tx: Transaction,classroomId: string,date: string,offset=0,childIds?:string[]) {
     return (await tx.query<{ id: string; fullName: string }>(`
       select c.id,c.full_name as "fullName" from children c
-      where c.status='ACTIVE' and c.classroom_id=$1
+      where c.status='ACTIVE' and c.classroom_id=$1 and ($4::uuid[] is null or c.id=any($4::uuid[]))
         and (select h.classroom_id from child_classroom_history h where h.child_id=c.id and h.effective_on<=$2 order by h.effective_on desc,h.created_at desc,h.id desc limit 1)=$1
         and (select h.new_status from child_status_history h where h.child_id=c.id and h.effective_on<=$2 order by h.effective_on desc,h.created_at desc,h.id desc limit 1)='ACTIVE'
-      order by c.full_name,c.id limit 100`,[classroomId,date])).rows;
+      order by c.full_name,c.id limit 100 offset $3`,[classroomId,date,offset,childIds??null])).rows;
   }
   private async examById(tx: Transaction,id: string): Promise<ExamDefinition> {
     const row = (await tx.query<ExamDefinition>(`select ${examProjection} from exams e where e.id=$1`,[id])).rows[0];
@@ -81,7 +81,8 @@ export class ExamService {
 
   // ----- Exam definitions -----
   private async reopenAggregate(tx: Transaction,p: Policy,classroomId: string,date: string) {
-    const roster = await this.classroomRoster(tx,classroomId,date);
+    for (let offset=0;;offset+=100) {
+    const roster = await this.classroomRoster(tx,classroomId,date,offset);
     for (const child of roster) {
       const day = await this.learning.dailyInTransaction(tx,p,child.id,date);
       const slot = day.slots.find((s) => s.definition.kind==='EXAM');
@@ -90,6 +91,8 @@ export class ExamService {
       await this.learning.appendInTransaction(tx,p,'EXAM',{
         childId: child.id,date,definitionId: slot.definition.id,statusId: awaiting.id,note: null,expectedVersion: slot.event.revision,operationId: randomUUID()
       },'TRANSITION',{ aggregateTransition: true });
+    }
+    if(roster.length<100)break;
     }
   }
   async create(token: string,raw: unknown): Promise<ExamDefinition> {
@@ -173,7 +176,7 @@ export class ExamService {
       let exam: ExamDefinition;
       return this.learning.operation(tx,p,input.operationId,{ kind: 'EXAM',action: 'CLASSROOM',input },async () => {
         await this.requireEnabled(tx); exam = await this.examById(tx,input.examId);
-        const roster = await this.classroomRoster(tx,exam.classroomId,exam.assessedOn); const rosterIds = new Set(roster.map((c) => c.id));
+        const roster = await this.classroomRoster(tx,exam.classroomId,exam.assessedOn,0,entries.map(entry=>entry.childId)); const rosterIds = new Set(roster.map((c) => c.id));
         for (const entry of entries) {
           if (!rosterIds.has(entry.childId)) throw denied();
           this.validateEntry(exam,entry);
@@ -199,12 +202,12 @@ export class ExamService {
       },() => this.appendResult(tx,p,exam,input,'CORRECTION',input.reason));
     });
   }
-  async roster(token: string,examId: string): Promise<ExamClassroomDraft> {
-    z.uuid().parse(examId);
+  async roster(token: string,examId: string,offset=0): Promise<ExamClassroomDraft> {
+    z.uuid().parse(examId); z.number().int().min(0).max(100000).parse(offset);
     return this.children.withPolicy(token,async (tx,p) => {
       await this.requireEnabled(tx); const exam = await this.examById(tx,examId);
       requireRecord(p,'learning.read',{ branchId: exam.branchId,classroomId: exam.classroomId });
-      const roster = await this.classroomRoster(tx,exam.classroomId,exam.assessedOn);
+      const roster = await this.classroomRoster(tx,exam.classroomId,exam.assessedOn,offset);
       const entries: ExamRosterEntry[] = [];
       for (const child of roster) {
         const day = await this.learning.dailyInTransaction(tx,p,child.id,exam.assessedOn);
@@ -225,7 +228,7 @@ export class ExamService {
         await this.requireEnabled(tx); const classroom = await this.classroomMeta(tx,p,input.classroomId);
         requireRecord(p,'learning.publish',{ branchId: classroom.branch_id,classroomId: input.classroomId });
         if (await tx.query('select 1 from exams where classroom_id=$1 and assessed_on=$2 limit 1',[input.classroomId,input.date]).then((r) => r.rowCount)) throw invalid();
-        roster = await this.classroomRoster(tx,input.classroomId,input.date); if (!roster.length) throw invalid();
+        roster = await this.classroomRoster(tx,input.classroomId,input.date,input.offset); if (!roster.length) throw invalid();
         const entries = roster.map((c) => ({ childId: c.id,date: input.date,definitionId: input.classroomId,statusId: input.classroomId,note: null,expectedVersion: 0,operationId: input.classroomId })) as CheckpointPublication[];
         await this.learning.authorizePublications(tx,p,'EXAM',entries);
       },async () => {

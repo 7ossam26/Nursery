@@ -39,7 +39,11 @@ describe('Phase 22 network recovery through the real UI, HTTP and PostgreSQL',()
   await user.click(within(dialog).getByRole('button',{name:t('network.retry')}));expect((await within(dialog).findByRole('button',{name:t('network.retry')},{timeout:15000})).hasAttribute('disabled')).toBe(false);expect(dialog.hasAttribute('open')).toBe(true);
   expect((await axe.run(view.container,{rules:{'color-contrast':{enabled:false}}})).violations).toEqual([]);
   // Connection returns: the dialog closes, scoped data is re-read, and the frozen operation is checked then retried once.
-  gate.offline=false;await user.click(within(dialog).getByRole('button',{name:t('network.retry')}));await waitFor(()=>expect(dialog.hasAttribute('open')).toBe(false),{timeout:15000});
+  // A scheduled scoped read can recover as soon as the gate opens and close the
+  // dialog before userEvent's deferred click. Dispatch this click in the same
+  // turn as opening the transport, then await the actual successful recovery.
+  const reconnectButton=within(dialog).getByRole('button',{name:t('network.retry')});
+  gate.offline=false;fireEvent.click(reconnectButton);await waitFor(()=>expect(dialog.hasAttribute('open')).toBe(false),{timeout:15000});
   await user.click(screen.getByRole('button',{name:t('finance.check')}));await screen.findByText(t('finance.notFound'),{},{timeout:15000});
   await user.click(screen.getByRole('button',{name:t('finance.retry')}));await screen.findByText(t('collections.saved'),{},{timeout:15000});
   expect((await fx.database.pool.query('select count(*)::int n from receipts')).rows[0].n).toBe(1);

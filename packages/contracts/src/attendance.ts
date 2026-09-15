@@ -11,7 +11,7 @@ export const attendanceClassroomPublicationSchema = z.object({
 export const attendanceCorrectionSchema = attendanceEntrySchema.extend({
   date: z.iso.date(), operationId: z.uuid(), reason: z.string().trim().min(1).max(500)
 });
-export const noClassDaySchema = z.object({ classroomId: z.uuid(), date: z.iso.date(), operationId: z.uuid() }).strict();
+export const noClassDaySchema = z.object({ classroomId: z.uuid(), date: z.iso.date(), operationId: z.uuid(), offset: z.number().int().min(0).max(100000).optional() }).strict();
 export const plannedAbsenceSchema = z.object({
   childId: z.uuid(), from: z.iso.date(), until: z.iso.date(), reason
 }).strict().refine((value) => value.until >= value.from);

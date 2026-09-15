@@ -1,0 +1,247 @@
+SOURCE: nursery-phase24-integration-final.log
+
+> nursery@0.1.0 test:integration
+> vitest run --config vitest.integration.config.ts --maxWorkers=2
+
+
+ RUN  v5.0.0 C:/Users/jo/Desktop/Nursery
+
+
+ Test Files  33 passed (33)
+      Tests  185 passed (185)
+   Start at  04:53:18
+   Duration  561.12s (tests 91%, import 9%)
+
+
+
+SOURCE: nursery-phase24-unit.log
+
+> nursery@0.1.0 test:unit
+> vitest run --passWithNoTests --config vitest.unit.config.ts
+
+
+ RUN  v5.0.0 C:/Users/jo/Desktop/Nursery
+
+
+ Test Files  31 passed (31)
+      Tests  118 passed (118)
+   Start at  04:53:46
+   Duration  37.66s (import 47%, environment 30%, transform 14%, tests 7%, worker 1%)
+
+    Isolate  31 workers spawned · ~1.66s startup each (spawn + environment, per file)
+             at least ~5.69s faster with isolate: false — reuses workers across files instead of one per file
+
+
+
+SOURCE: nursery-phase24-recovery.log
+
+> nursery@0.1.0 test:recovery
+> vitest run --config vitest.recovery.config.ts
+
+
+ RUN  v5.0.0 C:/Users/jo/Desktop/Nursery
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  05:03:36
+   Duration  75.59s (tests 95%, import 3%, transform 2%)
+
+
+
+SOURCE: nursery-phase24-performance-candidate.log
+
+> nursery@0.1.0 test:release
+> vitest run --config vitest.release.config.ts
+
+
+ RUN  v5.0.0 C:/Users/jo/Desktop/Nursery
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  05:14:07
+   Duration  74.26s (tests 96%, import 3%, transform 2%)
+
+
+
+SOURCE: nursery-phase24-dom-fixes.log
+
+ RUN  v5.0.0 C:/Users/jo/Desktop/Nursery
+
+
+ Test Files  2 passed (2)
+      Tests  8 passed (8)
+   Start at  05:11:26
+   Duration  72.84s (tests 84%, import 8%, environment 5%, transform 4%)
+
+
+
+SOURCE: nursery-phase24-dom-drain.log
+
+ RUN  v5.0.0 C:/Users/jo/Desktop/Nursery
+
+
+ Test Files  2 passed (2)
+      Tests  5 passed (5)
+   Start at  05:21:15
+   Duration  74.18s (tests 84%, import 8%, environment 5%, transform 3%)
+
+
+
+SOURCE: nursery-phase24-typecheck-final.log
+
+> nursery@0.1.0 typecheck
+> npm run typecheck --workspaces --if-present && tsc -p infra/tsconfig.json
+
+
+> typecheck
+> tsc --noEmit -p tsconfig.json
+
+
+> typecheck
+> tsc -b --pretty false
+
+
+> typecheck
+> tsc --noEmit -p tsconfig.json
+
+
+> @nursery/contracts@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.json
+
+
+> @nursery/db@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.json
+
+
+> @nursery/domain@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.json
+
+
+> @nursery/ui@0.1.0 typecheck
+> tsc --noEmit -p tsconfig.json
+
+
+
+SOURCE: nursery-phase24-lint.log
+
+> nursery@0.1.0 lint
+> npm run lint --workspaces --if-present
+
+
+> lint
+> eslint src
+
+
+> lint
+> eslint src
+
+
+> lint
+> eslint src
+
+
+> @nursery/contracts@0.1.0 lint
+> eslint src
+
+
+> @nursery/db@0.1.0 lint
+> eslint src
+
+
+> @nursery/domain@0.1.0 lint
+> eslint src
+
+
+> @nursery/ui@0.1.0 lint
+> eslint src
+
+
+
+SOURCE: nursery-phase24-build.log
+
+> nursery@0.1.0 build
+> npm run build --workspaces --if-present
+
+
+> build
+> tsc -p tsconfig.json
+
+
+> build
+> tsc -b && vite build
+
+vite v8.3.0 building client environment for production...
+transforming...
+✓ 207 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.64 kB │ gzip:   0.37 kB
+dist/sw.js                        2.64 kB
+dist/assets/index-CaaBQRDQ.css   19.27 kB │ gzip:   4.71 kB
+dist/assets/index-Dh2mFBVo.js   843.72 kB │ gzip: 225.46 kB
+
+✓ built in 1.13s
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+> build
+> tsc -p tsconfig.json
+
+
+> @nursery/contracts@0.1.0 build
+> tsc -p tsconfig.json
+
+
+> @nursery/db@0.1.0 build
+> tsc -p tsconfig.json
+
+
+> @nursery/domain@0.1.0 build
+> tsc -p tsconfig.json
+
+
+> @nursery/ui@0.1.0 build
+> tsc -p tsconfig.json
+
+
+
+SOURCE: nursery-phase24-harness-types-final.log
+
+
+SOURCE: nursery-phase24-dom-release.log
+
+> nursery@0.1.0 test:e2e
+> vitest run --config vitest.e2e.config.ts --maxWorkers=1
+
+
+ RUN  v5.0.0 C:/Users/jo/Desktop/Nursery
+
+{"level":50,"time":1789439045845,"pid":28432,"hostname":"MeshMsh","reqId":"dd47c34e-113a-410e-aab8-d02e7fcaa472","code":"INTERNAL_ERROR","requestId":"dd47c34e-113a-410e-aab8-d02e7fcaa472","msg":"request failed"}
+{"level":50,"time":1789439068060,"pid":28432,"hostname":"MeshMsh","reqId":"15cc859e-6c2a-42b1-9f19-ee5a0fcb852d","code":"INTERNAL_ERROR","requestId":"15cc859e-6c2a-42b1-9f19-ee5a0fcb852d","msg":"request failed"}
+
+ Test Files  24 passed (24)
+      Tests  62 passed (62)
+   Start at  05:22:42
+   Duration  697.56s (tests 83%, import 10%, environment 6%)
+
+    Isolate  24 workers spawned · ~2.02s startup each (spawn + environment, per file)
+             at least ~46.53s faster with isolate: false — reuses workers across files instead of one per file
+
+
+
+SOURCE: nursery-phase24-dom-support-final.log
+
+ RUN  v5.0.0 C:/Users/jo/Desktop/Nursery
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  05:34:58
+   Duration  49.69s (tests 85%, import 6%, transform 5%, environment 4%)
+
+

@@ -49,7 +49,9 @@ describe('scripted bilingual authentication flows against the real API', () => {
     await user.type(screen.getByLabelText(t('auth.accountId'), { exact: false }), guardian.id);
     await user.type(screen.getByLabelText(t('auth.operatorPassword'), { exact: false }), rootPassword);
     await user.click(screen.getByRole('button', { name: t('auth.resetAction') }));
-    await screen.findByText(t('auth.temporaryWarning'));
+    // Real password hashing + operator verification can exceed Testing Library's
+    // one-second default on a loaded release-test host. Still require actual success.
+    await screen.findByText(t('auth.temporaryWarning'), {}, { timeout: 15000 });
     const temporary = view.container.querySelector('.auth-temporary')!.textContent!;
     expect(temporary.length).toBeGreaterThan(20);
     await expect(fixture.app.auth.assertSessionActive(oldGuardian.token)).rejects.toMatchObject({ code: 'SESSION_EXPIRED' });

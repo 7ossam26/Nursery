@@ -18,5 +18,5 @@ export function installExams(app: FastifyInstance) {
   app.post('/api/v1/exams/no-exam-day',async (r) => ({ data: await service.noExamDay(r.sessionToken,r.body) }));
   app.get('/api/v1/exams/children/:id/history',async (r) => ({ data: await service.history(r.sessionToken,id(r.params),r.query) }));
   app.get('/api/v1/exams/:id',async (r) => ({ data: await service.detail(r.sessionToken,id(r.params)) }));
-  app.get('/api/v1/exams/:id/roster',async (r) => ({ data: await service.roster(r.sessionToken,id(r.params)) }));
+  app.get('/api/v1/exams/:id/roster',async (r) => { const q=z.object({offset:z.coerce.number().int().min(0).max(100000).default(0)}).strict().parse(r.query); return { data: await service.roster(r.sessionToken,id(r.params),q.offset) }; });
 }

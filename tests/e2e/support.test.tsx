@@ -11,18 +11,32 @@ import axe from 'axe-core';
 import { createDatabase } from '@nursery/db';
 import { childFixture } from '../helpers/children.js';
 import { httpClient } from '../helpers/http-client.js';
+import { drainHttpRequests } from '../helpers/http-drain.js';
 import { buildApp } from '../../apps/api/src/app.js';
 import { App } from '../../apps/web/src/App.js';
 import { LocaleProvider } from '../../apps/web/src/i18n/LocaleProvider.js';
 import { translate } from '../../apps/web/src/i18n/catalogs.js';
 
 let f: Awaited<ReturnType<typeof childFixture>>; let backupDir: string; let app: ReturnType<typeof buildApp> | null = null;
-afterEach(async () => { cleanup(); if (app) { app.server.closeAllConnections(); await app.close(); app = null; } await f?.close(); if (backupDir) await rm(backupDir, { recursive: true, force: true }); });
+let serverErrors: number[] = [];
+afterEach(async () => {
+  cleanup();
+  try {
+    if (app) {
+      const address = app.server.address();
+      if (address && typeof address !== 'string') await drainHttpRequests(`http://127.0.0.1:${address.port}`);
+      app.server.closeAllConnections(); await app.close(); app = null;
+    }
+    expect(serverErrors).toEqual([]);
+  } finally { await f?.close(); if (backupDir) await rm(backupDir, { recursive: true, force: true }); }
+});
 
 it.each(['en', 'ar-EG'] as const)('real HTTP bilingual support screen: status, backup request, reauthenticated restore validation, audit search, account lookup and reset in %s', async (locale) => {
   window.localStorage.clear(); f = await childFixture(false); backupDir = await mkdtemp(join(tmpdir(), 'nursery-support-ui-'));
   // A separate API instance with backups configured (the fixture itself has none), same database and files.
   app = buildApp({ ...f.config, backup: { backupDir, encryptionKey: 'ab'.repeat(32), target: 'none', schedule: '0 2 * * *', retention: { daily: 7, weekly: 4, manual: 4 }, restoreValidationDatabaseUrl: null, restoreValidationFilesDir: null } }, createDatabase(f.config.databaseUrl));
+  serverErrors = [];
+  app.addHook('onResponse', async (_request, reply) => { if (reply.statusCode >= 500) serverErrors.push(reply.statusCode); });
   const origin = await app.listen({ host: '127.0.0.1', port: 0 });
   await f.app.auth.setLocale(f.root.token, locale); const family = await f.children.onboard(f.root.token, f.family('UI')); const staff = await f.staff([f.a.id]);
   const client = httpClient(origin, f.config.appOrigin); await client.login('licensing-system', f.password); const user = userEvent.setup();
