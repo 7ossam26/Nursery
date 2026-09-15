@@ -9,6 +9,7 @@ import { TransportScreen } from './features/finance/transport-screen.js';
 import { PayrollScreen } from './features/finance/payroll-screen.js';
 import { ReportsScreen } from './features/reports/screen.js';
 import { ImportsScreen } from './features/imports/screen.js';
+import { SupportScreen } from './features/support/screen.js';
 import { lazy, Suspense, useEffect } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router';
 import { useLocale } from './i18n/LocaleProvider.js';
@@ -75,6 +76,7 @@ function AuthRoutes() {
     <Route path="/teacher/exams" element={<AuthGate><TeacherExamsScreen /></AuthGate>} />
     <Route path="/teacher/activities" element={<AuthGate><TransportScreen rosterOnly /></AuthGate>} />
     <Route path="/support/licenses" element={<AuthGate><LicensingScreen /></AuthGate>} />
+    <Route path="/support/operations" element={<AuthGate><SupportScreen /></AuthGate>} />
     <Route path="/administration/children" element={<AuthGate><ChildrenScreen /></AuthGate>} />
     <Route path="/administration/children/:id" element={<AuthGate><ChildDetailScreen /></AuthGate>} />
     <Route path="/parent/children" element={<AuthGate><GuardianChildrenScreen /></AuthGate>} />

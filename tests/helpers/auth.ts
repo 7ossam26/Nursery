@@ -1,8 +1,8 @@
-import { readFile, readdir, mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { config as loadDotenv } from 'dotenv';
-import { resolve, join } from 'node:path';
-import { createDatabase } from '@nursery/db';
+import { join } from 'node:path';
+import { createDatabase, applyMigrations } from '@nursery/db';
 import { buildApp } from '../../apps/api/src/app.js';
 import { hashPassword } from '../../apps/api/src/modules/auth/crypto.js';
 
@@ -17,9 +17,9 @@ export async function authFixture(https = true) {
   const database = createDatabase(url.toString());
   const privateFilesDir = await mkdtemp(join(tmpdir(),'nursery-auth-files-'));
   try {
-  const directory = resolve('packages/db/src/migrations');
-  for (const file of (await readdir(directory)).filter((name) => name.endsWith('.sql')).sort()) await database.pool.query(await readFile(join(directory, file), 'utf8'));
-  const config = { databaseUrl: url.toString(), appOrigin: https ? 'https://nursery.example' : 'http://localhost:5173', sessionSecret: 'test-only-not-for-deployment-secret-123456789', installationId: crypto.randomUUID(), businessTimezone: 'Africa/Cairo', privateFilesDir, supportContact: 'Support', backupTarget: 'test', production: https };
+  // Same runner as `db:migrate` so fixtures carry a real schema_migrations ledger; isolated schemas need no shared lock.
+  await applyMigrations(database.pool, { lock: false });
+  const config = { databaseUrl: url.toString(), appOrigin: https ? 'https://nursery.example' : 'http://localhost:5173', sessionSecret: 'test-only-not-for-deployment-secret-123456789', installationId: crypto.randomUUID(), businessTimezone: 'Africa/Cairo', privateFilesDir, supportContact: 'Support', backupTarget: 'none', production: https };
   const app = buildApp(config, database);
   const secret = 'Fixture password phrase 2026';
   const hash = await hashPassword(secret);

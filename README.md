@@ -30,9 +30,18 @@ The API provides `GET /api/v1/health` and `GET /api/v1/readiness`. Readiness ret
 | `npm run test:unit` | Runs domain, theme, localization, responsive-contract, and component accessibility unit checks. |
 | `npm run test:integration` | Runs real PostgreSQL authentication, concurrency, transaction, and command checks. Authentication checks require `DATABASE_URL` and fail if it is absent. |
 | `npm run test:e2e` | Runs bilingual React DOM authentication flows against real HTTP/PostgreSQL plus Vite startup smoke; no browser automation. |
+| `npm run test:recovery` | Runs the backup/restore acceptance checks alone (they create/drop whole databases and run `pg_dump`/`pg_restore`); excluded from `test:integration` to avoid starving parallel fixtures. |
 | `npm run db:migrate` | Applies each checked-in migration once under a PostgreSQL advisory lock. |
 | `npm run db:seed:demo` | Reports that Phase 01 has no demo data and makes no changes. |
 | `npm run auth:bootstrap` | Consumes private stdin JSON to create the one-time SYSTEM account. |
 | `npm run auth:recover-system` | Consumes private stdin JSON to replace the existing SYSTEM credential and revoke sessions. |
+| `npm run start:api` / `npm run start:worker` | Production entry points (validated configuration, schema compatibility check, graceful shutdown); the API serves `apps/web/dist` when `WEB_DIST_DIR` is set. |
+| `npm run env:check` | Validates deployment configuration, storage permissions, PostgreSQL client tools and schema state without printing secret values. |
+| `npm run release:prepare` | Start/upgrade sequence: environment check, pre-upgrade recovery set when data migrations are pending, migrations under the advisory lock. |
+| `npm run backup:create -- --kind MANUAL` | Writes an encrypted recovery set (database + private files + manifest) and the off-host copy. |
+| `npm run backup:restore -- --archive <set> --mode validate ...` | Restores a recovery set into an isolated target and verifies it; `--mode live` needs `--confirm-database`. |
+| `npm run support:bundle` | Writes a redacted diagnostics JSON for support. |
 
-Migration `0001_authentication.sql` adds accounts, sessions, the one-time bootstrap marker, status history, redacted auth audits and rate counters. Tests create and remove isolated schemas; their database role needs schema-creation permission. No future business-domain tables or production accounts are seeded.
+Migration `0001_authentication.sql` adds accounts, sessions, the one-time bootstrap marker, status history, redacted auth audits and rate counters. Tests create and remove isolated schemas; their database role needs schema-creation permission (the backup/restore suite additionally creates and drops databases and needs `pg_dump`/`pg_restore` on PATH or `PG_BIN_DIR`). No future business-domain tables or production accounts are seeded.
+
+Deployment: `infra/Dockerfile`, `infra/docker-compose.yml` and `infra/.env.production.example` are the Dokploy package; see [docs/OPERATIONS.md](docs/OPERATIONS.md) and [docs/DEPLOYMENT_AND_BACKUP.md](docs/DEPLOYMENT_AND_BACKUP.md).

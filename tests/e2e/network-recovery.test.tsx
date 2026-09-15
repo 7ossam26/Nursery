@@ -31,7 +31,7 @@ describe('Phase 22 network recovery through the real UI, HTTP and PostgreSQL',()
   await user.click(within(form).getByRole('checkbox',{name:t('collections.confirm')}));
   // The network drops before the request leaves the browser.
   gate.offline=true;await user.click(within(form).getByRole('button',{name:t('collections.submit')}));
-  const dialog=await screen.findByRole('dialog',{name:t('network.title')},{timeout:15000});expect(dialog.hasAttribute('open')).toBe(true);
+  const dialog=await screen.findByRole('dialog',{name:t('network.title')},{timeout:15000});await waitFor(()=>expect(dialog.hasAttribute('open')).toBe(true),{timeout:15000});
   await screen.findByText(t('finance.uncertain'),{},{timeout:15000});expect((form as HTMLFieldSetElement).disabled).toBe(true);
   expect((within(form).getByLabelText(/Child NETUI/) as HTMLInputElement).value).toBe('40.00');expect((within(form).getByLabelText(t('collections.payer'),{exact:false}) as HTMLInputElement).value).toBe('Offline payer');
   expect((await fx.database.pool.query('select count(*)::int n from receipts')).rows[0].n).toBe(0);

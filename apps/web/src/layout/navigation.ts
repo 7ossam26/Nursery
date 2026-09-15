@@ -50,11 +50,13 @@ export const navigationByRole: Readonly<Record<ShellRole, readonly NavigationGro
       { path: '/account', labelKey: 'nav.more', icon: 'more' }
     ] },
     { labelKey: 'nav.groupSupport', support: true, items: [
-      { path: '/support/licenses', labelKey: 'nav.licenses', icon: 'support', when: any(...supportCapabilities) }
+      { path: '/support/licenses', labelKey: 'nav.licenses', icon: 'support', when: any(...supportCapabilities) },
+      { path: '/support/operations', labelKey: 'nav.operations', icon: 'settings', when: any('support.access') }
     ] }
   ],
   support: [{ labelKey: 'nav.groupSupport', support: true, items: [
     { path: '/support/licenses', labelKey: 'nav.licenses', icon: 'support', when: any(...supportCapabilities) },
+    { path: '/support/operations', labelKey: 'nav.operations', icon: 'settings', when: any('support.access') },
     { path: '/administration/settings', labelKey: 'nav.settings', icon: 'settings', when: any(...settingsCapabilities) },
     { path: '/account', labelKey: 'nav.more', icon: 'more' }
   ] }]

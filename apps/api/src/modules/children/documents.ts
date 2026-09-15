@@ -9,9 +9,8 @@ import type { ChildService } from './service.js';
 import { requireChild, resolveChild } from './policy.js';
 import { denied, requireCapability } from '../organization/policy.js';
 import { SafeError } from '../../errors.js';
-import { PrivateDocumentStore,documentHash as hash } from './private-store.js';
+import { PrivateDocumentStore,FILE_LOCK,documentHash as hash } from './private-store.js';
 
-const FILE_LOCK = 7190602;
 const invalid = () => new SafeError('VALIDATION_ERROR','children.invalidDocument',false,400);
 export async function validateDocument(bytes: Buffer,mimeType: 'application/pdf' | 'image/png' | 'image/jpeg'): Promise<Buffer> {
   if (!bytes.length || bytes.length > MAX_DOCUMENT_BYTES) throw invalid();

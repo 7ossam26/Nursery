@@ -9,3 +9,4 @@ output/
 .env.*
 !.env.example
 private-files/
+!.env.production.example

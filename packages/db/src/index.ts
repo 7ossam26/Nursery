@@ -26,3 +26,4 @@ export async function queryOne<T extends QueryResultRow>(transaction: Transactio
 export * from './obligations.js';
 export * from './billing.js';
 export * from './reminders.js';
+export * from './migrate.js';

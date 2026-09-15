@@ -4,6 +4,8 @@ import { isAbsolute,relative,resolve } from 'node:path';
 import { z } from 'zod';
 import { MAX_DOCUMENT_BYTES } from '@nursery/contracts';
 
+// Shared write barrier: file writers/removers hold it shared inside their transaction; janitors and the backup hold it exclusively.
+export const FILE_LOCK=7190602;
 export const documentHash=(bytes:Buffer)=>createHash('sha256').update(bytes).digest('hex');
 // Namespace is infrastructure supplied by the service, never a request path or filename.
 export class PrivateDocumentStore {

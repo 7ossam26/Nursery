@@ -1,0 +1,143 @@
+# Dokploy "Docker Compose" deployment for ONE nursery installation (compose file path: infra/docker-compose.yml).
+# Dokploy provides the project name, the environment (.env), the domain -> service `api` port 3000 routing and TLS.
+# PostgreSQL and the volumes are private: nothing here publishes a port and no data path is served by the web router.
+# Resource limits are conservative placeholders; confirm them against the measured server capacity at deployment.
+
+x-app-image: &app-image
+  image: ${NURSERY_IMAGE:-nursery-app:${RELEASE_VERSION:-local}}
+  build:
+    context: ..
+    dockerfile: infra/Dockerfile
+    args:
+      RELEASE_VERSION: ${RELEASE_VERSION:-local}
+
+x-app-environment: &app-environment
+  NODE_ENV: production
+  HOST: 0.0.0.0
+  PORT: "3000"
+  TRUST_PROXY: ${TRUST_PROXY:-uniquelocal}
+  WEB_DIST_DIR: /app/apps/web/dist
+  PRIVATE_FILES_DIR: /data/private-files
+  BACKUP_DIR: /data/backups
+  RELEASE_VERSION: ${RELEASE_VERSION:-local}
+  DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+  APP_ORIGIN: ${APP_ORIGIN}
+  SESSION_SECRET: ${SESSION_SECRET}
+  INSTALLATION_ID: ${INSTALLATION_ID}
+  BUSINESS_TIMEZONE: ${BUSINESS_TIMEZONE:-Africa/Cairo}
+  SUPPORT_CONTACT: ${SUPPORT_CONTACT}
+  BACKUP_TARGET: ${BACKUP_TARGET:-directory:/offsite}
+  BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
+  BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-0 2 * * *}
+  BACKUP_RETENTION_DAILY: ${BACKUP_RETENTION_DAILY:-7}
+  BACKUP_RETENTION_WEEKLY: ${BACKUP_RETENTION_WEEKLY:-4}
+  BACKUP_RETENTION_MANUAL: ${BACKUP_RETENTION_MANUAL:-4}
+  RESTORE_VALIDATION_DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}_restore_check
+  RESTORE_VALIDATION_FILES_DIR: /data/restore-check
+  SHUTDOWN_TIMEOUT_MS: "15000"
+
+services:
+  postgres:
+    image: postgres:18.4-bookworm@sha256:882236b897e39051d2368c5ccc6cda944904723506b2dfc97f2a8f5bc9afa382
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+    command: ["postgres", "-c", "max_connections=60", "-c", "shared_buffers=256MB", "-c", "log_min_duration_statement=2000"]
+    shm_size: 256m
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    stop_grace_period: 60s
+
+  migrate:
+    <<: *app-image
+    restart: "no"
+    init: true
+    environment:
+      <<: *app-environment
+    command: ["node", "--import", "tsx", "infra/scripts/release.ts"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - private-files:/data/private-files
+      - backups:/data/backups
+      # - ${OFFSITE_MOUNT}:/offsite   # mounted off-host storage; see OPERATIONS.md
+
+  api:
+    <<: *app-image
+    restart: unless-stopped
+    init: true
+    environment:
+      <<: *app-environment
+    command: ["node", "--import", "tsx", "apps/api/src/server.ts"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "3000"
+    volumes:
+      - private-files:/data/private-files
+      - backups:/data/backups:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/v1/readiness').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+    stop_grace_period: 30s
+    networks:
+      - default
+      - dokploy-network
+
+  worker:
+    <<: *app-image
+    restart: unless-stopped
+    init: true
+    environment:
+      <<: *app-environment
+    command: ["node", "--import", "tsx", "apps/worker/src/worker.ts"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - private-files:/data/private-files
+      - backups:/data/backups
+      - restore-check:/data/restore-check
+      # - ${OFFSITE_MOUNT}:/offsite   # mounted off-host storage; see OPERATIONS.md
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 768m
+    stop_grace_period: 30s
+
+volumes:
+  pgdata:
+  private-files:
+  backups:
+  restore-check:
+
+networks:
+  dokploy-network:
+    external: true

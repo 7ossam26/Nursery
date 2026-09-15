@@ -1,6 +1,6 @@
 # Installation and support operations
 
-Target: Hostinger VPS managed with Dokploy. VPS sizing is intentionally deferred. This is a runbook specification for Phase 23, not a record of an existing deployment.
+Target: Hostinger VPS managed with Dokploy. VPS sizing is intentionally deferred. Phase 23 implemented the package described here; the tested commands and their evidence are in [DEPLOYMENT_AND_BACKUP.md](DEPLOYMENT_AND_BACKUP.md). No live nursery has been deployed, backed up or restored by this repository.
 
 ## Repeatable installation
 
@@ -10,7 +10,16 @@ Dokploy routes the domain to the API/web service and terminates TLS. Serve /api/
 
 Phase22 PWA assets: the web build emits `/sw.js`, `/manifest.webmanifest` and `/icons/*` next to the hashed bundle. Serve `/sw.js` from the site root with `Cache-Control: no-cache` (or a short max-age) and the correct JavaScript type so browsers pick up new versions; hashed `/assets/*` may be cached long-term; `index.html` must not be cached long-term. Never serve API responses with cacheable headers. See [PWA_AND_NETWORK.md](PWA_AND_NETWORK.md).
 
-Docker Compose is the recommended reproducible delivery format supported by Dokploy. Also document native process equivalents for development or later operations; do not build two competing deployment systems. A separate Nginx image is optional, not a prerequisite.
+Docker Compose is the delivery format: `infra/docker-compose.yml` with `infra/Dockerfile` (one application image for API/web, worker and operator commands) and `infra/.env.production.example`. The API serves the built client itself (`WEB_DIST_DIR`), so no Nginx image exists. Native equivalents for development or an emergency host: `npm run start:api`, `npm run start:worker`, and the `infra/scripts` commands below.
+
+### Dokploy steps (new nursery)
+
+1. Create a Dokploy project per nursery and a **Docker Compose** service from this repository with compose path `infra/docker-compose.yml`. Add the domain to service `api`, port `3000`, HTTPS with Let's Encrypt. `dokploy-network` must exist (Dokploy creates it).
+2. Paste `infra/.env.production.example` into the service environment and fill every `<required>` value: `RELEASE_VERSION` (git short SHA), `INSTALLATION_ID` (new UUID), `APP_ORIGIN` (exactly `https://<domain>`), `SUPPORT_CONTACT`, `POSTGRES_PASSWORD`, `SESSION_SECRET`, `BACKUP_ENCRYPTION_KEY` (keep a copy outside the server), and the off-host destination (`OFFSITE_MOUNT` + uncomment the two `/offsite` volume lines, or `BACKUP_TARGET=none` when Dokploy Volume Backups ship the `backups` volume to S3).
+3. Deploy. The `migrate` service runs `release:prepare` (environment/storage check, pre-upgrade backup when needed, migrations) and exits; `api` and `worker` start only after it succeeds. Watch the `migrate` logs; a failure leaves the previous release running.
+4. Create the Superadmin from the Dokploy terminal of the `api` container with private stdin JSON (see [AUTHENTICATION.md](AUTHENTICATION.md)): `printf '{"username":"…","password":"…"}' | node --import tsx apps/api/src/auth-command.ts bootstrap`. Sign in within 24 hours and change the password.
+5. Smoke checks: `https://<domain>/api/v1/readiness` → `ready`; the login page loads; the Superadmin signs in; `/support/operations` shows worker heartbeat "healthy", backups configured and the off-host destination; `/sw.js` responds with `Cache-Control: no-cache`.
+6. Configure license, capacities, branding, roles and the first admin as in [LICENSING_AND_SETTINGS.md](LICENSING_AND_SETTINGS.md); then request a manual backup from `/support/operations` and confirm it reaches the off-host destination.
 
 ## Required deployment inputs
 
@@ -20,37 +29,43 @@ A protected one-time bootstrap creates the installation's Superadmin and validat
 
 ## Start and upgrade sequence
 
-1. Validate environment and storage permissions.
-2. Take a current backup before a data migration.
-3. Stop/coordinate incompatible workers and enter a clear maintenance mode when required.
-4. Run forward migrations once under a database lock.
-5. Start compatible API and worker versions; verify readiness and queue health.
-6. Run smoke checks for login, authorized parent view, one test-safe read, static assets, and workers.
-7. Retain release/migration version and rollback instructions.
+Implemented by `npm run release:prepare` (`infra/scripts/release.ts`, the Compose `migrate` service) plus the start checks in `apps/api/src/server.ts` and `apps/worker/src/worker.ts`:
 
-Rollback may require a compatible forward fix or tested database restore. Do not claim every migration can be reversed automatically. Never run destructive demo reset/seed against production.
+1. Validate environment and storage permissions (`npm run env:check` reports problems by variable name, never values; it checks the validation target too; `release:prepare` re-checks storage and refuses an unknown schema or an initialized database whose installation identity differs from `INSTALLATION_ID`).
+2. Take a current backup before a data migration: when migrations are pending on a non-empty database, a `PRE_UPGRADE` recovery set is written (and copied off-host) before anything changes; `--skip-backup` must be passed deliberately to bypass it. If the pending migration itself introduces `backup_runs` (0023), the set is taken detached and recorded after the migration.
+3. Stop/coordinate incompatible workers: Compose replaces `api` and `worker` together and both wait for `migrate`; a running old worker refuses to continue once its schema check fails on restart. Maintenance mode for a live restore = stop `api` and `worker` (Dokploy → Stop) so no writes occur.
+4. Run forward migrations once under advisory lock `7190101` (`applyMigrations`; each file in its own transaction, recorded in `schema_migrations`).
+5. Start compatible API and worker versions: both call `assertSchemaCurrent` and exit when the schema is behind/ahead or the installation baseline differs from `INSTALLATION_ID`; the API also verifies the private storage root. Worker startup obtains the maintenance lock before failing abandoned RUNNING backup/restore rows as `WORKER_RESTARTED`; it leaves a legitimately locked run untouched. Readiness `/api/v1/readiness`, worker heartbeat and queue state appear on `/support/operations`.
+6. Smoke checks: login, an authorized parent view, one read, `/sw.js` and `/manifest.webmanifest`, worker heartbeat younger than three minutes, last backup age.
+7. Retain `RELEASE_VERSION` and `schema_version` (both shown in the support screen and in every backup manifest) with rollback instructions.
+
+Rollback: redeploy the previous image tag when no migration ran; otherwise restore the `PRE_UPGRADE` set taken in step 2 with the live procedure below (schema goes back with the data). Do not claim every migration can be reversed automatically. Never run destructive demo reset/seed against production.
+
+Graceful shutdown: SIGTERM stops accepting connections, ends SSE streams through the `preClose` hook, waits up to `SHUTDOWN_TIMEOUT_MS` (15 s; Compose `stop_grace_period` 30 s) and then closes remaining sockets. The worker stops pg-boss gracefully within the same deadline.
 
 ## Backup
 
-Back up PostgreSQL and private files as a coherent recovery set, including a manifest with installation ID, schema/release version, time, and checksums. Use a maintenance/write barrier or documented consistent snapshot strategy so database references never point to omitted files.
+Implemented (D51; format and evidence in [DEPLOYMENT_AND_BACKUP.md](DEPLOYMENT_AND_BACKUP.md)): the worker writes an encrypted recovery set (PostgreSQL custom dump from a snapshot exported under the exclusive file barrier + every private file + manifest with installation ID, schema/release version, time and SHA-256 checksums) into the private `backups` volume on `BACKUP_SCHEDULE` (default 02:00 Cairo), on Superadmin request (`/support/operations` → Create backup now), from `npm run backup:create`, and before migrations/live restores (`PRE_UPGRADE`/`PRE_RESTORE`).
 
-Initial retention: seven daily and four weekly recovery sets, configurable, plus pre-upgrade/restore sets. Keep encrypted copies off the VPS. A local-only backup is not protection against loss of that server. Configure destination and test credentials during deployment.
+Retention: seven daily plus four weekly scheduled sets and four per manual kind, configurable through `BACKUP_RETENTION_*`. Off-host copy: `BACKUP_TARGET=directory:/offsite` with remote storage mounted at `OFFSITE_MOUNT`, or Dokploy Volume Backups of the `backups` volume when `BACKUP_TARGET=none`. A local-only backup is not protection against loss of that server; the support screen warns while no off-host destination is configured, and a run whose copy failed shows `OFFSITE_FAILED`.
 
-Backup jobs expose success/failure and last successful date in Superadmin. Redact secrets and child data from logs. Do not put backup archives under the public web root.
+Status: `/support/operations` shows the last run, last successful date/age, failed or skipped runs in the last seven days, worker heartbeat and disk space; `backup_runs.error_code` holds a fixed classification only. Logs redact connection strings and never include child data. Archives live in `/data/backups`, outside the web root and outside `PRIVATE_FILES_DIR`.
 
 ## Restore
 
-Superadmin may select a backup of the current installation, review its identity/date/version, and start a fixed restore job with reauthentication and explicit target confirmation. No arbitrary command execution.
+Superadmin selects a successful recovery set on `/support/operations`, types its archive name back, re-enters the password and gives a reason; the worker restores it into the isolated validation target (`RESTORE_VALIDATION_DATABASE_URL` = `<db>_restore_check`, `RESTORE_VALIDATION_FILES_DIR` = `/data/restore-check`) and stores a report (schema version, migrations applied, sessions revoked, files referenced/missing/mismatched, accounts, children, outstanding debt, treasury balance, nursery name, license validity). Requests fail visibly with `TARGET_NOT_CONFIGURED`, `ARCHIVE_INVALID`, `SCHEMA_AHEAD`, `CROSS_INSTALLATION`, `PG_RESTORE_FAILED` or `VERIFICATION_FAILED`. No arbitrary command execution exists.
 
-Restore into a fresh isolated target first. Verify schema, file checksums, login, key child records, ledger reconciliation, and worker compatibility. When an actual live restore is authorized, take a current backup, enter maintenance, prevent writes, restore the database and files coherently, revoke old sessions, verify, then reopen.
+Staging/CLI validation: `BACKUP_ENCRYPTION_KEY=… npm run backup:restore -- --archive /data/backups/<set>.tar.enc --mode validate --target-database-url postgresql://…/<other db> --target-files-dir /data/restore-check`.
 
-Cross-installation backup restore is rejected by default to prevent a customer's data being loaded into another customer's nursery. A deliberate migration is a separate support procedure.
+Live restore (authorized operator action): 1) stop `api` and `worker` (maintenance, no writes); 2) run `npm run backup:restore -- --archive <set> --mode live --target-database-url <live DATABASE_URL> --target-files-dir <live PRIVATE_FILES_DIR> --confirm-database <exact database name>` — the command requires those exact configured targets, automatically creates a healthy `PRE_RESTORE` set, refuses to continue if that run reports a backup/offsite-copy/retention error, holds the maintenance lock, replaces the target database and private namespaces, migrates forward and revokes every session; 3) start `api` and `worker`; 4) verify sign-in, one private document, balances and `/support/operations` heartbeat; 5) reopen access. Rerunning the migrate step afterwards is safe.
+
+Cross-installation archives are rejected (`CROSS_INSTALLATION`) unless `--allow-cross-installation` is passed deliberately for a documented migration.
 
 The planning task does not authorize access to a live customer VPS. Phase 23 produces and verifies the scripts with synthetic/local or explicitly supplied staging targets. Live execution needs the actual target and the tech lead's deployment instruction.
 
 ## Monitoring and recovery
 
-Health: API process, database readiness, worker heartbeat, oldest overdue job, last successful recurring generation, disk usage, backup age, error counts. Distinguish the user's offline network from a backend outage.
+Health: `/api/v1/health` (process), `/api/v1/readiness` (database), and `/support/operations` for worker heartbeat (`worker_heartbeats`, healthy under three minutes), queue counts per state, overdue and failed jobs, last recurring charge period and reminder, disk usage, last backup age and release/schema versions. Distinguish the user's offline network from a backend outage (Phase 22 connection dialog).
 
 Audit: support actor, target, operation, reason, before/after references, success/failure. Audit data must not contain passwords/session tokens/file contents.
 
@@ -58,8 +73,22 @@ Billing queue recovery reuses occurrence keys. Restore and catch-up must not dup
 
 Keep separate nonproduction demo data and credentials. Real parent information is not used in screenshots or seeded fixtures.
 
-## Operator instructions to produce
+## Operator instructions
 
-New nursery deployment, configure branding/roles/limits, provision first admin, reset password, release a seat explicitly, renew subscription, diagnose a blocked user, check billing worker, take/download backup, restore to staging, upgrade, review logs, and collect a support bundle with redacted data.
+| Task | Where |
+|---|---|
+| New nursery deployment | Dokploy steps above; `infra/.env.production.example` |
+| Configure branding/roles/limits, provision first admin | `/administration/settings`, `/administration/organization`, `/support/licenses` ([LICENSING_AND_SETTINGS.md](LICENSING_AND_SETTINGS.md)) |
+| Reset a password | `/support/operations` → Account lookup → Reset password (SYSTEM password re-entered; temporary password shown once) |
+| Release a seat explicitly / restore a released account | `/support/operations` → Account lookup → Release seat / Restore released account (Superadmin only) |
+| Renew subscription | `/support/licenses` |
+| Diagnose a blocked user | `/support/operations` → Account lookup (status, until date, reservation, last sign-in) and Audit search |
+| Check billing worker | `/support/operations` → worker heartbeat, queues, last recurring charge period |
+| Take a backup | `/support/operations` → Create backup now, or `npm run backup:create` in the `worker`/`api` container |
+| Download a backup | Copy `/data/backups/<set>.tar.enc` + `.manifest.json` from the `backups` volume (Dokploy volume browser or `docker cp`); the off-host copy is already there when `BACKUP_TARGET` is a directory |
+| Restore to staging | `/support/operations` → Restore validation, or `npm run backup:restore -- --mode validate …` |
+| Upgrade | Deploy the new `RELEASE_VERSION`; `migrate` takes the pre-upgrade set and migrates; roll back per the sequence above |
+| Review logs | Dokploy service logs (`api`, `worker`, `migrate`); connection strings and secrets are redacted |
+| Collect a support bundle | `npm run support:bundle -- --output /data/backups/support-bundle.json` (redacted; refuses to include secret values) |
 
-The final delivery includes tested commands once the implementation exists. This plan itself contains no claim of performed backup, restore, or deployment.
+Tested command transcripts are recorded in [DEPLOYMENT_AND_BACKUP.md](DEPLOYMENT_AND_BACKUP.md). No live deployment, live backup or live restore has been performed.

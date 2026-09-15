@@ -65,7 +65,8 @@ export class AuthClient {
   }
   async licensing<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
     const result = await this.request(`/api/v1/licensing/${path}`, method, body) as { data: T };
-    return result.data;
+    // Lifecycle endpoints deliberately return 204; an empty successful response is not a network failure.
+    return result === undefined ? undefined as T : result.data;
   }
   async business<T>(path: string,method = 'GET',body?: unknown): Promise<T> {
     const result = await this.request(`/api/v1/${path}`,method,body) as { data: T }; return result.data;

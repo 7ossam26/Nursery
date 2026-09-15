@@ -16,10 +16,12 @@ import { transportEn,transportAr } from '../features/finance/transport-copy.js';
 import { payrollEn,payrollAr } from '../features/finance/payroll-copy.js';
 import { reportsEn,reportsAr } from '../features/reports/copy.js';
 import { importsEn,importsAr } from '../features/imports/copy.js';
+import { supportEn,supportAr } from '../features/support/copy.js';
 export const supportedLocales = ['en', 'ar-EG'] as const;
 export type Locale = (typeof supportedLocales)[number];
 
 const en = {
+  ...supportEn,
   ...reportsEn,
   ...importsEn,
   ...organizationEnglish,
@@ -91,6 +93,7 @@ const en = {
   'nav.support': 'Support & setup',
   'nav.installation': 'Installation',
   'nav.licenses': 'Subscriptions',
+  'nav.operations': 'Installation support',
   'nav.homework': 'Homework',
   'nav.exams': 'Exams',
   'nav.announcements': 'Announcements',
@@ -179,6 +182,7 @@ const en = {
 export type MessageKey = keyof typeof en;
 
 const ar: Record<MessageKey, string> = {
+  ...supportAr,
   ...reportsAr,
   ...importsAr,
   ...organizationArabic,
@@ -250,6 +254,7 @@ const ar: Record<MessageKey, string> = {
   'nav.support': 'الدعم والإعداد',
   'nav.installation': 'التثبيت',
   'nav.licenses': 'الاشتراكات',
+  'nav.operations': 'دعم التركيب',
   'nav.homework': 'الواجبات',
   'nav.exams': 'الامتحانات',
   'nav.announcements': 'الإعلانات',

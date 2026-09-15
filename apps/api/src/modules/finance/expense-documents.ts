@@ -3,12 +3,11 @@ import { lstat,readdir,unlink } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { z } from 'zod';
 import { expenseDocumentInputSchema,expenseActionInputSchema,type ExpenseDocument } from '@nursery/contracts';
-import { PrivateDocumentStore,documentHash } from '../children/private-store.js';
+import { PrivateDocumentStore,FILE_LOCK,documentHash } from '../children/private-store.js';
 import { validateDocument } from '../children/documents.js';
 import { requireRecord,requireCapability,denied } from '../organization/policy.js';
 import type { SpendingService } from './spending.js';
 
-const FILE_LOCK=7190602;
 export class ExpenseDocumentService {
  readonly store:PrivateDocumentStore;
  constructor(readonly spending:SpendingService,configuredRoot:string) {this.store=new PrivateDocumentStore(configuredRoot,'expense-documents');}

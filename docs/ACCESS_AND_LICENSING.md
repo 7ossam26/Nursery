@@ -84,3 +84,5 @@ Existing health data on disable remains accessible through an authorized staff e
 Audit support access and actions. Password reset generates a new temporary password, displays it once to the operator for external delivery, revokes sessions, and requires change at next sign-in. Never display original passwords.
 
 Support deletion must preview dependent records and preserve necessary financial/audit history. Backup/restore uses fixed validated job types, never arbitrary shell/SQL from a browser. Restore details are in OPERATIONS.md.
+
+Phase23 adds the reserved `support.restore` capability (Superadmin only; the database trigger refuses it on roles) for initiating restore validations, alongside `support.access` for status, backups, audit search, account lookup and archival preview. Every support call re-checks the session, license and capability inside the transaction and appends a `support_audit_events` row whose details never contain passwords, tokens, file contents or child data. Restore initiation additionally re-verifies the Superadmin password and the typed archive name. See D51 and [DEPLOYMENT_AND_BACKUP.md](DEPLOYMENT_AND_BACKUP.md).
