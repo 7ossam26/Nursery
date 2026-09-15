@@ -134,10 +134,13 @@ these authorizes a live deployment, and none should be re-marked resolved withou
 **Phase 12 (parent hub/live notifications) is still recorded IN PROGRESS**, not COMPLETE, in
 [PROJECT_STATE.md](PROJECT_STATE.md): its screenshot handoff was never resolved because this repository's instructions
 prohibit browser automation and no explicit waiver/authorization was given (see
-[PARENT_HUB_AND_NOTIFICATIONS.md](PARENT_HUB_AND_NOTIFICATIONS.md)). This walkthrough's sections 4 and 7 are the
-closest available substitute; completing them does not by itself close Phase 12 — that requires an explicit tech-lead
-decision recorded in [DECISIONS.md](DECISIONS.md) (waive screenshots and accept scripted evidence, or authorize a
-specific local screenshot method) and an update to PROJECT_STATE.md's ledger.
+[PARENT_HUB_AND_NOTIFICATIONS.md](PARENT_HUB_AND_NOTIFICATIONS.md)). A post-Phase-25 conflict analysis in
+[DECISIONS.md](DECISIONS.md) ("Phase 12 screenshot handoff conflict analysis") confirms this cannot be resolved from
+existing repository evidence and names the exact manual capture action (guardian sign-in on a real phone/browser at
+~360px, English and Egyptian Arabic, `/parent/today`/`/parent/children/:id`/`/parent/notices`/`/parent/notifications`,
+stored under `docs/evidence/phase12/`). This walkthrough's sections 4 and 7 are the closest available scripted
+substitute; completing them does not by itself close Phase 12 — that requires the tech lead to actually perform that
+capture (or explicitly waive it) and record the result in DECISIONS.md and PROJECT_STATE.md's ledger.
 
 ## Sign-off
 

@@ -1,5 +1,41 @@
 # Decisions and explicit defaults
 
+### 2026-09-15 — Phase 12 screenshot handoff conflict analysis (post-Phase-25 release closure)
+
+Investigated the unresolved Phase 12 screenshot handoff carried forward by PROJECT_STATE.md, HANDOFF.md,
+KNOWN_ISSUES.md (M24-01) and USER_ACCEPTANCE_WALKTHROUGH.md, per the release-closure task's Step 2.
+
+**What conflicts:** [phases/PHASE_12_parent_hub_notifications.md](../phases/PHASE_12_parent_hub_notifications.md)
+"Required handoff" asks for "screenshots of the parent flow." AGENTS.md rule 11 and the confirmed decision U24
+prohibit Playwright/browser automation unless the user explicitly reverses that instruction; no such reversal has
+been given. D25 and AGENTS.md rule 8 separately prohibit inventing test/deployment/visual evidence that was not
+actually produced. A screenshot of a real rendered browser page cannot be produced by this session's tools (Bash/
+PowerShell/file edits; no browser or screenshot capability is available), and none may be fabricated.
+
+**Authoritative evidence already in the repository:** [PARENT_HUB_AND_NOTIFICATIONS.md](PARENT_HUB_AND_NOTIFICATIONS.md)'s
+verification log (real HTTP/SSE/PostgreSQL checks, 24/24 then 9/9 focused, bilingual DOM 3/3 including axe/RTL) and
+[ACCEPTANCE_EVIDENCE.md](ACCEPTANCE_EVIDENCE.md)'s scenario matrix: A12 (publish→SSE invalidation→fresh read) PASS,
+A06/A34/A03 PASS, A35 (theme/360px/RTL/keyboard/reduced-motion) explicitly PARTIAL — scripted contrast/axe/CSS checks
+passed, physical device layout/screenshot NOT RUN. This evidence establishes correct *behavior* (live delivery,
+scope/permission revalidation, bilingual DOM rendering, contrast) but not physical visual layout on a real device,
+which is exactly what a screenshot would show and a script cannot.
+
+**Resolution:** This conflict **cannot be resolved from existing repository evidence** — no parent-flow screenshot
+exists anywhere in the repository (`docs/evidence/` holds only Phase 20 PDF/report renders, unrelated to Phase 12),
+and none is invented here. Status stays **BLOCKED (manual)**, not waived. Phase 12 remains **IN PROGRESS** in
+[PROJECT_STATE.md](PROJECT_STATE.md); this analysis does not mark it COMPLETE.
+
+**Exact manual action required to close this conflict:** a person (tech lead or nursery operator) signs in as a
+guardian account on a real phone or a desktop browser resized/emulated to ~360px width, in both English and Egyptian
+Arabic, and captures: `/parent/today` (child selector + live daily checkpoint bar), `/parent/children/:id` (learning
+history), `/parent/notices` (or an open notice), and `/parent/notifications`. Store the images under
+`docs/evidence/phase12/` (e.g. `parent-today-en.png`, `parent-today-ar-EG.png`, …), then update this file with a
+follow-up decision entry marking the conflict resolved, update
+[USER_ACCEPTANCE_WALKTHROUGH.md](USER_ACCEPTANCE_WALKTHROUGH.md) section 7 and its Phase 12 note, and change the
+Phase 12 row in [PROJECT_STATE.md](PROJECT_STATE.md)'s ledger to COMPLETE with a pointer to the captured evidence.
+This is the same action already named by M24-01 in [KNOWN_ISSUES.md](KNOWN_ISSUES.md); this entry only records the
+conflict analysis and confirms no repository-only resolution exists.
+
 ### 2026-09-15 — Phase 24 release verification fixes (D52)
 
 R04/R06/R07, A02/A09/A10: the existing D34/D35/D36 promise of successive reviewed pages now has an optional integer `offset` (0–100000, page size100) on attendance drafts and exam rosters, and on explicit no-class/no-exam publications. Omitted mutation offsets retain the old request identity for idempotent replay. Each publication still commits only its reviewed page; ordinary result publication validates the submitted children against their current/date-effective classroom rather than membership in the first page. Creating another exam reopens eligible existing aggregates across all pages in the same transaction. `learning/context` returns scoped classroom metadata independently of child roster pagination so a populous first class cannot hide other assigned classes. No permission, financial, historical or seat rule changes; no migration. Attendance warm-page reads project immutable attendance snapshots/records and notices in bounded queries instead of calculating unrelated per-child homework; missing snapshots reuse LearningService under the shared configuration lock. Script-only verification remains in force; real browser, container and VPS checks are reported separately.
