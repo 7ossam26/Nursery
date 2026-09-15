@@ -2,6 +2,12 @@
 
 Updated2026-09-15. Phase24 verification is complete; live-release qualifications remain open. Severity describes release impact, not whether a script is green. No issue below authorizes live deployment.
 
+## Found during Phase 25 (documentation only; not fixed here)
+
+| ID | Severity/status | Reproduction/evidence | Required resolution |
+|---|---|---|---|
+| N25-01 | LOW / OPEN broken navigation link | `apps/web/src/features/finance/closing-screen.tsx:28` and `apps/web/src/features/finance/corrections-screen.tsx:33` link to `/administration/finance`, which is not a route registered in `apps/web/src/App.tsx` (the actual Treasury accounts screen is `/administration/treasury`). A staff account with full Treasury permission that follows this link lands on the generic "You cannot view this section" screen instead, which misreports a routing bug as a permission problem. No data is at risk; no financial/authorization logic is involved. | Point both links at `/administration/treasury` (or reuse the shared navigation label). Use `prompts/FIX.md` with Terra/Medium in a separate session; this documentation phase does not change application code. |
+
 ## Open external/manual items
 
 | ID | Severity/status | Reproduction/evidence | Required resolution |

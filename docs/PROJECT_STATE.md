@@ -1,13 +1,15 @@
 # Project state
 
-Baseline: 2026-09-13. Phase 24 complete (2026-09-15).
+Baseline: 2026-09-13. Phase 25 complete (2026-09-15).
 
 ## Active state
 
-- Phase24 — Cross-module verification and release fixes — COMPLETE (2026-09-15). Fixed attendance query amplification (local p95 2346.44→260.90ms), classroom/page reachability beyond100 children, all-page exam aggregate reopening and single-client query serialization. No migration; schema remains0023. Defaults: D52.
-- Final evidence: PostgreSQL33 files/185 tests; units31/118; full bilingual HTTP/DOM24/62 plus final isolated support2/2; whole-database recovery1/3; measured release1/1; typecheck/lint/build/harness typecheck and diff review passed. Test-only authentication/reconnect timing and fixture shutdown races were fixed; failed/interrupted attempts remain recorded.
-- [ACCEPTANCE_EVIDENCE.md](ACCEPTANCE_EVIDENCE.md) contains allA01–A38, candidate hashes, command transcripts and before/after/query plans. [KNOWN_ISSUES.md](KNOWN_ISSUES.md) retains blocked Docker/Dokploy/target-VPS qualification, physical browser/manual review, pinned-runtime/SIGTERM limits and the open moderate ExcelJS→uuid advisory. Phase24 completion does not clear these live-release requirements.
-- Phase12 screenshot handoff remains unresolved. No deployment, subagent or browser automation was performed. Next: Phase25 — Operator guides, user walkthrough and final handoff — NOT STARTED.
+- Phase25 — Operator guides, user walkthrough, and final handoff — COMPLETE (2026-09-15). Documentation only; no application code, schema, or test behavior changed (`git diff --stat` touches only `README.md`, `START_HERE.md`, `docs/KNOWN_ISSUES.md`, `docs/OPERATIONS.md`, `docs/TRACEABILITY.md` plus two new docs files; `git diff --check` clean; no migration).
+- Created [USER_GUIDES.md](USER_GUIDES.md) (Superadmin, nursery admin/finance, teacher, parent — routes/screen titles verified against `apps/web/src/App.tsx`, `apps/web/src/layout/navigation.ts` and each feature's `copy.ts`, English and Egyptian Arabic strings spot-checked in `apps/web/src/i18n/catalogs.ts` and feature copy files) and [USER_ACCEPTANCE_WALKTHROUGH.md](USER_ACCEPTANCE_WALKTHROUGH.md) (blank-result manual scenario covering Superadmin setup through parent report, payment, transfer, payroll, blocking, import, and restore; A01–A38 cross-reference; every Phase24 known issue plus the unresolved Phase12 screenshot handoff carried forward).
+- Added a Troubleshooting table to [OPERATIONS.md](OPERATIONS.md) (installation/upgrade/backup/restore failure codes, sourced from the actually-implemented `apps/api/src/modules/support/*` codes and [DEPLOYMENT_AND_BACKUP.md](DEPLOYMENT_AND_BACKUP.md) evidence) and a "For developers and future Codex sessions" section to [README.md](../README.md) (module map, contracts, fixture-helper reuse, FIX/CHANGE_REQUEST/RESUME prompt pointers).
+- While writing the guide, found and recorded (not fixed — outside this phase's boundary) N25-01: the Treasury accounts breadcrumb link on Daily cash closing and Financial corrections/refunds points at the unregistered route `/administration/finance` instead of `/administration/treasury`, landing on the generic no-permission screen. See [KNOWN_ISSUES.md](KNOWN_ISSUES.md); use `prompts/FIX.md` (Terra/Medium) in a separate session.
+- All relative links added in this phase were checked to resolve to existing files. No build/type/lint gate applies: no package source changed.
+- Phase12 screenshot handoff remains unresolved and is explicitly called out in the new walkthrough; this phase does not resolve it and does not mark Phase12 COMPLETE. No deployment, subagent, or browser automation was performed. Next action: the tech lead executes [USER_ACCEPTANCE_WALKTHROUGH.md](USER_ACCEPTANCE_WALKTHROUGH.md) by hand and records real results; N25-01 is a candidate for a follow-up FIX session.
 
 ## Phase ledger
 
@@ -37,7 +39,7 @@ Baseline: 2026-09-13. Phase 24 complete (2026-09-15).
 | 22 | PWA, network recovery, and usability hardening | COMPLETE | Full DOM suite 22 files/58 tests incl. network-recovery 4/4 (A36/A18 offline, lost response, interrupted publication, cross-tab) and A06 API/download/SSE revocation; units 27 files/103 (service worker, theme contrast, navigation, responsive); typecheck/lint/build/diff passed; no migration. D50; see PWA_AND_NETWORK.md. |
 | 23 | Dokploy deployment assets, backup, restore, and support | COMPLETE | Forensic remediation complete: recovery 3/3, integration 183/183, DOM 60/60, units 118/118, env/release/type/lint/build/diff passed on real local infrastructure. Docker/Dokploy execution BLOCKED by absent Docker and recorded explicitly. D51; see DEPLOYMENT_AND_BACKUP.md. |
 | 24 | Cross-module verification and release fixes | COMPLETE | A01–A38 evidence/limitations recorded; PostgreSQL185, units118, full DOM62 + support2, recovery3, release1 passed; type/lint/build/diff passed. Roster/performance and test teardown fixes verified. See ACCEPTANCE_EVIDENCE.md and KNOWN_ISSUES.md for explicit live-release qualifications. |
-| 25 | Operator guides, user walkthrough, and final handoff | NOT STARTED | None |
+| 25 | Operator guides, user walkthrough, and final handoff | COMPLETE | Role-based guides and the manual acceptance walkthrough created from verified routes/labels and Phase24 evidence; operations troubleshooting and developer README sections added; N25-01 navigation defect found and recorded, not fixed. Documentation only; no build/type/lint gate applicable. See USER_GUIDES.md, USER_ACCEPTANCE_WALKTHROUGH.md. |
 
 Valid execution statuses: NOT STARTED, IN PROGRESS, BLOCKED, COMPLETE. COMPLETE requires the phase's real acceptance evidence, not merely a generated implementation.
 

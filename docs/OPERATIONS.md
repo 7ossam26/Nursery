@@ -73,6 +73,28 @@ Billing queue recovery reuses occurrence keys. Restore and catch-up must not dup
 
 Keep separate nonproduction demo data and credentials. Real parent information is not used in screenshots or seeded fixtures.
 
+## Troubleshooting
+
+Drawn from the Phase 23 evidence in [DEPLOYMENT_AND_BACKUP.md](DEPLOYMENT_AND_BACKUP.md); the fixed codes below are exactly what the implemented services return, not illustrative examples.
+
+| Symptom | Likely cause | Action |
+|---|---|---|
+| `migrate` service fails and `api`/`worker` never start | A pending migration is invalid for the current data, or `env:check` rules failed | Read the `migrate` container log (Dokploy → service logs); it names the failing check/migration. The previous release keeps running until you redeploy a fix. Do not skip the pre-upgrade backup to work around this. |
+| `env:check` / `release:prepare` refuses to start: "installation baseline differs from `INSTALLATION_ID`" | The database already belongs to a different installation, or `INSTALLATION_ID` was typed wrong for this deployment | Confirm the intended `INSTALLATION_ID` against the database's recorded baseline before proceeding; never force past this check. |
+| `release:prepare` refuses: unknown/ahead schema | The image is older than the database's applied migrations (a rollback attempt, or a mismatched image tag) | Redeploy the image version that matches the schema, or apply the correct forward migrations first. |
+| Worker heartbeat on `/support/operations` is missing or older than three minutes | Worker container is down, crash-looping, or lost its database connection | Check `worker` container logs; confirm `DATABASE_URL` is reachable; a legitimate `WORKER_RESTARTED` backup/restore row means the worker restarted mid-run and the job will be retried on the next schedule. |
+| Backup run shows `PG_DUMP_FAILED`, `FILES_FAILED`, `ARCHIVE_FAILED`, `RETENTION_FAILED`, or `CONFIG_MISSING` | See `backup_runs.error_code` on `/support/operations`; stderr itself is redacted from logs | `CONFIG_MISSING` means required backup environment variables are absent — fix `.env` and redeploy. The others indicate a `pg_dump`/disk/permission problem on the `backups` volume; check `PG_BIN_DIR`, volume free space, and container file permissions. |
+| Backup run shows `OFFSITE_FAILED` (or the support screen warns no off-host destination is configured) | `BACKUP_TARGET=directory:<path>` points at an unmounted or unwritable path, or `BACKUP_TARGET=none` was chosen without enabling Dokploy Volume Backups | The local archive is still valid; a local-only backup is not protection against loss of that server, so fix the off-host destination before relying on it. |
+| Restore request fails with `TARGET_NOT_CONFIGURED` | `RESTORE_VALIDATION_DATABASE_URL`/`RESTORE_VALIDATION_FILES_DIR` (validation) or the exact live targets (`--mode live`) are not set | Set the missing environment variable(s); live mode intentionally requires the exact configured live database/files targets, never an arbitrary path. |
+| Restore request fails with `ARCHIVE_INVALID` | The archive's checksum, GCM tag, or manifest format did not match, or the wrong `BACKUP_ENCRYPTION_KEY` was supplied | Re-check the encryption key and that the archive/sidecar pair was not truncated or edited; try a different recorded run. |
+| Restore request fails with `SCHEMA_AHEAD` | The archive was taken on a newer schema than the code being restored | Deploy the matching or newer release version before restoring this archive. |
+| Restore request fails with `CROSS_INSTALLATION` | The archive belongs to a different `INSTALLATION_ID` | Expected safety behavior; only pass `--allow-cross-installation` for a deliberate, documented migration between installations. |
+| Restore request fails with `PG_RESTORE_FAILED` or `VERIFICATION_FAILED` | The dump could not be applied cleanly, or the post-restore report could not verify accounts/files/balances | Inspect the redacted `pg_restore` log excerpt on the report; retry `--mode validate` before ever attempting `--mode live` again. |
+| `/sw.js` or `index.html` is being cached by the browser/proxy after a release | A proxy or CDN is overriding the emitted `Cache-Control` headers | Confirm `apps/api/src/static.ts` is actually serving these paths (same origin, `WEB_DIST_DIR` set) and that no intermediate cache strips the `no-cache` header on `/sw.js`/`index.html`. |
+| `npm audit --omit=dev` is non-zero | Known: ExcelJS's bundled `uuid` dependency (S24-01, moderate, not high/critical) | Confirmed the installed ExcelJS call site does not use the affected `uuid` path; do not apply an unreviewed major-version downgrade to "fix" the audit. Re-review before each release. |
+
+Every code above and its exact source is listed in [DEPLOYMENT_AND_BACKUP.md](DEPLOYMENT_AND_BACKUP.md) and implemented in `apps/api/src/modules/support/*`; this table does not add new behavior.
+
 ## Operator instructions
 
 | Task | Where |

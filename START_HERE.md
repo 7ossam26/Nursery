@@ -74,6 +74,8 @@ Use the nearest available reasoning label in your client. [MODEL_AND_CONTEXT_GUI
 | [TRACEABILITY.md](docs/TRACEABILITY.md) | Requirements, phases, tests, original-scope changes |
 | [REFERENCE_SOURCES.md](docs/REFERENCE_SOURCES.md) | Primary technical/model sources |
 | [PROJECT_STATE.md](docs/PROJECT_STATE.md) / [HANDOFF.md](docs/HANDOFF.md) | What has actually happened and what comes next |
+| [USER_GUIDES.md](docs/USER_GUIDES.md) | Role-based guides (Superadmin, nursery admin/finance, teacher, parent) using the actual implemented screens |
+| [USER_ACCEPTANCE_WALKTHROUGH.md](docs/USER_ACCEPTANCE_WALKTHROUGH.md) | Phase 25 manual scenario for the tech lead, with known issues carried forward |
 
 ## Important resolved meanings
 

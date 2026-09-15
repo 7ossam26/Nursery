@@ -75,4 +75,6 @@ Phase 24 fills ACCEPTANCE_EVIDENCE.md with the actual build, environment, scenar
 
 Phase24 execution evidence is now recorded in [ACCEPTANCE_EVIDENCE.md](ACCEPTANCE_EVIDENCE.md), with explicit partial/manual/blocked distinctions and release issues in [KNOWN_ISSUES.md](KNOWN_ISSUES.md). R04/R06/R07 release fixes restore A02/A09/A10 roster reachability beyond100 children and remove the measured repeated attendance-query bottleneck (D52). No new V1 feature or schema migration is introduced. See the evidence document for the current gate result; this mapping alone still does not establish acceptance.
 
+Phase25 creates [USER_GUIDES.md](USER_GUIDES.md) (role-based operator guides) and [USER_ACCEPTANCE_WALKTHROUGH.md](USER_ACCEPTANCE_WALKTHROUGH.md) (the manual scenario referenced above, with blank result fields and every open Phase24 issue carried forward). It documents only; A01–A38 acceptance itself still requires the tech lead to execute that walkthrough and record real results.
+
 For each future requirement change, update this mapping, DECISIONS.md, relevant domain specifications, and affected unexecuted phase files.
