@@ -25,6 +25,18 @@ Phase24's 260.90ms/132.75ms baseline samples; ordinary run-to-run variance, not 
 high-critical (S24-01, still open, still reviewed as a non-affected call path). No gate regressed. Full comparison
 table: [docs/evidence/final/FINAL_GATES.md](evidence/final/FINAL_GATES.md).
 
+## Post-Phase-25 release closure — Dokploy/production qualification (native items only)
+
+`docker` remains absent on this host (B24-01 unchanged) — image build, Compose startup, TLS/reverse-proxy and
+container network isolation could not be exercised, exactly as in Phase23/24. The native (non-Docker) run of the
+real application code did newly verify, end-to-end, this session: PostgreSQL/API/worker startup, health/readiness,
+real queue processing (a real backup plus two real report exports), and a real encrypted backup restored via a real
+`pg_restore` into an isolated database with restored data/files and session revocation confirmed. Production-mode
+environment validation, an installation-ID mismatch refusal, rollback-from-an-older-schema, the support bundle, and
+maintenance-lock concurrency were **not** re-executed this session — their Phase23/24 evidence stands unchanged and
+is not re-claimed here. Full itemized result: [docs/evidence/final/DOKPLOY_QUALIFICATION.md](evidence/final/DOKPLOY_QUALIFICATION.md).
+**No live deployment was performed or is claimed.**
+
 ## Files and behavior changed (Phase 25)
 
 - New: [docs/USER_GUIDES.md](USER_GUIDES.md) — Superadmin, nursery admin/finance, teacher, and parent guides built from the real registered routes (`apps/web/src/App.tsx`), the real navigation groups (`apps/web/src/layout/navigation.ts`), and each screen's actual English/Egyptian Arabic title strings (`apps/web/src/features/*/copy.ts`, `apps/web/src/i18n/catalogs.ts`).
