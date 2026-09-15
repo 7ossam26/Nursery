@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { navigationByRole, shellRoleFor, visibleGroups, type SessionAccount } from './navigation.js';
 
@@ -40,5 +42,37 @@ describe('session shell navigation', () => {
     expect(styles).toContain('.stale-notice');
     expect(styles).toContain('.update-notice');
     expect(styles).toContain('--color-action-foreground');
+  });
+});
+
+describe('every static navigation link resolves to a registered route (regression: N25-01)', () => {
+  it('keeps every literal Link/breadcrumb target pointed at a route App.tsx actually registers', () => {
+    const appTsxPath = fileURLToPath(new URL('../App.tsx', import.meta.url));
+    const appSource = readFileSync(appTsxPath, 'utf8');
+    const registeredRoutes = [...appSource.matchAll(/<Route\s+[^>]*path="([^"]+)"/g)].map((match) => match[1]);
+    // Sanity check that the extraction actually found the real route table, not an empty/broken regex.
+    expect(registeredRoutes.length).toBeGreaterThan(20);
+    expect(registeredRoutes).toContain('/administration/treasury');
+    const matchesRoute = (target: string) => registeredRoutes.some((route) => {
+      if (route === target) return true;
+      if (route.endsWith('/*')) { const prefix = route.slice(0, -2); return target === prefix || target.startsWith(`${prefix}/`); }
+      return false;
+    });
+    function collectTsxFiles(dir: string): string[] {
+      const out: string[] = [];
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) out.push(...collectTsxFiles(full));
+        else if (entry.name.endsWith('.tsx')) out.push(full);
+      }
+      return out;
+    }
+    const featuresDir = fileURLToPath(new URL('../features', import.meta.url));
+    const offenders: string[] = [];
+    for (const file of [...collectTsxFiles(featuresDir), appTsxPath]) {
+      const source = readFileSync(file, 'utf8');
+      for (const match of source.matchAll(/\bto="(\/[^"]*)"/g)) if (!matchesRoute(match[1])) offenders.push(`${file}: ${match[1]}`);
+    }
+    expect(offenders).toEqual([]);
   });
 });

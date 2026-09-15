@@ -129,7 +129,7 @@ these authorizes a live deployment, and none should be re-marked resolved withou
 | E24-01 | NOT RUN | Host Node/npm versions differ from the pinned Linux target; SIGTERM graceful-drain semantics untested on Windows. |
 | L24-01 | Known limit | Local performance fixture is small (one staff/guardian session, 100-row attendance); re-measure at real installation scale. |
 | S24-01 | OPEN | `npm audit` reports 2 moderate ExcelJS→uuid findings (0 high/critical); installed ExcelJS does not call the affected path per source review, but the audit itself is not clean. |
-| N25-01 | OPEN (found in Phase 25) | The "Treasury accounts" link on Daily cash closing and Financial corrections/refunds points at a non-existent route (`/administration/finance`) instead of `/administration/treasury`; low severity, fix with `prompts/FIX.md`. |
+| N25-01 | FIXED (found in Phase 25, fixed in the post-Phase-25 release-closure session) | The "Treasury accounts" link on Daily cash closing and Financial corrections/refunds pointed at a non-existent route (`/administration/finance`) instead of `/administration/treasury`; both now link to `/administration/treasury`, with regression coverage in `navigation.unit.test.ts` and the closing/corrections e2e suites. See KNOWN_ISSUES.md. |
 
 **Phase 12 (parent hub/live notifications) is still recorded IN PROGRESS**, not COMPLETE, in
 [PROJECT_STATE.md](PROJECT_STATE.md): its screenshot handoff was never resolved because this repository's instructions

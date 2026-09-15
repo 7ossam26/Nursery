@@ -2,11 +2,11 @@
 
 Updated2026-09-15. Phase24 verification is complete; live-release qualifications remain open. Severity describes release impact, not whether a script is green. No issue below authorizes live deployment.
 
-## Found during Phase 25 (documentation only; not fixed here)
+## Found during Phase 25, fixed in release closure
 
-| ID | Severity/status | Reproduction/evidence | Required resolution |
+| ID | Severity/status | Reproduction/evidence | Resolution |
 |---|---|---|---|
-| N25-01 | LOW / OPEN broken navigation link | `apps/web/src/features/finance/closing-screen.tsx:28` and `apps/web/src/features/finance/corrections-screen.tsx:33` link to `/administration/finance`, which is not a route registered in `apps/web/src/App.tsx` (the actual Treasury accounts screen is `/administration/treasury`). A staff account with full Treasury permission that follows this link lands on the generic "You cannot view this section" screen instead, which misreports a routing bug as a permission problem. No data is at risk; no financial/authorization logic is involved. | Point both links at `/administration/treasury` (or reuse the shared navigation label). Use `prompts/FIX.md` with Terra/Medium in a separate session; this documentation phase does not change application code. |
+| N25-01 | LOW / FIXED (2026-09-15, post-Phase-25 release closure) | `apps/web/src/features/finance/closing-screen.tsx:28` and `apps/web/src/features/finance/corrections-screen.tsx:33` linked to `/administration/finance`, which is not a route registered in `apps/web/src/App.tsx` (the actual Treasury accounts screen is `/administration/treasury`). A staff account with full Treasury permission that followed this link landed on the generic "You cannot view this section" screen instead, which misreported a routing bug as a permission problem. No data was at risk; no financial/authorization logic was involved. | Both links now point at `/administration/treasury`. Regression coverage: `apps/web/src/layout/navigation.unit.test.ts` (new test statically extracts every registered `<Route path="...">` from `App.tsx` and every literal `Link to="/..."` target across `apps/web/src/features/**` and asserts each target resolves to a registered route — this test fails on the pre-fix source and passes after it) plus explicit breadcrumb `href` assertions in `tests/e2e/closing.test.tsx` and `tests/e2e/corrections.test.tsx` (real HTTP/PostgreSQL, en and ar-EG). Verified: `npm run test:unit` 119/119 (+1 over the Phase24 baseline), the two focused e2e files 4/4 real HTTP/PG in en+ar-EG, `npm run typecheck`/`lint`/`build` and `git diff --check` all passed. No permission or financial logic changed. |
 
 ## Open external/manual items
 

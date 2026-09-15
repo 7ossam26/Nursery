@@ -79,8 +79,6 @@ group (`apps/web/src/layout/navigation.ts`).
 7. `/administration/corrections` ("Financial corrections and refunds") — append a reasoned reversal/replacement or an actual refund limited to available source-linked credit, for the current Cairo business date only. Originals stay visible.
 8. `/administration/child-transfers` ("Child branch transfers") — move a child and their remaining debt to another branch today; original charges/receipts and prior treasury attribution are unchanged, and this creates no cash movement.
 
-> Known documentation-relevant defect found while writing this guide: the **Treasury accounts** link shown on `/administration/closing` and `/administration/corrections` points at `/administration/finance`, which is not a registered route (`closing-screen.tsx:28`, `corrections-screen.tsx:33`). Following it lands on the generic "You cannot view this section" screen instead of Treasury accounts, even though the account does have permission. Use the **Finance** navigation group (`/administration/treasury`) instead. Recorded as a new known issue below; not fixed in this documentation phase per the phase boundary.
-
 **Bus and trips**
 
 - `/administration/transport` ("Transport and activities") — add bus subscriptions (fee, service period, administrative permission) and create activities/trips; the eligibility rule (active child + current period + full settlement or an explicit zero fee + latest permission) is enforced by the shared ledger, so a partial bus payment is rejected.

@@ -1,6 +1,6 @@
 # Project state
 
-Baseline: 2026-09-13. Phase 25 complete (2026-09-15).
+Baseline: 2026-09-13. Phase 25 complete (2026-09-15). Post-Phase-25 release-closure work is in progress in the same session (2026-09-15): N25-01 fixed; further steps (Phase 12 screenshot conflict, executed acceptance walkthrough, final gates) tracked below as they complete.
 
 ## Active state
 
@@ -10,6 +10,10 @@ Baseline: 2026-09-13. Phase 25 complete (2026-09-15).
 - While writing the guide, found and recorded (not fixed — outside this phase's boundary) N25-01: the Treasury accounts breadcrumb link on Daily cash closing and Financial corrections/refunds points at the unregistered route `/administration/finance` instead of `/administration/treasury`, landing on the generic no-permission screen. See [KNOWN_ISSUES.md](KNOWN_ISSUES.md); use `prompts/FIX.md` (Terra/Medium) in a separate session.
 - All relative links added in this phase were checked to resolve to existing files. No build/type/lint gate applies: no package source changed.
 - Phase12 screenshot handoff remains unresolved and is explicitly called out in the new walkthrough; this phase does not resolve it and does not mark Phase12 COMPLETE. No deployment, subagent, or browser automation was performed. Next action: the tech lead executes [USER_ACCEPTANCE_WALKTHROUGH.md](USER_ACCEPTANCE_WALKTHROUGH.md) by hand and records real results; N25-01 is a candidate for a follow-up FIX session.
+
+## Post-Phase-25 release closure (2026-09-15, same day, follow-on session)
+
+- **N25-01 FIXED.** `apps/web/src/features/finance/closing-screen.tsx:28` and `corrections-screen.tsx:33` now link to `/administration/treasury` (was the unregistered `/administration/finance`). Added a static route-vs-link contract test to `apps/web/src/layout/navigation.unit.test.ts` (extracts every `<Route path="...">` from `App.tsx` and every literal `Link to="/..."` under `apps/web/src/features/**`, asserts every target is a registered route; verified to fail against the pre-fix source and pass after) plus explicit breadcrumb `href` assertions in the existing bilingual real-HTTP/PostgreSQL `tests/e2e/closing.test.tsx` and `tests/e2e/corrections.test.tsx`. No permission or financial logic changed. Verified: `npm run test:unit` 119/119 (Phase24 baseline 118 + 1), the two focused e2e files 4/4 (en + ar-EG, real HTTP/PG), `npm run typecheck`, `npm run lint`, `npm run build`, `git diff --check` all passed on the actual candidate. `git diff --stat` for this fix touches only the two screen files, the unit test file and the two e2e test files (plus this documentation). See [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
 
 ## Phase ledger
 

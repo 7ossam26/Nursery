@@ -1,10 +1,14 @@
 # Current handoff
 
-Updated: 2026-09-15 — Phase25 COMPLETE (documentation only). No live deployment, migration, subagent or browser automation.
+Updated: 2026-09-15 — Phase25 COMPLETE (documentation only); post-Phase-25 release closure in progress in the same session (N25-01 fixed below). No live deployment, migration, subagent or browser automation.
 
 ## Release candidate
 
 Unchanged from Phase 24: base f108715f20f3d614643c4f92ad8ef61ceeba6459 (phase23) plus the phase24 diff (candidate hash in [candidate.json](evidence/phase24/candidate.json)). Phase 25 adds no application code, dependency, or schema change; schema remains 0023 (24 migrations including 0000).
+
+## Post-Phase-25 release closure — N25-01 fixed
+
+Immediately after Phase 25, in the same release-closure session: `apps/web/src/features/finance/closing-screen.tsx:28` and `apps/web/src/features/finance/corrections-screen.tsx:33` now link to `/administration/treasury` (previously the unregistered `/administration/finance`). Regression coverage added: a new test in `apps/web/src/layout/navigation.unit.test.ts` statically extracts every registered `<Route path="...">` from `App.tsx` and every literal `Link to="/..."` target across `apps/web/src/features/**`, and asserts every target resolves to a registered route (verified to fail on the pre-fix source, pass after); explicit breadcrumb `href` assertions were added to `tests/e2e/closing.test.tsx` and `tests/e2e/corrections.test.tsx` (real HTTP/PostgreSQL, en and ar-EG, both already-existing bilingual suites). Verified: `npm run test:unit` 119/119 (Phase24 baseline 118 + 1 new), the two focused e2e files 4/4 real HTTP/PG passed in both locales, `npm run typecheck`, `npm run lint`, `npm run build` and `git diff --check` all passed on the actual candidate. No permission or financial business logic was touched. See [KNOWN_ISSUES.md](KNOWN_ISSUES.md) "Found during Phase 25, fixed in release closure".
 
 ## Files and behavior changed (Phase 25)
 
@@ -15,9 +19,9 @@ Unchanged from Phase 24: base f108715f20f3d614643c4f92ad8ef61ceeba6459 (phase23)
 - Edited: [START_HERE.md](../START_HERE.md), [docs/TRACEABILITY.md](TRACEABILITY.md) — added the two new documents to the canonical reading map / traceability note.
 - Edited: [docs/KNOWN_ISSUES.md](KNOWN_ISSUES.md) — added N25-01 (see below).
 
-## New defect found (not fixed — outside this phase's boundary)
+## New defect found in Phase 25, fixed in release closure
 
-**N25-01** (LOW, OPEN): `apps/web/src/features/finance/closing-screen.tsx:28` and `.../corrections-screen.tsx:33` link to `/administration/finance`, a route that does not exist in `apps/web/src/App.tsx` (the real Treasury accounts screen is `/administration/treasury`). A fully permitted staff account following that link lands on the generic "You cannot view this section" screen, misreporting a routing bug as a permission denial. No financial or authorization logic is involved. Recommended: `prompts/FIX.md`, Terra/Medium, in a separate session.
+**N25-01** (LOW, FIXED 2026-09-15): `apps/web/src/features/finance/closing-screen.tsx:28` and `.../corrections-screen.tsx:33` linked to `/administration/finance`, a route that did not exist in `apps/web/src/App.tsx` (the real Treasury accounts screen is `/administration/treasury`). A fully permitted staff account following that link landed on the generic "You cannot view this section" screen, misreporting a routing bug as a permission denial. No financial or authorization logic was involved. Fixed above in this same session's release-closure work; see the section above for evidence.
 
 ## Actual verification
 
@@ -31,4 +35,4 @@ Unchanged from Phase 24: base f108715f20f3d614643c4f92ad8ef61ceeba6459 (phase23)
 
 Unchanged live-release qualifications from Phase 24 (Docker/Dokploy build and TLS/SSE, real VPS/domain/off-host backup qualification, pinned Linux Node/npm + SIGTERM check, physical 360px/RTL/keyboard/screenshot/PWA manual review) are listed in [KNOWN_ISSUES.md](KNOWN_ISSUES.md) and carried into [USER_ACCEPTANCE_WALKTHROUGH.md](USER_ACCEPTANCE_WALKTHROUGH.md). Phase 12's screenshot handoff remains unresolved under the same conflict recorded since Phase 12 (browser automation is prohibited and no waiver was given); Phase 25 does not resolve it and its ledger status stays IN PROGRESS.
 
-This is the last planned phase (01–25). The next real operator actions are, in order: (1) the tech lead executes `docs/USER_ACCEPTANCE_WALKTHROUGH.md` on an actual device/browser and records results; (2) a decision on the Phase 12 screenshot conflict (waive and accept scripted evidence, or authorize a specific local screenshot method) recorded in `docs/DECISIONS.md`; (3) a short `prompts/FIX.md` session for N25-01; (4) when a Docker/Dokploy host and real deployment inputs (domain, `INSTALLATION_ID`, secrets, off-host backup destination — see OPERATIONS.md "Required deployment inputs") become available, the actual Dokploy deployment and its smoke checks. No further numbered phase is defined in this plan; a new requirement should go through `prompts/CHANGE_REQUEST.md`.
+This is the last planned phase (01–25); N25-01 is now fixed. The next real operator actions are, in order: (1) the tech lead executes `docs/USER_ACCEPTANCE_WALKTHROUGH.md` on an actual device/browser and records results; (2) a decision on the Phase 12 screenshot conflict (waive and accept scripted evidence, or authorize a specific local screenshot method) recorded in `docs/DECISIONS.md`; (3) when a Docker/Dokploy host and real deployment inputs (domain, `INSTALLATION_ID`, secrets, off-host backup destination — see OPERATIONS.md "Required deployment inputs") become available, the actual Dokploy deployment and its smoke checks. No further numbered phase is defined in this plan; a new requirement should go through `prompts/CHANGE_REQUEST.md`. This release-closure session continues past N25-01 into the Phase 12 conflict, an executed walkthrough and further gates; see PROJECT_STATE.md's active summary for the current point reached.
