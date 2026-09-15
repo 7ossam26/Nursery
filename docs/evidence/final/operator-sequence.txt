@@ -1,0 +1,68 @@
+Post-Phase-25 release closure: native (non-Docker) operator sequence executed against a real disposable
+PostgreSQL 18.4 database (nursery_uat) on 127.0.0.1:55421, following the exact commands documented in
+OPERATIONS.md "Start and upgrade sequence" and README.md "Local setup". No Docker/Dokploy host is available on
+this machine (B24-01, unchanged); this is native-equivalent local evidence, not container/Dokploy/TLS qualification.
+
+=== npm run env:check (fresh, empty database) ===
+> nursery@0.1.0 env:check
+> tsx infra/scripts/check-env.ts
+
+database reachable; schema empty; pending migrations 24; unknown migrations 0
+restore validation database reachable
+release uat-walkthrough; installation 59ae7d0f-a59e-458d-ae43-6db1bca4c221; origin http://127.0.0.1:3100; backups configured; offsite directory:C:\Users\jo\AppData\Local\Temp/nursery-uat/offsite; restore validation target configured
+Environment check passed.
+
+=== npm run release:prepare (fresh install, applies all 24 migrations) ===
+> nursery@0.1.0 release:prepare
+> tsx infra/scripts/release.ts
+
+release uat-walkthrough; schema empty; pending 0000_installation_baseline.sql .. 0023_support_backups.sql (24 files)
+Applied 0000_installation_baseline.sql
+... (24 files applied in order) ...
+Applied 0023_support_backups.sql
+migration complete: applied 24; schema 0023_support_backups.sql; release uat-walkthrough
+
+=== npm run release:prepare (idempotent rerun) ===
+> nursery@0.1.0 release:prepare
+> tsx infra/scripts/release.ts
+
+release uat-walkthrough; schema 0023_support_backups.sql; pending none
+migration complete: applied 0; schema 0023_support_backups.sql; release uat-walkthrough
+
+=== auth:bootstrap (private stdin JSON) ===
+> nursery@0.1.0 auth:bootstrap
+> tsx apps/api/src/auth-command.ts bootstrap
+
+Credential setup completed. Sign in once within 24 hours and change the temporary password.
+
+=== API startup (npm run start:api) === (full log: api-startup.log)
+{"level":30,...,"release":"uat-walkthrough","schemaVersion":"0023_support_backups.sql","msg":"schema compatible"}
+{"level":30,...,"msg":"Server listening at http://127.0.0.1:3100"}
+
+Readiness/health probes:
+GET /api/v1/readiness -> {"status":"ready",...}
+GET /api/v1/health -> {"status":"ok",...}
+GET / -> 200, Cache-Control: no-cache, CSP present, text/html
+GET /sw.js -> 200, Cache-Control: no-cache, text/javascript
+GET /api/v1/nope -> 404
+GET /.env -> 404
+
+=== Worker startup (npm run start:worker) === (full log: worker-startup.log)
+{"level":30,...,"release":"uat-walkthrough","schemaVersion":"0023_support_backups.sql","backupsConfigured":true,"msg":"Billing, report and support worker started"}
+
+=== Backup + restore validation (real worker-processed, via tests/scripts/acceptance-walkthrough.ts rows 8.2-setup..8.2b) ===
+POST /api/v1/support/backups -> {id, status: "REQUESTED"}
+(worker minute sweep picks it up)
+GET /api/v1/support/backups -> status "SUCCEEDED", archive backup-59ae7d0f-20260915T055013Z-manual-<id>.tar.enc, 2 files, 780320 bytes
+POST /api/v1/support/restore-validations -> {id, status: "REQUESTED"}
+GET /api/v1/support/restore-validations -> status "SUCCEEDED"; report:
+  files: {missing:0, extracted:2, mismatched:0, referenced:2}
+  checks: {accounts:5, children:3, nurseryName:"Walkthrough Nursery", licenseValidUntil:"2027-09-15",
+           outstandingDebtPiastres:"181667", treasuryBalancePiastres:"1555333"}
+  database: {name:"nursery_uat_restore_check", schemaVersion:"0023_support_backups.sql", sessionsRevoked:4,
+             migrationsApplied:[]}
+Full JSON report is in walkthrough-run.log (row 8.2b).
+
+Teardown after evidence capture: api/worker processes stopped; nursery_uat and nursery_uat_restore_check databases
+dropped; scratch private-files/backups/offsite/restore-check directories removed. No production data, host, or
+service was touched. See docs/evidence/final/WALKTHROUGH_RESULTS.md for the full scenario matrix.

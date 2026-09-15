@@ -1,0 +1,6 @@
+
+> nursery@0.1.0 start:api
+> node --import tsx apps/api/src/server.ts
+
+{"level":30,"time":1789451233219,"pid":18200,"hostname":"MeshMsh","release":"uat-walkthrough","schemaVersion":"0023_support_backups.sql","msg":"schema compatible"}
+{"level":30,"time":1789451233243,"pid":18200,"hostname":"MeshMsh","msg":"Server listening at http://127.0.0.1:3100"}

@@ -11,6 +11,13 @@ observe — actual visual layout, real browser behavior, and a human's judgment 
 does not allow it (for example, no Docker/VPS host — see Known issues below). A failed step is not a reason to skip
 the rest of the walkthrough; record it and continue where possible.
 
+**Post-Phase-25 update:** every row that can be exercised without a rendered browser has already been executed as
+real HTTP requests against the real running application and real PostgreSQL — see
+[evidence/final/WALKTHROUGH_RESULTS.md](evidence/final/WALKTHROUGH_RESULTS.md) (88 PASS, 0 FAIL, 5 rows correctly
+left NOT EXECUTED because they require a rendered browser/device). This blank template below remains in force for
+the tech lead's own device/browser pass — sections 7 and the visual rows of section 4 in particular — which that
+script-driven execution cannot replace.
+
 ## Before you start
 
 | Field | Value |

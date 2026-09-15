@@ -121,3 +121,19 @@ Nearest-rank percentiles. Fastify inject timings include authentication, SQL, lo
 Phase24 is COMPLETE: all38 scenarios have executed evidence or explicit partial/not-run reasons; the reproduced product defects R24-01–03 and test-fixture defect T24-01 are fixed and verified. Empty-schema migration, core HTTP/DOM workflows and isolated whole-database recovery were demonstrated. The final changed-file review found only phase-owned changes, no new migration/dependency version changes and no accidental secrets; a bounded private-key/provider-token/credential-bearing-URL scan found no matches. Source identity is retained above; documentation is excluded from its digest.
 
 This closes the verification phase, with live-release blockers B24-01/B24-02 and manual/runtime/dependency qualifications retained in KNOWN_ISSUES. A35/A36 remain partial for physical browser review. Phase12 is still awaiting its screenshot handoff. Next is Phase25 operator guides, user walkthrough and final handoff; it has not started. No live deployment is authorized or claimed.
+
+## Post-Phase-25 addendum: user acceptance walkthrough actually executed (2026-09-15)
+
+Phase 24 above correctly recorded the manual walkthrough as not yet performed. In the post-Phase-25 release-closure
+session, that walkthrough was executed for real: [evidence/final/WALKTHROUGH_RESULTS.md](evidence/final/WALKTHROUGH_RESULTS.md)
+records 88 PASS / 0 FAIL / 5 NOT EXECUTED (the 5 being physical-browser rows that genuinely cannot run without one),
+driven as real HTTP requests (via the unmodified web client's `AuthClient`) against real standalone `api`/`worker`
+processes and a fresh disposable PostgreSQL database, covering Superadmin setup through nursery admin setup, teacher
+daily work, the parent experience including a real SSE reactivity check, finance operations (collection, bus full-
+settlement rejection, expenses, transfers, payroll, branch transfer, closing, PDF/XLSX report exports), access
+blocking, and import/backup/restore-validation. No application defect was found; every issue encountered during the
+driver script's own development was a script-side misunderstanding of the API contract, documented candidly in that
+evidence file. This does not supersede or repeat this document's A01–A38 matrix above (still the authoritative
+automated-scenario record) — it is the first actual execution of the walkthrough item this document's Phase24
+section explicitly deferred, and it still does not replace the tech lead's own physical-device pass for A35's
+360px/RTL/keyboard/reduced-motion rows. See [PROJECT_STATE.md](PROJECT_STATE.md) for the current release-closure status.

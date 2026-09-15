@@ -1,0 +1,9 @@
+
+> nursery@0.1.0 start:worker
+> node --import tsx apps/worker/src/worker.ts
+
+{"level":30,"time":1789451232746,"pid":31988,"hostname":"MeshMsh","release":"uat-walkthrough","schemaVersion":"0023_support_backups.sql","backupsConfigured":true,"msg":"Billing, report and support worker started"}
+{"level":30,"time":1789451414024,"pid":31988,"hostname":"MeshMsh","runId":"a40183b3-6c66-4515-8761-df2f86db9b8c","archive":"backup-59ae7d0f-20260915T055013Z-manual-a40183b3.tar.enc","files":2,"bytes":780320,"msg":"backup run succeeded"}
+{"level":30,"time":1789451473930,"pid":31988,"hostname":"MeshMsh","database":"nursery_uat_restore_check","mode":"validate","msg":"archive verified; resetting target database"}
+{"level":30,"time":1789451475790,"pid":31988,"hostname":"MeshMsh","database":"nursery_uat_restore_check","mode":"validate","files":{"extracted":2,"referenced":2,"missing":0,"mismatched":0},"checks":{"accounts":5,"children":3,"outstandingDebtPiastres":"181667","treasuryBalancePiastres":"1555333","nurseryName":"Walkthrough Nursery","licenseValidUntil":"2027-09-15"},"msg":"restore completed"}
+{"level":30,"time":1789451475792,"pid":31988,"hostname":"MeshMsh","id":"3375d4bd-88e2-4c25-889f-68ee8c3aecb0","code":null,"msg":"restore validation succeeded"}
