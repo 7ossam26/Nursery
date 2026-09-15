@@ -1,0 +1,64 @@
+{
+  "environment": {
+    "recordedAt": "2026-09-15T06:29:26.425Z",
+    "baseCommit": "4a634f0b41445f9823adb8dd35564269200c0b7d",
+    "node": "v25.2.1",
+    "os": "win32 10.0.22621",
+    "cpu": "Intel(R) Core(TM) i7-7820HQ CPU @ 2.90GHz",
+    "logicalCpus": 8,
+    "memoryGiB": 15.863815307617188,
+    "postgres": "PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35227, 64-bit",
+    "database": "Disposable schema on the explicitly configured DATABASE_URL; no URL/credentials stored",
+    "poolMax": 10
+  },
+  "fixture": {
+    "branches": 2,
+    "classrooms": 3,
+    "children": 300,
+    "staff": 50,
+    "guardians": 30,
+    "obligations": 300,
+    "attendancePublished": 100,
+    "concurrency": 5,
+    "samples": 100,
+    "date": "2026-09-15"
+  },
+  "method": "Fastify inject elapsed includes authentication, service SQL/locks, transaction commit and JSON serialization; excludes network/TLS. 5 warmups per read; nearest-rank p95. Writes are distinct real payments without warmup. Live is loopback HTTP publication-to-invalidation plus authenticated fresh history, not browser paint.",
+  "timings": {
+    "outstanding": {
+      "samples": 100,
+      "p50Ms": 108.78600000000006,
+      "p95Ms": 163.91399999999703,
+      "maxMs": 299.9553999999989
+    },
+    "attendance": {
+      "samples": 100,
+      "p50Ms": 143.23530000000028,
+      "p95Ms": 162.0780999999988,
+      "maxMs": 210.60849999999482
+    },
+    "guardianHistory": {
+      "samples": 100,
+      "p50Ms": 44.72869999999966,
+      "p95Ms": 57.26729999999952,
+      "maxMs": 76.4600999999966
+    },
+    "collection": {
+      "samples": 100,
+      "p50Ms": 67.011599999998,
+      "p95Ms": 98.43190000000322,
+      "maxMs": 150.67949999999837
+    },
+    "liveFreshRead": {
+      "samples": 10,
+      "p50Ms": 1019.2543000000005,
+      "p95Ms": 1154.9325000000026,
+      "maxMs": 1154.9325000000026
+    }
+  },
+  "targets": {
+    "readsP95Under500ms": true,
+    "collectionsP95Under1000ms": true,
+    "liveAllUnder5000ms": true
+  }
+}

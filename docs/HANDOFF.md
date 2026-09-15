@@ -14,6 +14,17 @@ Immediately after Phase 25, in the same release-closure session: `apps/web/src/f
 
 Built [tests/scripts/acceptance-walkthrough.ts](../tests/scripts/acceptance-walkthrough.ts) (real HTTP via the unmodified web client's `AuthClient`, no browser automation) and ran it against real standalone `api`+`worker` processes and a fresh disposable PostgreSQL database. Result: **88 PASS, 0 FAIL, 5 NOT EXECUTED** (physical-browser-only rows, correctly deferred to the tech lead). Covers the full cross-module story: Superadmin setup, nursery admin setup, teacher daily work (including exam zero-vs-missing), parent experience (a real SSE reactivity check), finance operations (collection, bus full-settlement rejection, expenses, transfers, payroll, branch debt transfer, closing, PDF/XLSX exports), access blocking, and import/backup/restore-validation. **No application defect was found.** Also exercised, as part of standing up the environment, the native (non-Docker) operator sequence (`env:check`, fresh `release:prepare`, idempotent rerun, `auth:bootstrap`, API/worker startup, health/readiness/static-serving) — see Step 6/KNOWN_ISSUES for how this does and does not bear on Dokploy qualification. Evidence: [docs/evidence/final/WALKTHROUGH_RESULTS.md](evidence/final/WALKTHROUGH_RESULTS.md), [walkthrough-run.log](evidence/final/walkthrough-run.log), [operator-sequence.txt](evidence/final/operator-sequence.txt). Environment fully torn down afterward.
 
+## Post-Phase-25 release closure — final local gates re-run, none regressed
+
+All established gates were re-run for real against the same candidate: PostgreSQL integration 33 files/**185 tests**
+(identical to the Phase24 baseline), unit 31 files/**119 tests** (118 + the 1 new N25-01 regression test), DOM/UI 24
+files/**62 tests** with **zero** error-level logs (Phase24's residual 2 support-fixture logs no longer appear),
+recovery **3/3**, performance every target met (attendance p95 162.08ms, collection p95 98.43ms — both improved on
+Phase24's 260.90ms/132.75ms baseline samples; ordinary run-to-run variance, not a claimed permanent gain),
+`typecheck`/`lint`/`build`/`git diff --check` all passed, `npm audit --omit=dev` unchanged at 2 moderate/0
+high-critical (S24-01, still open, still reviewed as a non-affected call path). No gate regressed. Full comparison
+table: [docs/evidence/final/FINAL_GATES.md](evidence/final/FINAL_GATES.md).
+
 ## Files and behavior changed (Phase 25)
 
 - New: [docs/USER_GUIDES.md](USER_GUIDES.md) — Superadmin, nursery admin/finance, teacher, and parent guides built from the real registered routes (`apps/web/src/App.tsx`), the real navigation groups (`apps/web/src/layout/navigation.ts`), and each screen's actual English/Egyptian Arabic title strings (`apps/web/src/features/*/copy.ts`, `apps/web/src/i18n/catalogs.ts`).
