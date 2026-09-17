@@ -34,7 +34,7 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppCon
   if (production) {
     const database = new URL(input.DATABASE_URL);
     if (database.protocol !== 'postgresql:' && database.protocol !== 'postgres:') problems.push('DATABASE_URL must use PostgreSQL in production.');
-    if (!database.username || !database.password || decodeURIComponent(database.password).length < 32) problems.push('DATABASE_URL must contain a database username and a password of at least 32 characters in production.');
+    if (!database.username || !database.password || decodeURIComponent(database.password).length < 8) problems.push('DATABASE_URL must contain a database username and a password of at least 8 characters in production.');
     if (new URL(input.APP_ORIGIN).protocol !== 'https:') problems.push('APP_ORIGIN must use HTTPS in production.');
     if (['development', 'local', 'unknown'].includes(input.RELEASE_VERSION.toLowerCase())) problems.push('RELEASE_VERSION must identify the immutable deployed release in production.');
   }

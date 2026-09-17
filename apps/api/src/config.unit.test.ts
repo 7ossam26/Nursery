@@ -13,7 +13,7 @@ describe('production deployment configuration', () => {
   });
   it.each([
     [{ APP_ORIGIN: 'http://nursery.example' }, 'APP_ORIGIN must use HTTPS'],
-    [{ DATABASE_URL: 'postgresql://nursery:short@postgres:5432/nursery' }, 'password of at least 32 characters'],
+    [{ DATABASE_URL: 'postgresql://nursery:short@postgres:5432/nursery' }, 'password of at least 8 characters'],
     [{ RELEASE_VERSION: 'development' }, 'immutable deployed release'],
     [{ BACKUP_TARGET: 'local-development-only' }, 'not allowed in production']
   ] as const)('rejects unsafe production input %j', (change, message) => {
