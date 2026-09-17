@@ -79,6 +79,23 @@ collapse is an explicit and persisted user action, and a collapsed item keeps bo
 its accessible name. This is a deliberate, reversible exception to the icon-only guidance above; every
 icon remains labelled for assistive technology.
 
+## Nursery illustration system
+
+`apps/web/src/components/illustrations.tsx` holds the product's visual vocabulary: inline, `aria-hidden`
+SVG pieces (clouds, stars, sun/moon, balloons, blocks, books, pencil, plant, teddy bear, school bus,
+classroom, children reading, calendar, bell and moon, report, playground) plus the composed
+`NurseryScene` (hero, compact banner and landing sky) and `ShellBackdrop`. Every piece paints from the
+`--art-*` palette in `styles.css`, defined once for light (bright classroom: paper-cut pastels, warm sun,
+white clouds) and once for dark (calm night nursery: navy clouds, soft moon, glowing stars), so one
+drawing serves both themes and no raster asset is shipped. `EmptyState` takes an `art` variant,
+`PageHeader` and `Card` take decorative slots, and hub destinations carry one soft tone each.
+Illustrations never replace copy or status: the localised message still carries the meaning, and the
+`--art-*` layer is decorative only, so it is never used for text and never touched by branding.
+
+Scene motion (`art-*` classes) is transform/opacity only, slow, rests at its 0% pose and is neutralised
+by the shared reduced-motion block. Placement and animation live on separate SVG groups because a CSS
+transform animation replaces an element's `transform` attribute outright.
+
 ## Motion and progress
 
 Icons must have short purposeful animation on completion, interaction, or navigation. Typical durations 150–250ms; use opacity/transform and avoid continuous bouncing or distracting loops. Respect reduced-motion preferences.

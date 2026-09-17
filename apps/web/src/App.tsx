@@ -37,7 +37,7 @@ const DevelopmentPreview = import.meta.env.DEV
 
 function NotFound() {
   const { t } = useLocale();
-  return <main className="landing"><section className="landing__card"><h1>{t('state.emptyTitle')}</h1><p>{t('state.emptyBody')}</p><Link to="/">{t('common.back')}</Link></section></main>;
+  return <main className="landing"><section className="landing__card"><h1>{t('state.emptyTitle')}</h1><p>{t('state.emptyBody')}</p><Link className="button button--secondary" to="/">{t('common.back')}</Link></section></main>;
 }
 
 function PreviewRoute() {

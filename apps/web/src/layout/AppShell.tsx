@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { Icon } from '../components/Icon.js';
+import { BlocksArt, ShellBackdrop } from '../components/illustrations.js';
 import { useLocale } from '../i18n/LocaleProvider.js';
 import { useBranding } from '../features/licensing/BrandingProvider.js';
 import { ThemeSwitcher } from './ThemeProvider.js';
@@ -170,6 +171,8 @@ export function AppShell({ role, children, pathPrefix = '', context }: AppShellP
 
   return <ShellContext.Provider value={true}><div className={collapsed ? `app-shell app-shell--${role} app-shell--collapsed` : `app-shell app-shell--${role}`}>
     <a className="skip-link" href="#main-content">{t('common.skipToContent')}</a>
+    {/* One faint sky behind every destination, so each screen reads as the same nursery. */}
+    <ShellBackdrop />
     <header className="shell-header">
       <div className="brand-mark" aria-hidden="true">ن</div>
       <div className="shell-header__title"><strong>{branding?.name ?? t('app.name')}</strong><span>{t(roleLabelKeys[role])}</span></div>
@@ -192,6 +195,7 @@ export function AppShell({ role, children, pathPrefix = '', context }: AppShellP
       </button>
       <Navigation role={role} pathPrefix={pathPrefix} context={context} />
       {supportArea && <div className="support-badge"><Icon name="support" /><strong>{t('support.distinct')}</strong><span>{t('support.description')}</span></div>}
+      {!supportArea && <div className="shell-sidebar__art" aria-hidden="true"><BlocksArt /></div>}
     </aside>
     {/* Each screen renders its own single <main>; the shell only positions it. */}
     <div className="shell-main" id="main-content" tabIndex={-1}><Breadcrumbs groups={groups} pathPrefix={pathPrefix} />{children}</div>

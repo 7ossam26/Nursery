@@ -1,17 +1,27 @@
 import { useId, type ReactNode } from 'react';
 import { Button } from './controls.js';
 import { Icon, type IconName } from './Icon.js';
+import { Sparkle } from './illustrations.js';
 
 /** Stays a <section>: several end-to-end scripts reach a card through `heading.closest('section')`. */
-export function Card({ children, className = '', title, variant, interactive = false }: Readonly<{
+export function Card({ children, className = '', title, variant, interactive = false, leading, art }: Readonly<{
   children: ReactNode;
   className?: string;
   title?: string;
   variant?: 'accent' | 'warning' | 'danger' | 'finance' | 'glass';
   interactive?: boolean;
+  /** Decorative element placed beside the title, such as an avatar. The title stays the heading. */
+  leading?: ReactNode;
+  /** Decorative corner illustration; hidden from assistive technology. */
+  art?: ReactNode;
 }>) {
   const modifiers = `${variant ? `card--${variant}` : ''} ${interactive ? 'card--interactive' : ''}`.trim();
-  return <section className={`card ${modifiers} ${className}`.replace(/\s+/g, ' ').trim()}>{title && <h2 className="card__title">{title}</h2>}{children}</section>;
+  const heading = title && <h2 className="card__title">{title}</h2>;
+  return <section className={`card ${modifiers} ${className}`.replace(/\s+/g, ' ').trim()}>
+    {art && <span className="card__art" aria-hidden="true">{art}</span>}
+    {leading ? <div className="card__head">{leading}{heading}</div> : heading}
+    {children}
+  </section>;
 }
 
 export function Skeleton({ label, lines = 3 }: Readonly<{ label: string; lines?: number }>) {
@@ -27,7 +37,7 @@ export function StatePanel({ tone, title, body, actionLabel, onAction }: Readonl
 }>) {
   const titleId = useId();
   const icon: IconName = tone === 'error' || tone === 'no-permission' ? 'warning' : 'check';
-  return <section className={`state-panel state-panel--${tone}`} aria-labelledby={titleId}><Icon name={icon} className="state-panel__icon" /><div><h3 id={titleId}>{title}</h3><p>{body}</p>{actionLabel && <Button variant="secondary" onClick={onAction}>{actionLabel}</Button>}</div></section>;
+  return <section className={`state-panel state-panel--${tone}`} aria-labelledby={titleId}><span className="state-panel__badge">{tone === 'success' && <Sparkle className="state-panel__sparkle" />}<Icon name={icon} className="state-panel__icon" /></span><div><h3 id={titleId}>{title}</h3><p>{body}</p>{actionLabel && <Button variant="secondary" onClick={onAction}>{actionLabel}</Button>}</div></section>;
 }
 
 export type TableColumn<Row> = Readonly<{ key: string; heading: string; cell: (row: Row) => ReactNode; numeric?: boolean }>;

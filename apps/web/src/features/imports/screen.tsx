@@ -1,8 +1,9 @@
+import { PageHeader, EmptyState , Badge } from '../../components/data-display.js';
 import { useEffect,useRef,useState,type FormEvent } from 'react';
 import { importColumnHelp,importErrorHelp,importKindTitles,importSheetTitles,importText,type ImportBatch,type ImportCommitResult,type ImportKind,type ImportOptions,type ImportPreview } from '@nursery/contracts';
 import { formatDateOnly,formatEgp,piastres,cairoIsoDate } from '@nursery/domain';
 import { Button,SelectField } from '../../components/controls.js';
-import { Card,ResponsiveTable } from '../../components/surfaces.js';
+import { Card,ResponsiveTable, Skeleton } from '../../components/surfaces.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import type { MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
@@ -14,12 +15,12 @@ const when=(iso:string,locale:string)=>`${formatDateOnly(cairoIsoDate(iso))} ${n
 function Preview({preview}:{preview:ImportPreview}) {
  const {t,locale}=useLocale();const seat=(s:ImportPreview['seats']['parent'])=>t('imports.seatDetail',{required:s.required,reserved:s.reserved,capacity:s.capacity===null?t('imports.unlimited'):s.capacity});
  const creates=([['guardians','imports.guardians'],['children','imports.children'],['links','imports.links'],['obligations','imports.obligations'],['employees','imports.employees'],['logins','imports.logins'],['assignments','imports.assignments']] as const).filter(([k])=>preview.creates[k]>0);
- return <section aria-label={t('imports.preview')}>
+ return <section className="workspace-section" aria-label={t('imports.preview')}>
   <p>{t('imports.rowCounts')}: {Object.entries(preview.rowCounts).map(([s,n])=>`${importText(locale,importSheetTitles,s)} ${n}`).join(' · ')}</p>
   {creates.length>0&&<p>{t('imports.creates')}: {creates.map(([k,key])=>`${t(key)} ${preview.creates[k]}`).join(' · ')}{preview.creates.obligations>0&&<> · {t('imports.obligationsTotal')}: {money(preview.obligationsTotal)}</>}</p>}
   {(preview.seats.parent.required>0||preview.seats.employee.required>0)&&<p>{t('imports.seats')}: {preview.seats.parent.required>0&&<>{t('imports.seatParent')} — {seat(preview.seats.parent)}</>}{preview.seats.employee.required>0&&<>{t('imports.seatEmployee')} — {seat(preview.seats.employee)}</>}</p>}
-  {preview.warnings.map(w=><p key={w} role="status">{t('imports.CAPACITY_EXCEEDED',{code:w.split(':')[1]??''})}</p>)}
-  {preview.errorCount===0?<p role="status">{t('imports.noErrors')}</p>:<><p role="alert">{t('imports.errorCount',{count:preview.errorCount})}</p><ResponsiveTable caption={t('imports.errors')} rows={preview.errors.map((e,i)=>({...e,id:i}))} rowKey={e=>String(e.id)} columns={[
+  {preview.warnings.map(w=><p className="inline-notice" key={w} role="status">{t('imports.CAPACITY_EXCEEDED',{code:w.split(':')[1]??''})}</p>)}
+  {preview.errorCount===0?<p className="inline-notice" role="status">{t('imports.noErrors')}</p>:<><p className="inline-notice inline-notice--danger" role="alert">{t('imports.errorCount',{count:preview.errorCount})}</p><ResponsiveTable caption={t('imports.errors')} rows={preview.errors.map((e,i)=>({...e,id:i}))} rowKey={e=>String(e.id)} columns={[
    {key:'sheet',heading:t('imports.sheet'),cell:e=>importText(locale,importSheetTitles,e.sheet)},{key:'row',heading:t('imports.row'),cell:e=>e.row??'—'},{key:'column',heading:t('imports.column'),cell:e=>e.column?<span title={importText(locale,importColumnHelp,e.column)}>{e.column}</span>:'—'},{key:'code',heading:t('imports.problem'),cell:e=>importText(locale,importErrorHelp,e.code)}]}/></>}
   {preview.rows.length>0&&<ResponsiveTable caption={t('imports.rows')} rows={preview.rows.map((r,i)=>({...r,id:i}))} rowKey={r=>String(r.id)} columns={[{key:'sheet',heading:t('imports.sheet'),cell:r=>importText(locale,importSheetTitles,r.sheet)},{key:'row',heading:t('imports.row'),cell:r=>r.row},{key:'key',heading:t('imports.key'),cell:r=>r.key},{key:'label',heading:t('imports.label'),cell:r=>r.label},{key:'detail',heading:t('imports.detail'),cell:r=>r.detail}]}/>}
  </section>;
@@ -44,13 +45,13 @@ function Batch({initial,onDone}:{initial:ImportBatch;onDone:()=>void}) {
  function commit() {if(pending.current||busy||!batch.previewHash) return;pending.current={operationId:crypto.randomUUID(),expectedPreviewHash:batch.previewHash};void send();}
  async function check() {if(busy) return;setBusy(true);try {const fresh=await reload();if(fresh.status==='COMMITTED') {pending.current=null;setUncertain(false);setCanRetry(false);setMessage('imports.committed');onDone();} else {setCanRetry(true);setMessage('imports.notFound');}} catch(error) {auth.handleError(error);setMessage(errorKey(error));} finally {setBusy(false);}}
  return <Card title={`${importText(locale,importKindTitles,batch.kind)} — ${batch.fileName}`}>
-  <p>{t('imports.status')}: {t(`imports.${batch.status}`)} · {t('imports.templateVersion')}: {batch.templateVersion} · {t('imports.created')}: {when(batch.createdAt,locale)}{batch.status==='PREVIEWED'&&<> · {t('imports.expires')}: {when(batch.expiresAt,locale)}</>}</p>
-  {message&&<p role={message==='imports.committed'?'status':'alert'}>{t(message)}</p>}
-  {batch.status==='EXPIRED'&&<p role="alert">{t('imports.expired')}</p>}
+  <p>{t('imports.status')}: <Badge tone={batch.status==='COMMITTED'?'success':batch.status==='EXPIRED'?'warning':'neutral'}>{t(`imports.${batch.status}`)}</Badge> · {t('imports.templateVersion')}: {batch.templateVersion} · {t('imports.created')}: {when(batch.createdAt,locale)}{batch.status==='PREVIEWED'&&<> · {t('imports.expires')}: {when(batch.expiresAt,locale)}</>}</p>
+  {message&&<p className="inline-notice" role={message==='imports.committed'?'status':'alert'}>{t(message)}</p>}
+  {batch.status==='EXPIRED'&&<p className="inline-notice inline-notice--danger" role="alert">{t('imports.expired')}</p>}
   {batch.preview&&batch.status!=='COMMITTED'&&<Preview preview={batch.preview}/>}
-  {batch.status==='PREVIEWED'&&!uncertain&&!canRetry&&<Button disabled={busy||!batch.preview?.canCommit||!batch.previewHash} onClick={commit}>{t(busy?'imports.committing':'imports.commit')}</Button>}
-  {uncertain&&<Button disabled={busy} onClick={()=>void check()}>{t('imports.checkStatus')}</Button>}{canRetry&&<Button disabled={busy} onClick={()=>void send()}>{t('imports.retry')}</Button>}
-  {result&&<section aria-label={t('imports.result')}><h2>{t('imports.result')}</h2><p>{([['guardians','imports.guardians'],['children','imports.children'],['links','imports.links'],['obligations','imports.obligations'],['employees','imports.employees'],['logins','imports.logins'],['assignments','imports.assignments']] as const).filter(([k])=>result.creates[k]>0).map(([k,key])=>`${t(key)} ${result.creates[k]}`).join(' · ')}{result.creates.obligations>0&&<> · {t('imports.obligationsTotal')}: {money(result.obligationsTotal)}</>}</p>{result.credentials&&result.credentials.length>0&&<Credentials result={result} onDismiss={()=>setResult({...result,credentials:null})}/>}</section>}
+  <div className="action-group">{batch.status==='PREVIEWED'&&!uncertain&&!canRetry&&<Button disabled={busy||!batch.preview?.canCommit||!batch.previewHash} onClick={commit}>{t(busy?'imports.committing':'imports.commit')}</Button>}
+  {uncertain&&<Button disabled={busy} onClick={()=>void check()}>{t('imports.checkStatus')}</Button>}{canRetry&&<Button loading={busy} icon="refresh" variant="secondary" disabled={busy} onClick={()=>void send()}>{t('imports.retry')}</Button>}</div>
+  {result&&<section className="workspace-section" aria-label={t('imports.result')}><h2>{t('imports.result')}</h2><p>{([['guardians','imports.guardians'],['children','imports.children'],['links','imports.links'],['obligations','imports.obligations'],['employees','imports.employees'],['logins','imports.logins'],['assignments','imports.assignments']] as const).filter(([k])=>result.creates[k]>0).map(([k,key])=>`${t(key)} ${result.creates[k]}`).join(' · ')}{result.creates.obligations>0&&<> · {t('imports.obligationsTotal')}: {money(result.obligationsTotal)}</>}</p>{result.credentials&&result.credentials.length>0&&<Credentials result={result} onDismiss={()=>setResult({...result,credentials:null})}/>}</section>}
  </Card>;
 }
 // The open batch renders outside the options record: a background options refresh must never unmount a preview or a one-time credential result.
@@ -69,18 +70,18 @@ export function ImportsScreen() {
   finally {setBusy(false);setFile(null);if(fileInput.current) fileInput.current.value='';}
  }
  async function open(id:string) {setBusy(true);setError(null);try {setBatch(await auth.client.business<ImportBatch>(`imports/${id}`));} catch(caught) {setError(errorKey(caught));auth.handleError(caught);} finally {setBusy(false);}}
- return <main className="organization-page"><h1>{t('imports.title')}</h1><p>{t('imports.help')}</p>
-  {options.error&&<p role="alert">{t(options.error)}</p>}{!options.data&&!options.error&&<p role="status">{t('state.loading')}</p>}
+ return <main className="organization-page"><PageHeader description={t('imports.help')} title={t('imports.title')} icon="upload" />
+  {options.error&&<p className="inline-notice inline-notice--danger" role="alert">{t(options.error)}</p>}{!options.data&&!options.error&&<Skeleton label={t('state.loading')} />}
   {options.data&&<>
    <Card title={t('imports.template')}><p>{t('imports.limits',{rows:options.data.limits.maxRowsPerSheet,kb:Math.floor(options.data.limits.maxFileBytes/1024)})}</p>
-    <form onSubmit={upload}><fieldset disabled={busy} className="organization-fields"><legend>{t('imports.kind')}</legend>
+    <form className="form-stack" onSubmit={upload}><fieldset disabled={busy} className="organization-fields"><legend>{t('imports.kind')}</legend>
      <SelectField label={t('imports.kind')} value={selected?.kind??''} onChange={e=>setKind(e.target.value as ImportKind)}>{kinds.map(k=><option key={k.kind} value={k.kind} disabled={!k.enabled}>{importText(locale,importKindTitles,k.kind)} (v{k.templateVersion})</option>)}</SelectField>
-     {selected&&!selected.enabled&&<p role="status">{t('imports.disabledKind')}</p>}
+     {selected&&!selected.enabled&&<p className="inline-notice" role="status">{t('imports.disabledKind')}</p>}
      {selected?.enabled&&<><p>{Object.entries(selected.sheets).map(([s,keys])=>`${importText(locale,importSheetTitles,s)}: ${keys.join(', ')}`).join(' · ')}</p><Button type="button" variant="secondary" disabled={busy} onClick={()=>void download()}>{t('imports.template')}</Button>
-     <label>{t('imports.file')}<input ref={fileInput} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={e=>setFile(e.target.files?.[0]??null)}/></label><Button type="submit" disabled={busy||!file}>{t(busy?'imports.uploading':'imports.upload')}</Button></>}
-    </fieldset></form>{error&&<p role="alert">{t(error)}</p>}</Card>
-   <Card title={t('imports.recent')}>{options.data.recent.length===0?<p>{t('state.emptyBody')}</p>:<ResponsiveTable caption={t('imports.recent')} rows={options.data.recent} rowKey={r=>r.id} columns={[{key:'kind',heading:t('imports.kind'),cell:r=>importText(locale,importKindTitles,r.kind)},{key:'file',heading:t('imports.file'),cell:r=>r.fileName},{key:'status',heading:t('imports.status'),cell:r=>t(`imports.${r.status}`)},{key:'created',heading:t('imports.created'),cell:r=>when(r.createdAt,locale)},{key:'open',heading:t('imports.open'),cell:r=><Button variant="secondary" disabled={busy} onClick={()=>void open(r.id)}>{t('imports.open')}</Button>}]}/>}</Card>
+     <label className="file-field">{t('imports.file')}<input className="field__control file-control" ref={fileInput} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={e=>setFile(e.target.files?.[0]??null)}/></label><Button type="submit" disabled={busy||!file}>{t(busy?'imports.uploading':'imports.upload')}</Button></>}
+    </fieldset></form>{error&&<p className="inline-notice inline-notice--danger" role="alert">{t(error)}</p>}</Card>
+   <Card title={t('imports.recent')}>{options.data.recent.length===0?<EmptyState title={t('state.emptyBody')} art="sky" />:<ResponsiveTable caption={t('imports.recent')} rows={options.data.recent} rowKey={r=>r.id} columns={[{key:'kind',heading:t('imports.kind'),cell:r=>importText(locale,importKindTitles,r.kind)},{key:'file',heading:t('imports.file'),cell:r=>r.fileName},{key:'status',heading:t('imports.status'),cell:r=>t(`imports.${r.status}`)},{key:'created',heading:t('imports.created'),cell:r=>when(r.createdAt,locale)},{key:'open',heading:t('imports.open'),cell:r=><Button icon="arrow" variant="secondary" disabled={busy} onClick={()=>void open(r.id)}>{t('imports.open')}</Button>}]}/>}</Card>
   </>}
-  {batch&&<><Batch key={batch.id} initial={batch} onDone={()=>options.reload()}/><Button variant="secondary" onClick={()=>setBatch(null)}>{t('imports.new')}</Button></>}
+  {batch&&<><Batch key={batch.id} initial={batch} onDone={()=>options.reload()}/><Button icon="plus" variant="secondary" onClick={()=>setBatch(null)}>{t('imports.new')}</Button></>}
  </main>;
 }

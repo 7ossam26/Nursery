@@ -1,5 +1,9 @@
 # Decisions and explicit defaults
 
+### 2026-09-17 — Existing-screen UI consistency
+
+The user requested a presentation-only follow-up across all existing frontend routes and nested panels, using the redesigned dashboard as the visual reference. Preserve functionality, API payloads, permissions, routes, financial rules, and all loading/performance architecture. Extend shared primitives rather than adding page-specific visual systems. Keep English/ar-EG, light/dark, responsive layouts and reduced motion. User explicitly permitted browser automation for this pass's visual checks; functional tests remain repository scripts and real PostgreSQL. This limited exception does not retrospectively close older visual-evidence gaps. Preserve existing uncommitted illustration/dashboard work. See [UI_CONSISTENCY.md](UI_CONSISTENCY.md) for actual coverage and evidence.
+
 ### 2026-09-15 — Phase 12 screenshot handoff conflict analysis (post-Phase-25 release closure)
 
 Investigated the unresolved Phase 12 screenshot handoff carried forward by PROJECT_STATE.md, HANDOFF.md,

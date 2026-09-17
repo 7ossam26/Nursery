@@ -2,10 +2,14 @@ import { useEffect, useId, useState, type ButtonHTMLAttributes, type InputHTMLAt
 import { formatDateOnly, parseDisplayDate } from '@nursery/domain';
 import { Icon, type IconName } from './Icon.js';
 
-export function Button({ children, icon, variant = 'primary', className = '', loading = false, settled = false, ...props }: Readonly<{
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'quiet' | 'danger' | 'success';
+
+export function Button({ children, icon, variant = 'primary', size = 'default', iconOnly = false, className = '', loading = false, settled = false, ...props }: Readonly<{
   children: ReactNode;
   icon?: IconName;
-  variant?: 'primary' | 'secondary' | 'quiet' | 'danger';
+  variant?: ButtonVariant;
+  size?: 'default' | 'compact';
+  iconOnly?: boolean;
   /** Shows in-progress motion and announces busy. Deliberately does not imply `disabled`: callers
    *  that must block a repeat submission pass `disabled` explicitly, and financial screens rely on
    *  that staying their own decision. */
@@ -15,7 +19,7 @@ export function Button({ children, icon, variant = 'primary', className = '', lo
 }> & ButtonHTMLAttributes<HTMLButtonElement>) {
   return <button
     type="button"
-    className={`button button--${variant} ${settled ? 'button--settled' : ''} ${className}`}
+    className={`button button--${variant} button--${size} ${iconOnly ? 'button--icon' : ''} ${settled ? 'button--settled' : ''} ${className}`.trim()}
     aria-busy={loading || undefined}
     {...props}
   >{loading ? <span className="button__spinner" aria-hidden="true" /> : icon && <Icon name={icon} />}{children}</button>;

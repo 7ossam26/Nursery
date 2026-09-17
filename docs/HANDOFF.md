@@ -1,5 +1,9 @@
 # Current handoff
 
+## Completed follow-up — UI consistency (2026-09-17–18)
+
+COMPLETE. Presentation consistency was applied across every existing frontend route and nested panel; [UI_CONSISTENCY.md](UI_CONSISTENCY.md) contains the route checklist and evidence. The in-app Chromium matrix ran 1,211 checks across 38 distinct route/fallback views, System/teacher/parent sessions, en/ar-EG, light/dark, and widths 360–1920 with no measured overflow or off-screen main content. Final gates: unit 152/152; focused real-HTTP/PostgreSQL DOM 6/6; typecheck, lint, build, and diff check passed; full serial DOM 61/62, with only the same A36/A18 network-recovery dialog-timing failure reproduced on the untouched baseline. The 221 request/auth/navigation call expressions match the captured pre-pass source exactly. No backend, contracts, routes, permissions, payloads, database, dependencies, or loading/performance architecture changed. The browser, active disposable fixture, and uniquely identified abandoned preview fixture were cleaned up. No staging, commit, deployment, subagent, or direct `pgdata/` access occurred.
+
 Updated: 2026-09-15 — Phase25 COMPLETE (documentation only); post-Phase-25 release closure COMPLETE in the same
 session (N25-01 fixed, Phase 12 conflict analyzed, user acceptance walkthrough executed, final gates re-run,
 Dokploy qualification recorded — detailed sections below). No live deployment, migration, subagent or browser

@@ -10,6 +10,7 @@ import { LanguageSwitcher } from '../layout/AppShell.js';
 import { LocaleProvider, useLocale } from '../i18n/LocaleProvider.js';
 import { Modal } from './Modal.js';
 import { Button,DateField } from './controls.js';
+import { Badge,PageHeader } from './data-display.js';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -54,6 +55,31 @@ describe('component accessibility and interaction', () => {
     expect(screen.getByRole('dialog').hasAttribute('open')).toBe(true);
     await user.click(screen.getByRole('button', { name: 'Close' }));
     await waitFor(() => expect(document.activeElement).toBe(trigger));
+  });
+
+  it('keeps shared action variants semantic while exposing their visual states', () => {
+    render(<>
+      <Button variant="danger" loading>Remove</Button>
+      <Button variant="success" disabled>Approve</Button>
+      <Button variant="outline" size="compact" iconOnly icon="refresh" aria-label="Refresh"><span className="visually-hidden">Refresh</span></Button>
+      <Badge tone="warning">Pending</Badge>
+    </>);
+    const remove = screen.getByRole('button', { name: 'Remove' });
+    expect(remove.getAttribute('aria-busy')).toBe('true');
+    expect(remove.hasAttribute('disabled')).toBe(false);
+    expect(remove.className).toContain('button--danger');
+    expect(screen.getByRole('button', { name: 'Approve' }).hasAttribute('disabled')).toBe(true);
+    expect(screen.getByRole('button', { name: 'Refresh' }).className).toContain('button--compact');
+    expect(screen.getByText('Pending').className).toContain('badge--warning');
+  });
+
+  it('groups page actions and describes dialogs only when description copy exists', () => {
+    const { rerender } = render(<><PageHeader title="Children" description="Manage child records" actions={<Button>Add</Button>} /><Modal open title="Confirm" description="Review this action" closeLabel="Close" onClose={() => undefined}>Body</Modal></>);
+    expect(screen.getByRole('heading', { level: 1, name: 'Children' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Add' }).parentElement?.className).toContain('action-group');
+    expect(screen.getByRole('dialog').getAttribute('aria-describedby')).toBeTruthy();
+    rerender(<Modal open title="Confirm" closeLabel="Close" onClose={() => undefined}>Body</Modal>);
+    expect(screen.getByRole('dialog').hasAttribute('aria-describedby')).toBe(false);
   });
 
   it.each([

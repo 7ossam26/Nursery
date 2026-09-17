@@ -2,7 +2,11 @@
 
 Baseline: 2026-09-13. Phase 25 complete (2026-09-15). Post-Phase-25 release-closure work completed in the same session (2026-09-15): N25-01 fixed, Phase 12 screenshot conflict analyzed (still BLOCKED, manual), the user acceptance walkthrough actually executed (88 PASS/0 FAIL/5 manual-only), and every final local gate re-run with none regressed. Remaining work is explicitly manual/environmental (see docs/HANDOFF.md).
 
-## Active state
+## UI consistency follow-up (2026-09-17–18)
+
+COMPLETE: the user-authorized presentation-only pass now covers every existing route and nested panel with shared headers, action hierarchy, controls, statuses, tables/lists, dialogs, notices, skeletons, and empty states. The real-browser matrix completed 1,211 checks across 38 distinct route/fallback views, three personas, en/ar-EG, light/dark, and widths 360–1920 with no measured layout failure. Final verification: unit 152/152; focused real-HTTP/PostgreSQL DOM 6/6; typecheck, lint, build, and diff check passed; full serial DOM 61/62 with only the same documented A36/A18 network-recovery timing failure present in the untouched baseline. A captured-source AST audit found all 221 request/auth/navigation call expressions unchanged, and no backend, route, permission, payload, schema, dependency, or loading/performance architecture changed. Visual fixture/browser cleanup completed. See [UI_CONSISTENCY.md](UI_CONSISTENCY.md).
+
+## Historical release state
 
 - Phase25 — Operator guides, user walkthrough, and final handoff — COMPLETE (2026-09-15). Documentation only; no application code, schema, or test behavior changed (`git diff --stat` touches only `README.md`, `START_HERE.md`, `docs/KNOWN_ISSUES.md`, `docs/OPERATIONS.md`, `docs/TRACEABILITY.md` plus two new docs files; `git diff --check` clean; no migration).
 - Created [USER_GUIDES.md](USER_GUIDES.md) (Superadmin, nursery admin/finance, teacher, parent — routes/screen titles verified against `apps/web/src/App.tsx`, `apps/web/src/layout/navigation.ts` and each feature's `copy.ts`, English and Egyptian Arabic strings spot-checked in `apps/web/src/i18n/catalogs.ts` and feature copy files) and [USER_ACCEPTANCE_WALKTHROUGH.md](USER_ACCEPTANCE_WALKTHROUGH.md) (blank-result manual scenario covering Superadmin setup through parent report, payment, transfer, payroll, blocking, import, and restore; A01–A38 cross-reference; every Phase24 known issue plus the unresolved Phase12 screenshot handoff carried forward).

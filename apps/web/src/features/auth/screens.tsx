@@ -2,7 +2,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { Navigate, Link } from 'react-router';
 import { Button, TextField, SelectField } from '../../components/controls.js';
 import { Icon, type IconName } from '../../components/Icon.js';
-import { SkyArt } from '../../components/data-display.js';
+import { NurseryScene } from '../../components/illustrations.js';
 import { ThemeSwitcher } from '../../layout/ThemeProvider.js';
 import { LanguageSwitcher, useInsideShell } from '../../layout/AppShell.js';
 import { SessionShell } from '../../layout/SessionShell.js';
@@ -19,14 +19,15 @@ function Frame({ title, children, wide = false, lead }: { title: MessageKey; chi
   const { t } = useLocale(); const embedded = useInsideShell();
   const main = `landing ${wide ? 'landing--wide' : ''}`; const card = `landing__card auth-card ${wide ? 'auth-card--hub' : ''}`;
   // Inside the session shell the header already carries branding and language; the card stays.
-  if (embedded) return <main className={`${main} landing--embedded`}><section className={card}>{wide && <SkyArt className="hero__decoration" />}<h1>{t(title)}</h1>{lead}{children}</section></main>;
-  return <main className={main}><div className="landing__sky" aria-hidden="true"><SkyArt /></div><div className="landing__language"><LanguageSwitcher /><ThemeSwitcher /></div><section className={card}>{wide && <SkyArt className="hero__decoration" />}<div className="brand-mark" aria-hidden="true">ن</div><h1>{t(title)}</h1>{lead}{children}</section></main>;
+  if (embedded) return <main className={`${main} landing--embedded`}><section className={card}>{wide && <div className="hero__decoration"><NurseryScene /></div>}<h1>{t(title)}</h1>{lead}{children}</section></main>;
+  return <main className={main}><div className="landing__sky" aria-hidden="true"><NurseryScene variant="landing" /></div><div className="landing__language"><LanguageSwitcher /><ThemeSwitcher /></div><section className={card}>{wide && <div className="hero__decoration"><NurseryScene /></div>}<div className="brand-mark" aria-hidden="true">ن</div><h1>{t(title)}</h1>{lead}{children}</section></main>;
 }
 
 // One destination in the signed-in hub. The `to` stays a literal JSX attribute on every call site so
 // the static route-vs-link regression in layout/navigation.unit.test.ts keeps checking these targets.
+const hubTone: Partial<Record<IconName, string>> = { children: 'pink', home: 'sun', calendar: 'sky', bell: 'sun', wallet: 'mint', finance: 'mint', star: 'lavender', classroom: 'sky', learning: 'lavender', overview: 'cyan', settings: 'lavender', staff: 'mint', support: 'lavender' };
 function HubLink({ to, label, icon }: { to: string; label: string; icon: IconName }) {
-  return <Link className="quick-action" to={to}>
+  return <Link className={`quick-action quick-action--${hubTone[icon] ?? 'pink'}`} to={to}>
     <span className="quick-action__icon"><Icon name={icon} /></span>
     <span className="quick-action__text"><strong>{label}</strong></span>
     <Icon name="chevron" className="icon--chevron" />
@@ -57,7 +58,7 @@ export function LoginScreen({ expired = false }: { expired?: boolean }) {
       <TextField label={t('auth.username')} name="username" autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} required maxLength={64} />
       <TextField label={t('auth.password')} name="password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required maxLength={128} />
       <Button type="submit" disabled={busy}>{t(busy ? 'auth.working' : 'auth.signIn')}</Button>
-    </form>{import.meta.env.DEV && <Link to="/__preview">{t('landing.openPreview')}</Link>}
+    </form>{import.meta.env.DEV && <Link className="button button--ghost" to="/__preview">{t('landing.openPreview')}</Link>}
   </Frame>;
 }
 export function PasswordScreen({ forced = false }: { forced?: boolean }) {
@@ -78,7 +79,7 @@ export function PasswordScreen({ forced = false }: { forced?: boolean }) {
     <TextField label={t('auth.newPassword')} hint={t('auth.passwordHelp')} type="password" autoComplete="new-password" required minLength={15} maxLength={128} value={next} onChange={(event) => setNext(event.target.value)} />
     <TextField label={t('auth.confirmPassword')} type="password" autoComplete="new-password" required minLength={15} maxLength={128} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />
     <Button type="submit" disabled={busy}>{t(busy ? 'auth.working' : 'auth.changePassword')}</Button>
-  </form>{!forced && <Link to="/account">{t('common.back')}</Link>}<LogoutButton /></Frame>;
+  </form>{!forced && <Link className="button button--secondary" to="/account">{t('common.back')}</Link>}<LogoutButton /></Frame>;
 }
 function LogoutButton() {
   const auth = useAuth(); const { t } = useLocale(); const [busy, setBusy] = useState(false); const [error, setError] = useState<MessageKey | null>(null);
@@ -150,4 +151,4 @@ export function AccountScreen() {
     {capabilities.includes('accounts.reset_password') && <ResetForm />}
   </Frame>;
 }
-export function UnavailableScreen() { const { t } = useLocale(); return <Frame title="state.noPermissionTitle"><p>{t('state.noPermissionBody')}</p><Link to="/account">{t('auth.account')}</Link></Frame>; }
+export function UnavailableScreen() { const { t } = useLocale(); return <Frame title="state.noPermissionTitle"><p>{t('state.noPermissionBody')}</p><Link className="button button--secondary" to="/account">{t('auth.account')}</Link></Frame>; }

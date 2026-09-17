@@ -3,9 +3,19 @@ import type { SVGProps } from 'react';
 export type IconName =
   | 'home' | 'children' | 'wallet' | 'bell' | 'more' | 'calendar' | 'classroom' | 'learning'
   | 'overview' | 'finance' | 'staff' | 'support' | 'settings' | 'check' | 'warning' | 'close' | 'arrow' | 'star'
-  | 'sun' | 'moon' | 'display' | 'search' | 'chevron' | 'panel' | 'user' | 'logout' | 'sparkle';
+  | 'sun' | 'moon' | 'display' | 'search' | 'chevron' | 'panel' | 'user' | 'logout' | 'sparkle'
+  | 'plus' | 'edit' | 'trash' | 'download' | 'upload' | 'refresh' | 'filter' | 'back' | 'print';
 
 const paths: Record<IconName, string> = {
+  plus: 'M12 5v14M5 12h14',
+  edit: 'm16 3 5 5-12 12-6 1 1-6ZM14 5l5 5',
+  trash: 'M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7',
+  download: 'M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5',
+  upload: 'M12 16V4m-5 5 5-5 5 5M4 16v5h16v-5',
+  refresh: 'M20 7v5h-5M4 17v-5h5M6.5 5.5A8 8 0 0 1 20 12M4 12a8 8 0 0 0 13.5 6.5',
+  filter: 'M3 4h18l-7 8v7l-4 2v-9Z',
+  back: 'M19 12H5m6-6-6 6 6 6',
+  print: 'M6 8V3h12v5M6 17H3V9h18v8h-3M6 14h12v7H6zM17 11h1',
   home: 'M3 11.5 12 4l9 7.5V21h-6v-6H9v6H3z',
   children: 'M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8-1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM2 21v-2a6 6 0 0 1 12 0v2Zm12.5 0v-2a8 8 0 0 0-1.2-4.2A5 5 0 0 1 22 18v3Z',
   wallet: 'M3 6h16a2 2 0 0 1 2 2v11H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h15v3Zm13 5v4h5v-4Z',
@@ -35,9 +45,10 @@ const paths: Record<IconName, string> = {
   sparkle: 'M12 3v6m0 6v6m-9-9h6m6 0h6M7.5 7.5l2 2m5 5 2 2m0-9-2 2m-5 5-2 2'
 };
 
-export function Icon({ name, ...props }: Readonly<{ name: IconName }> & SVGProps<SVGSVGElement>) {
+export function Icon({ name, className = '', ...props }: Readonly<{ name: IconName }> & SVGProps<SVGSVGElement>) {
+  // className is merged rather than spread last, so a caller's modifier never drops the `.icon` sizing.
   return (
-    <svg className={`icon ${props.className ?? ''}`} viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...props}>
+    <svg className={`icon icon--${name} ${className}`.trim()} viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...props}>
       <path d={paths[name]} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );

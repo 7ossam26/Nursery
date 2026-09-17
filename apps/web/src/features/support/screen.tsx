@@ -1,8 +1,9 @@
+import { PageHeader } from '../../components/data-display.js';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import type { BackupRunSummary, ChildDependents, RestoreValidationSummary, SupportAccount, SupportAuditEvent, SupportStatus } from '@nursery/contracts';
 import { formatEgp, piastres } from '@nursery/domain';
 import { Button, DateField, SelectField, TextField } from '../../components/controls.js';
-import { Card, ResponsiveTable } from '../../components/surfaces.js';
+import { Card, ResponsiveTable, Skeleton } from '../../components/surfaces.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import { catalogs, type MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
@@ -20,7 +21,7 @@ function StatusCard({ status }: Readonly<{ status: SupportStatus }>) {
     <p dir="ltr">{status.installation.id}</p>
     <p>{t('support.release')}: <span dir="ltr">{status.installation.releaseVersion}</span> · {t('support.schema')}: <span dir="ltr">{status.installation.schemaVersion ?? '—'}</span> · {t('support.pendingMigrations')}: {status.installation.pendingMigrations}</p>
     <p>{t('support.license')}: {t(`licensing.status.${status.installation.licenseStatus}` as MessageKey)}</p>
-    <p role="status" data-worker-healthy={String(status.worker.healthy)}>{t('support.worker')}: {worker}</p>
+    <p className="inline-notice" role="status" data-worker-healthy={String(status.worker.healthy)}>{t('support.worker')}: {worker}</p>
     <p>{t('support.failedJobs', { count: status.failedJobs24h })} · {t('support.overdueJobs', { count: status.overdueJobs })}</p>
     <p>{t('support.billingLast', { value: status.billing.lastOccurrenceAt ?? '—' })} · {t('support.remindersLast', { value: when(status.billing.lastReminderAt, locale) })}</p>
     <p>{t('support.storage')}: {status.storage.privateFiles ? t('support.privateFilesFree', { free: bytes(status.storage.privateFiles.freeBytes), total: bytes(status.storage.privateFiles.totalBytes) }) : t('support.storageUnknown')} · {status.storage.backups ? t('support.backupsFree', { free: bytes(status.storage.backups.freeBytes), total: bytes(status.storage.backups.totalBytes) }) : t('support.storageUnknown')}</p>
@@ -35,15 +36,15 @@ function BackupsCard({ status, runs, reload }: Readonly<{ status: SupportStatus;
   const [reason, setReason] = useState(''); const [busy, setBusy] = useState(false); const [error, setError] = useState<MessageKey | null>(null); const [notice, setNotice] = useState<MessageKey | null>(null);
   return <Card title={t('support.backups')}>
     <p>{t('support.backupsHelp')}</p>
-    {!status.backups.configured && <p role="alert">{t('support.backupsNotConfigured')}</p>}
-    {status.backups.configured && !status.backups.offsiteConfigured && <p role="alert">{t('support.offsiteMissing')}</p>}
+    {!status.backups.configured && <p className="inline-notice inline-notice--danger" role="alert">{t('support.backupsNotConfigured')}</p>}
+    {status.backups.configured && !status.backups.offsiteConfigured && <p className="inline-notice inline-notice--danger" role="alert">{t('support.offsiteMissing')}</p>}
     <p>{t('support.lastSuccessful', { value: status.backups.lastSuccessfulAt ? `${when(status.backups.lastSuccessfulAt, locale)} (${t('support.backupAge', { hours: status.backups.ageHours ?? 0 })})` : t('support.never') })} · {t('support.failedRecently', { count: status.backups.failedLast7Days })}</p>
-    <form aria-busy={busy} onSubmit={async (e: FormEvent) => {
+    <form className="form-stack" aria-busy={busy} onSubmit={async (e: FormEvent) => {
       e.preventDefault(); setBusy(true); setError(null); setNotice(null);
       try { await auth.client.business('support/backups', 'POST', { reason }); setReason(''); setNotice('support.backupRequested'); await reload(); }
       catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } finally { setBusy(false); }
     }}>
-      {error && <p role="alert">{t(error)}</p>}{notice && <p role="status">{t(notice)}</p>}
+      {error && <p className="inline-notice inline-notice--danger" role="alert">{t(error)}</p>}{notice && <p className="inline-notice" role="status">{t(notice)}</p>}
       <TextField label={t('support.reason')} required maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
       <Button type="submit" disabled={busy || !status.backups.configured || !reason.trim()}>{t('support.requestBackup')}</Button>
     </form>
@@ -63,13 +64,13 @@ function RestoreCard({ status, runs, validations, reload }: Readonly<{ status: S
   const [busy, setBusy] = useState(false); const [error, setError] = useState<MessageKey | null>(null); const [notice, setNotice] = useState<MessageKey | null>(null);
   return <Card title={t('support.restoreValidation')}>
     <p>{t('support.restoreHelp')}</p>
-    {!status.backups.restoreValidationConfigured && <p role="alert">{t('support.restoreNotConfigured')}</p>}
-    <form aria-busy={busy} onSubmit={async (e: FormEvent) => {
+    {!status.backups.restoreValidationConfigured && <p className="inline-notice inline-notice--danger" role="alert">{t('support.restoreNotConfigured')}</p>}
+    <form className="form-stack" aria-busy={busy} onSubmit={async (e: FormEvent) => {
       e.preventDefault(); setBusy(true); setError(null); setNotice(null);
       try { await auth.client.business('support/restore-validations', 'POST', { backupRunId, operatorPassword: password, confirmArchiveName: confirm, reason }); setConfirm(''); setReason(''); setNotice('support.validationRequested'); await reload(); }
       catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } finally { setPassword(''); setBusy(false); }
     }}>
-      {error && <p role="alert">{t(error)}</p>}{notice && <p role="status">{t(notice)}</p>}
+      {error && <p className="inline-notice inline-notice--danger" role="alert">{t(error)}</p>}{notice && <p className="inline-notice" role="status">{t(notice)}</p>}
       <SelectField label={t('support.selectBackup')} required value={backupRunId} onChange={(e) => setRun(e.target.value)}>
         <option value="">—</option>{candidates.map((r) => <option key={r.id} value={r.id}>{r.archiveName}</option>)}
       </SelectField>
@@ -91,17 +92,17 @@ function AuditCard() {
   const [query, setQuery] = useState(''); const [from, setFrom] = useState(''); const [to, setTo] = useState(''); const [rows, setRows] = useState<SupportAuditEvent[] | null>(null); const [error, setError] = useState<MessageKey | null>(null);
   return <Card title={t('support.audit')}>
     <p>{t('support.auditHelp')}</p>
-    <form onSubmit={async (e: FormEvent) => {
+    <form className="form-stack" onSubmit={async (e: FormEvent) => {
       e.preventDefault(); setError(null);
       const params = new URLSearchParams(); if (query.trim()) params.set('query', query.trim()); if (from) params.set('from', from); if (to) params.set('to', to);
       try { setRows(await auth.client.business<SupportAuditEvent[]>(`support/audit?${params.toString()}`)); } catch (caught) { auth.handleError(caught); setError(errorKey(caught)); }
     }}>
-      {error && <p role="alert">{t(error)}</p>}
+      {error && <p className="inline-notice inline-notice--danger" role="alert">{t(error)}</p>}
       <TextField label={t('support.auditQuery')} maxLength={120} value={query} onChange={(e) => setQuery(e.target.value)} />
       <DateField label={t('support.from')} value={from} onValueChange={setFrom} /><DateField label={t('support.to')} value={to} onValueChange={setTo} />
-      <Button type="submit">{t('support.search')}</Button>
+      <Button icon="search" variant="secondary" type="submit">{t('support.search')}</Button>
     </form>
-    {rows && (rows.length === 0 ? <p role="status">{t('support.noResults')}</p> : <ResponsiveTable caption={t('support.audit')} rows={rows} rowKey={(r) => `${r.source}/${r.createdAt}/${r.event}/${r.targetId ?? ''}`} columns={[
+    {rows && (rows.length === 0 ? <p className="inline-notice" role="status">{t('support.noResults')}</p> : <ResponsiveTable caption={t('support.audit')} rows={rows} rowKey={(r) => `${r.source}/${r.createdAt}/${r.event}/${r.targetId ?? ''}`} columns={[
       { key: 'when', heading: t('support.when'), cell: (r) => when(r.createdAt, locale) }, { key: 'source', heading: t('support.source'), cell: (r) => r.source },
       { key: 'event', heading: t('support.event'), cell: (r) => <span dir="ltr">{r.event}</span> }, { key: 'actor', heading: t('support.actor'), cell: (r) => <span dir="ltr">{r.actorUsername ?? r.actorId ?? '—'}</span> },
       { key: 'target', heading: t('support.targetId'), cell: (r) => <span dir="ltr">{r.targetId ?? '—'}</span> }]} />)}
@@ -111,12 +112,12 @@ function AuditCard() {
 function AccountAction({ label, run, fields }: Readonly<{ label: string; run: (values: Record<string, string>) => Promise<string | void>; fields: ReadonlyArray<{ key: string; label: string; type?: 'password' | 'date' }> }>) {
   const { t } = useLocale();
   const [values, setValues] = useState<Record<string, string>>({}); const [busy, setBusy] = useState(false); const [error, setError] = useState<MessageKey | null>(null); const [result, setResult] = useState<string | null>(null); const [done, setDone] = useState(false);
-  return <form aria-busy={busy} onSubmit={async (e: FormEvent) => {
+  return <form className="form-stack" aria-busy={busy} onSubmit={async (e: FormEvent) => {
     e.preventDefault(); setBusy(true); setError(null); setDone(false); setResult(null);
     try { const out = await run(values); setDone(true); if (typeof out === 'string') setResult(out); setValues((v) => ({ ...v, operatorPassword: '', reason: '' })); }
     catch (caught) { setError(errorKey(caught)); } finally { setBusy(false); }
   }}>
-    <h3>{label}</h3>{error && <p role="alert">{t(error)}</p>}{done && !result && <p role="status">{t('support.actionDone')}</p>}
+    <h3>{label}</h3>{error && <p className="inline-notice inline-notice--danger" role="alert">{t(error)}</p>}{done && !result && <p className="inline-notice" role="status">{t('support.actionDone')}</p>}
     {fields.map((field) => field.type === 'date' ? <DateField key={field.key} label={field.label} value={values[field.key] ?? ''} onValueChange={(value) => setValues((v) => ({ ...v, [field.key]: value }))} />
       : <TextField key={field.key} label={field.label} type={field.type} autoComplete={field.type === 'password' ? 'current-password' : undefined} maxLength={field.type === 'password' ? 128 : 500} value={values[field.key] ?? ''} onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))} />)}
     <Button type="submit" disabled={busy}>{label}</Button>
@@ -131,17 +132,17 @@ function AccountsCard() {
   const licensing = (path: string, body: unknown) => auth.client.licensing(path, 'POST', body).then(() => undefined);
   return <Card title={t('support.accounts')}>
     <p>{t('support.accountsHelp')}</p>
-    <form onSubmit={async (e: FormEvent) => { e.preventDefault(); setError(null); try { setRows(await auth.client.business<SupportAccount[]>(`support/accounts?query=${encodeURIComponent(query.trim())}`)); } catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } }}>
-      {error && <p role="alert">{t(error)}</p>}
+    <form className="form-stack" onSubmit={async (e: FormEvent) => { e.preventDefault(); setError(null); try { setRows(await auth.client.business<SupportAccount[]>(`support/accounts?query=${encodeURIComponent(query.trim())}`)); } catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } }}>
+      {error && <p className="inline-notice inline-notice--danger" role="alert">{t(error)}</p>}
       <TextField label={t('support.accountQuery')} required maxLength={64} value={query} onChange={(e) => setQuery(e.target.value)} />
-      <Button type="submit" disabled={!query.trim()}>{t('support.search')}</Button>
+      <Button icon="search" variant="secondary" type="submit" disabled={!query.trim()}>{t('support.search')}</Button>
     </form>
-    {rows && (rows.length === 0 ? <p role="status">{t('support.noResults')}</p> : <ResponsiveTable caption={t('support.accounts')} rows={rows} rowKey={(r) => r.id} columns={[
+    {rows && (rows.length === 0 ? <p className="inline-notice" role="status">{t('support.noResults')}</p> : <ResponsiveTable caption={t('support.accounts')} rows={rows} rowKey={(r) => r.id} columns={[
       { key: 'username', heading: t('support.username'), cell: (r) => <span dir="ltr">{r.username}</span> }, { key: 'kind', heading: t('support.accountKind'), cell: (r) => r.kind }, { key: 'status', heading: t('support.accountStatus'), cell: (r) => `${r.status}${r.statusUntil ? ` → ${r.statusUntil}` : ''}${r.mustChangePassword ? ` (${t('support.mustChange')})` : ''}` },
       { key: 'seat', heading: t('support.reservation'), cell: (r) => (r.reservationActive ? t('support.yes') : t('support.no')) }, { key: 'login', heading: t('support.lastLogin'), cell: (r) => when(r.lastLoginAt, locale) },
       { key: 'select', heading: t('support.action'), cell: (r) => <Button variant="secondary" onClick={() => setSelected(r)}>{t('support.copyId')}</Button> }]} />)}
     {selected && <div className="organization-fields">
-      <p role="status"><span>{t('support.selectedAccount', { id: '' })}</span><code dir="ltr">{selected.id}</code> · <span dir="ltr">{selected.username}</span></p>
+      <p className="inline-notice" role="status"><span>{t('support.selectedAccount', { id: '' })}</span><code dir="ltr">{selected.id}</code> · <span dir="ltr">{selected.username}</span></p>
       {selected.kind !== 'SYSTEM' && can('accounts.reset_password') && <AccountAction label={t('support.resetPassword')} fields={[{ key: 'operatorPassword', label: t('support.operatorPassword'), type: 'password' }]} run={(v) => auth.client.reset(selected.id, v.operatorPassword ?? '')} />}
       {selected.kind === 'GUARDIAN' && can('parents.block') && <>
         <AccountAction label={t('support.blockParent')} fields={[{ key: 'reason', label: t('support.reason') }, { key: 'publicMessage', label: t('support.publicMessage') }, { key: 'untilDate', label: t('support.untilDate'), type: 'date' }]} run={(v) => licensing(`accounts/${selected.id}/block`, { reason: v.reason, publicMessage: v.publicMessage || undefined, untilDate: v.untilDate || undefined })} />
@@ -164,14 +165,14 @@ function ArchivalCard() {
   const [childId, setChildId] = useState(''); const [reason, setReason] = useState(''); const [preview, setPreview] = useState<ChildDependents | null>(null); const [error, setError] = useState<MessageKey | null>(null); const [done, setDone] = useState(false); const [busy, setBusy] = useState(false);
   return <Card title={t('support.archival')}>
     <p>{t('support.archivalHelp')}</p>
-    <form onSubmit={async (e: FormEvent) => { e.preventDefault(); setError(null); setDone(false); try { setPreview(await auth.client.business<ChildDependents>(`support/children/${encodeURIComponent(childId.trim())}/dependents`)); } catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } }}>
-      {error && <p role="alert">{t(error)}</p>}
+    <form className="form-stack" onSubmit={async (e: FormEvent) => { e.preventDefault(); setError(null); setDone(false); try { setPreview(await auth.client.business<ChildDependents>(`support/children/${encodeURIComponent(childId.trim())}/dependents`)); } catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } }}>
+      {error && <p className="inline-notice inline-notice--danger" role="alert">{t(error)}</p>}
       <TextField label={t('support.childId')} required dir="ltr" value={childId} onChange={(e) => setChildId(e.target.value)} />
-      <Button type="submit" disabled={!childId.trim()}>{t('support.preview')}</Button>
+      <Button variant="secondary" type="submit" disabled={!childId.trim()}>{t('support.preview')}</Button>
     </form>
     {preview && <div role="status">
       <p>{t('support.dependents', { code: preview.code, name: preview.fullName, status: preview.status, links: preview.guardianLinks, obligations: preview.obligations, outstanding: egp(preview.outstandingPiastres), receipts: preview.receipts, documents: preview.documents, attendance: preview.attendanceRecords, learning: preview.learningRecords })}</p>
-      {preview.status !== 'ARCHIVED' && auth.session?.account.capabilities.includes('children.manage') && <form aria-busy={busy} onSubmit={async (e: FormEvent) => {
+      {preview.status !== 'ARCHIVED' && auth.session?.account.capabilities.includes('children.manage') && <form className="form-stack" aria-busy={busy} onSubmit={async (e: FormEvent) => {
         e.preventDefault(); setBusy(true); setError(null);
         try { await auth.client.business(`children/${preview.childId}/lifecycle`, 'POST', { expectedVersion: preview.version, status: 'ARCHIVED', reason, publicMessage: null }); setDone(true); setPreview(await auth.client.business<ChildDependents>(`support/children/${preview.childId}/dependents`)); }
         catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } finally { setBusy(false); }
@@ -195,9 +196,9 @@ export function SupportScreen() {
     } catch (caught) { auth.handleError(caught); setError(errorKey(caught)); }
   }, [auth, canRestore]);
   useEffect(() => { void load(); }, [load]);
-  return <main className="organization-page"><header><h1>{t('support.title')}</h1><p>{t('support.help')}</p><Button variant="secondary" onClick={() => void load()}>{t('support.refresh')}</Button></header>
-    {error && <p role="alert">{t(error)}</p>}
-    {!status ? <p role="status">{t('state.loading')}</p> : <>
+  return <main className="organization-page"><PageHeader title={t('support.title')} icon="support" description={t('support.help')} actions={<><Button icon="refresh" variant="secondary" onClick={() => void load()}>{t('support.refresh')}</Button></>} />
+    {error && <p className="inline-notice inline-notice--danger" role="alert">{t(error)}</p>}
+    {!status ? <Skeleton label={t('state.loading')} /> : <>
       <StatusCard status={status} />
       <BackupsCard status={status} runs={runs} reload={load} />
       {canRestore && <RestoreCard status={status} runs={runs} validations={validations} reload={load} />}
