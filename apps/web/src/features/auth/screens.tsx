@@ -1,6 +1,9 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Navigate, Link } from 'react-router';
 import { Button, TextField, SelectField } from '../../components/controls.js';
+import { Icon, type IconName } from '../../components/Icon.js';
+import { SkyArt } from '../../components/data-display.js';
+import { ThemeSwitcher } from '../../layout/ThemeProvider.js';
 import { LanguageSwitcher, useInsideShell } from '../../layout/AppShell.js';
 import { SessionShell } from '../../layout/SessionShell.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
@@ -12,11 +15,22 @@ import { PayrollNavigation } from '../finance/payroll-screen.js';
 function errorKey(error: unknown): MessageKey {
   return error instanceof AuthError && error.detail.messageKey in catalogs.en ? error.detail.messageKey as MessageKey : 'auth.networkError';
 }
-function Frame({ title, children }: { title: MessageKey; children: ReactNode }) {
+function Frame({ title, children, wide = false, lead }: { title: MessageKey; children: ReactNode; wide?: boolean; lead?: ReactNode }) {
   const { t } = useLocale(); const embedded = useInsideShell();
+  const main = `landing ${wide ? 'landing--wide' : ''}`; const card = `landing__card auth-card ${wide ? 'auth-card--hub' : ''}`;
   // Inside the session shell the header already carries branding and language; the card stays.
-  if (embedded) return <main className="landing landing--embedded"><section className="landing__card auth-card"><h1>{t(title)}</h1>{children}</section></main>;
-  return <main className="landing"><div className="landing__language"><LanguageSwitcher /></div><section className="landing__card auth-card"><div className="brand-mark" aria-hidden="true">ن</div><h1>{t(title)}</h1>{children}</section></main>;
+  if (embedded) return <main className={`${main} landing--embedded`}><section className={card}>{wide && <SkyArt className="hero__decoration" />}<h1>{t(title)}</h1>{lead}{children}</section></main>;
+  return <main className={main}><div className="landing__sky" aria-hidden="true"><SkyArt /></div><div className="landing__language"><LanguageSwitcher /><ThemeSwitcher /></div><section className={card}>{wide && <SkyArt className="hero__decoration" />}<div className="brand-mark" aria-hidden="true">ن</div><h1>{t(title)}</h1>{lead}{children}</section></main>;
+}
+
+// One destination in the signed-in hub. The `to` stays a literal JSX attribute on every call site so
+// the static route-vs-link regression in layout/navigation.unit.test.ts keeps checking these targets.
+function HubLink({ to, label, icon }: { to: string; label: string; icon: IconName }) {
+  return <Link className="quick-action" to={to}>
+    <span className="quick-action__icon"><Icon name={icon} /></span>
+    <span className="quick-action__text"><strong>{label}</strong></span>
+    <Icon name="chevron" className="icon--chevron" />
+  </Link>;
 }
 export function AuthGate({ children }: { children: ReactNode }) {
   const auth = useAuth(); const { t } = useLocale();
@@ -91,32 +105,49 @@ function ResetForm() {
 }
 export function AccountScreen() {
   const auth = useAuth(); const { t, setLocale } = useLocale(); const [error, setError] = useState<MessageKey | null>(null); const [busy, setBusy] = useState(false);
-  return <Frame title="auth.account"><p>{auth.session!.account.username}</p><p>{t('auth.accountReady')}</p>
-    {error && <p role="alert">{t(error)}</p>}
-    <SelectField label={t('auth.savedLanguage')} disabled={busy} value={auth.session!.account.locale} onChange={async (event) => {
-      const locale = event.target.value as 'en' | 'ar-EG'; setBusy(true); setError(null);
-      try { await auth.client.locale(locale); auth.accept(await auth.client.current()); setLocale(locale); }
-      catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } finally { setBusy(false); }
-    }}><option value="en">English</option><option value="ar-EG">العربية</option></SelectField>
-    <Link to="/change-password">{t('auth.changePassword')}</Link><LogoutButton />
-    {auth.session!.account.kind==='GUARDIAN' && <><Link to="/parent/today">{t('hub.today')}</Link><Link to="/parent/children">{t('children.title')}</Link></>}
-    {auth.session!.account.capabilities.includes('announcements.manage') && <Link to="/administration/announcements">{t('hub.publish')}</Link>}
-    {auth.session!.account.capabilities.some(c=>['finance.read','children.read','learning.read','transport.read','activities.read','incidents.read','documents.manage'].includes(c)) && <Link to="/administration/reports">{t('reports.title')}</Link>}
-    {auth.session!.account.capabilities.includes('imports.commit') && <Link to="/administration/imports">{t('imports.title')}</Link>}
-    {auth.session!.account.capabilities.includes('finance.read') && <Link to="/administration/billing">{t('billing.title')}</Link>}
-    {auth.session!.account.capabilities.includes('finance.read') && <Link to="/administration/collections">{t('collections.title')}</Link>}
-    {(auth.session!.account.capabilities.includes('transport.read')||auth.session!.account.capabilities.includes('transport.manage')) && <Link to="/administration/transport">{t('transport.title')}</Link>}
-    {(auth.session!.account.capabilities.includes('activities.read')||auth.session!.account.capabilities.includes('activities.manage')) && <Link to="/teacher/activities">{t('transport.rosterTitle')}</Link>}
-    {auth.session!.account.capabilities.includes('finance.read') && (auth.session!.account.kind==='SYSTEM'||auth.session!.account.scope?.mode==='BRANCH') && <Link to="/administration/treasury">{t('finance.title')}</Link>}
-    {auth.session!.account.capabilities.includes('finance.read') && (auth.session!.account.kind==='SYSTEM'||auth.session!.account.scope?.mode==='BRANCH') && <PayrollNavigation/>}
-    {auth.session!.account.capabilities.includes('learning.configure') && <Link to="/administration/checkpoints">{t('learning.configuration')}</Link>}
-    {auth.session!.account.capabilities.includes('learning.read') && <><Link to="/teacher/today">{t('attendance.title')}</Link><Link to="/teacher/homework">{t('homework.title')}</Link><Link to="/teacher/exams">{t('exams.title')}</Link><Link to="/teacher/learning">{t('learning.title')}</Link></>}
-    {auth.session!.account.capabilities.includes('children.read') && <Link to="/administration/children">{t('children.title')}</Link>}
-    {auth.session!.account.capabilities.includes('organization.read') && <Link to="/administration/organization">{t('organization.title')}</Link>}
-    {(['branding.manage', 'modules.manage', 'users.manage_staff', 'users.create_parent', 'parents.block'] as const).some((key) => auth.session!.account.capabilities.includes(key)) && <Link to="/administration/settings">{t('licensing.settingsTitle')}</Link>}
-    {(['licensing.manage', 'seats.release', 'support.access'] as const).some((key) => auth.session!.account.capabilities.includes(key)) && <Link to="/support/licenses">{t('licensing.title')}</Link>}
-    {auth.session!.account.capabilities.includes('accounts.reset_password') && <ResetForm />}
-    {auth.session!.account.licenseStatus === 'GRACE' && <p role="status">{t('licensing.graceWarning')}</p>}
+  // The capability expressions below are the ones this screen already used, kept verbatim: this is a
+  // presentation change only, so the set of destinations an account can see is exactly as before.
+  const account = auth.session!.account; const capabilities = account.capabilities;
+  const branchWideFinance = capabilities.includes('finance.read') && (account.kind === 'SYSTEM' || account.scope?.mode === 'BRANCH');
+  return <Frame title="auth.account" wide lead={<><p className="hero__lead">{t('home.welcome', { name: account.username })}</p><p>{t('home.subtitle')}</p></>}>
+    {account.licenseStatus === 'GRACE' && <p className="stale-notice" role="status"><Icon name="warning" />{t('licensing.graceWarning')}</p>}
+
+    <section className="hub-section" aria-labelledby="hub-account">
+      <h2 id="hub-account">{t('home.account')}</h2>
+      <p>{account.username}</p><p>{t('auth.accountReady')}</p>
+      {error && <p role="alert">{t(error)}</p>}
+      <SelectField label={t('auth.savedLanguage')} disabled={busy} value={account.locale} onChange={async (event) => {
+        const locale = event.target.value as 'en' | 'ar-EG'; setBusy(true); setError(null);
+        try { await auth.client.locale(locale); auth.accept(await auth.client.current()); setLocale(locale); }
+        catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } finally { setBusy(false); }
+      }}><option value="en">English</option><option value="ar-EG">العربية</option></SelectField>
+      <div className="button-row"><Link className="button button--secondary" to="/change-password">{t('auth.changePassword')}</Link><LogoutButton /></div>
+    </section>
+
+    <section className="hub-section" aria-labelledby="hub-sections">
+      <h2 id="hub-sections">{t('home.quickActions')}</h2>
+      <p className="hub-section__help">{t('home.quickActionsHelp')}</p>
+      <div className="quick-actions">
+        {account.kind==='GUARDIAN' && <><HubLink to="/parent/today" label={t('hub.today')} icon="home" /><HubLink to="/parent/children" label={t('children.title')} icon="children" /></>}
+        {capabilities.includes('announcements.manage') && <HubLink to="/administration/announcements" label={t('hub.publish')} icon="bell" />}
+        {capabilities.some(c=>['finance.read','children.read','learning.read','transport.read','activities.read','incidents.read','documents.manage'].includes(c)) && <HubLink to="/administration/reports" label={t('reports.title')} icon="overview" />}
+        {capabilities.includes('imports.commit') && <HubLink to="/administration/imports" label={t('imports.title')} icon="staff" />}
+        {capabilities.includes('finance.read') && <HubLink to="/administration/billing" label={t('billing.title')} icon="finance" />}
+        {capabilities.includes('finance.read') && <HubLink to="/administration/collections" label={t('collections.title')} icon="wallet" />}
+        {(capabilities.includes('transport.read')||capabilities.includes('transport.manage')) && <HubLink to="/administration/transport" label={t('transport.title')} icon="calendar" />}
+        {(capabilities.includes('activities.read')||capabilities.includes('activities.manage')) && <HubLink to="/teacher/activities" label={t('transport.rosterTitle')} icon="star" />}
+        {branchWideFinance && <HubLink to="/administration/treasury" label={t('finance.title')} icon="finance" />}
+        {branchWideFinance && <PayrollNavigation/>}
+        {capabilities.includes('learning.configure') && <HubLink to="/administration/checkpoints" label={t('learning.configuration')} icon="settings" />}
+        {capabilities.includes('learning.read') && <><HubLink to="/teacher/today" label={t('attendance.title')} icon="calendar" /><HubLink to="/teacher/homework" label={t('homework.title')} icon="classroom" /><HubLink to="/teacher/exams" label={t('exams.title')} icon="star" /><HubLink to="/teacher/learning" label={t('learning.title')} icon="learning" /></>}
+        {capabilities.includes('children.read') && <HubLink to="/administration/children" label={t('children.title')} icon="children" />}
+        {capabilities.includes('organization.read') && <HubLink to="/administration/organization" label={t('organization.title')} icon="classroom" />}
+        {(['branding.manage', 'modules.manage', 'users.manage_staff', 'users.create_parent', 'parents.block'] as const).some((key) => capabilities.includes(key)) && <HubLink to="/administration/settings" label={t('licensing.settingsTitle')} icon="settings" />}
+        {(['licensing.manage', 'seats.release', 'support.access'] as const).some((key) => capabilities.includes(key)) && <HubLink to="/support/licenses" label={t('licensing.title')} icon="support" />}
+      </div>
+    </section>
+
+    {capabilities.includes('accounts.reset_password') && <ResetForm />}
   </Frame>;
 }
 export function UnavailableScreen() { const { t } = useLocale(); return <Frame title="state.noPermissionTitle"><p>{t('state.noPermissionBody')}</p><Link to="/account">{t('auth.account')}</Link></Frame>; }

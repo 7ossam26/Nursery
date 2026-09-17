@@ -1,13 +1,24 @@
-import { useEffect, useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { useEffect, useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { formatDateOnly, parseDisplayDate } from '@nursery/domain';
 import { Icon, type IconName } from './Icon.js';
 
-export function Button({ children, icon, variant = 'primary', className = '', ...props }: Readonly<{
+export function Button({ children, icon, variant = 'primary', className = '', loading = false, settled = false, ...props }: Readonly<{
   children: ReactNode;
   icon?: IconName;
   variant?: 'primary' | 'secondary' | 'quiet' | 'danger';
+  /** Shows in-progress motion and announces busy. Deliberately does not imply `disabled`: callers
+   *  that must block a repeat submission pass `disabled` explicitly, and financial screens rely on
+   *  that staying their own decision. */
+  loading?: boolean;
+  /** Plays the one-shot completion animation on the icon after a successful action. */
+  settled?: boolean;
 }> & ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <button type="button" className={`button button--${variant} ${className}`} {...props}>{icon && <Icon name={icon} />}{children}</button>;
+  return <button
+    type="button"
+    className={`button button--${variant} ${settled ? 'button--settled' : ''} ${className}`}
+    aria-busy={loading || undefined}
+    {...props}
+  >{loading ? <span className="button__spinner" aria-hidden="true" /> : icon && <Icon name={icon} />}{children}</button>;
 }
 
 type FieldFrameProps = Readonly<{
@@ -40,6 +51,19 @@ export function TextField({ label, hint, error, id: suppliedId, required, ...pro
   const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
   return <FieldFrame id={id} label={label} hint={hint} error={error} required={required}>
     <input className="field__control" id={id} required={required} aria-invalid={error ? true : undefined} aria-describedby={describedBy} {...props} />
+  </FieldFrame>;
+}
+
+export function TextArea({ label, hint, error, id: suppliedId, required, ...props }: Readonly<{
+  label: string;
+  hint?: string;
+  error?: string;
+}> & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const generatedId = useId();
+  const id = suppliedId ?? generatedId;
+  const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
+  return <FieldFrame id={id} label={label} hint={hint} error={error} required={required}>
+    <textarea className="field__control" id={id} required={required} aria-invalid={error ? true : undefined} aria-describedby={describedBy} {...props} />
   </FieldFrame>;
 }
 

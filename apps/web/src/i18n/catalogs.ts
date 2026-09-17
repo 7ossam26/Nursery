@@ -17,10 +17,12 @@ import { payrollEn,payrollAr } from '../features/finance/payroll-copy.js';
 import { reportsEn,reportsAr } from '../features/reports/copy.js';
 import { importsEn,importsAr } from '../features/imports/copy.js';
 import { supportEn,supportAr } from '../features/support/copy.js';
+import { shellEn, shellAr } from '../layout/shell-copy.js';
 export const supportedLocales = ['en', 'ar-EG'] as const;
 export type Locale = (typeof supportedLocales)[number];
 
 const en = {
+  ...shellEn,
   ...supportEn,
   ...reportsEn,
   ...importsEn,
@@ -118,6 +120,9 @@ const en = {
   'preview.description': 'Reusable components, states, and responsive navigation.',
   'preview.phase': 'Phase 02',
   'preview.persona': 'Preview role',
+  'preview.metrics': 'Key figures',
+  'preview.emptyTitle': 'No sessions recorded yet',
+  'preview.emptyBody': 'Recorded sessions will appear here as soon as a teacher publishes one.',
   'preview.components': 'Components',
   'preview.forms': 'Form controls',
   'preview.states': 'Interface states',
@@ -182,6 +187,7 @@ const en = {
 export type MessageKey = keyof typeof en;
 
 const ar: Record<MessageKey, string> = {
+  ...shellAr,
   ...supportAr,
   ...reportsAr,
   ...importsAr,
@@ -279,6 +285,9 @@ const ar: Record<MessageKey, string> = {
   'preview.description': 'مكوّنات وحالات وتنقل متجاوب للاستخدام في كل الشاشات.',
   'preview.phase': 'المرحلة 02',
   'preview.persona': 'عرض الدور',
+  'preview.metrics': 'أرقام مهمة',
+  'preview.emptyTitle': 'لسه مفيش حصص مسجلة',
+  'preview.emptyBody': 'الحصص هتظهر هنا أول ما مدرّس ينشر واحدة.',
   'preview.components': 'المكوّنات',
   'preview.forms': 'خانات النموذج',
   'preview.states': 'حالات الشاشة',

@@ -10,3 +10,7 @@ output/
 !.env.example
 private-files/
 !.env.production.example
+
+# Local PostgreSQL dev cluster (created by initdb; never commit)
+pgdata/
+pgpassword.txt

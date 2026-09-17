@@ -4,6 +4,7 @@ import type { CollectionInput,CreditReceiptInput,CollectionOptions,OutstandingIt
 import { cairoIsoDate,egpToPiastres,formatDateOnly,formatEgp,piastres } from '@nursery/domain';
 import { Button,DateField,SelectField,TextField } from '../../components/controls.js';
 import { Card } from '../../components/surfaces.js';
+import { StatCard,StatGrid } from '../../components/data-display.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import type { MessageKey } from '../../i18n/catalogs.js';
 import { useAuth } from '../auth/AuthProvider.js';
@@ -84,7 +85,7 @@ export function CollectionsScreen() {
  {(['branchId','classroomId','categoryId','status','timing'] as const).map(key=><SelectField key={key} label={t(key==='branchId'?'finance.branch':`collections.${key==='classroomId'?'classroom':key==='categoryId'?'category':key}`)} value={filters[key]} onChange={e=>{setFilters(previous=>({...previous,[key]:e.target.value,...(key==='branchId'?{classroomId:''}:{})}));setOffset(0);}}><option value="">{t('collections.all')}</option>
  {key==='branchId'?options.data!.branches.map(b=><option key={b.id} value={b.id}>{b.code} — {b.name}</option>):key==='classroomId'?options.data!.classrooms.filter(c=>!filters.branchId||c.branchId===filters.branchId).map(c=><option key={c.id} value={c.id}>{c.name}</option>):key==='categoryId'?options.data!.categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>):(key==='status'?['UNPAID','PARTIAL','PAID'] as const:['OVERDUE','UPCOMING'] as const).map(s=><option key={s} value={s}>{t(`collections.${s}`)}</option>)}</SelectField>)}
  </fieldset>}
- {balances.data&&<><p>{t('collections.total')}: <bdi dir="ltr">{money(balances.data.totalRemaining)}</bdi></p><p>{t('collections.count')}: {balances.data.totalCount}</p>{balances.data.items.length===0&&<p>{t('collections.empty')}</p>}
+ {balances.data&&<><StatGrid label={t('collections.title')}><StatCard tone="magenta" icon="wallet" label={t('collections.total')} value={money(balances.data.totalRemaining)} numeric/><StatCard tone="cyan" icon="children" label={t('collections.count')} countTo={balances.data.totalCount} value={balances.data.totalCount} numeric/></StatGrid>{balances.data.items.length===0&&<p>{t('collections.empty')}</p>}
  {balances.data.items.map(item=><Card key={item.id} title={`${item.childCode} — ${item.childName}`}><p>{item.categoryName} — {item.description}</p><p>{t(`collections.${item.status}`)}{item.overdue&&` · ${t('collections.OVERDUE')}`}</p><p>{t('collections.due')}: <bdi dir="ltr">{formatDateOnly(item.dueOn)}</bdi></p><p>{t('collections.remaining')}: <bdi dir="ltr">{money(item.remaining)}</bdi></p>{options.data?.canCollect&&BigInt(item.remaining)>0n&&<Button disabled={locked||selected.some(s=>s.item.id===item.id)} onClick={()=>select(item)}>{t('collections.collect')}</Button>}{options.data?.canRemind&&item.overdue&&<Button disabled={locked} onClick={()=>remind(item)}>{t('collections.resend')}</Button>}</Card>)}
  <Button disabled={locked||!offset} onClick={()=>setOffset(offset-20)}>{t('hub.previous')}</Button><Button disabled={locked||offset+20>=balances.data.totalCount} onClick={()=>setOffset(offset+20)}>{t('hub.next')}</Button></>}
  {selected.length>0&&options.data&&<form onSubmit={submit}><fieldset className="organization-fields" disabled={locked}><legend>{t('collections.review')}</legend>

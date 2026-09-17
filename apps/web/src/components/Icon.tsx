@@ -2,7 +2,8 @@ import type { SVGProps } from 'react';
 
 export type IconName =
   | 'home' | 'children' | 'wallet' | 'bell' | 'more' | 'calendar' | 'classroom' | 'learning'
-  | 'overview' | 'finance' | 'staff' | 'support' | 'settings' | 'check' | 'warning' | 'close' | 'arrow' | 'star';
+  | 'overview' | 'finance' | 'staff' | 'support' | 'settings' | 'check' | 'warning' | 'close' | 'arrow' | 'star'
+  | 'sun' | 'moon' | 'display' | 'search' | 'chevron' | 'panel' | 'user' | 'logout' | 'sparkle';
 
 const paths: Record<IconName, string> = {
   home: 'M3 11.5 12 4l9 7.5V21h-6v-6H9v6H3z',
@@ -22,7 +23,16 @@ const paths: Record<IconName, string> = {
   star: 'm12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z',
   warning: 'M12 3 2 21h20Zm0 6v5m0 3v.01',
   close: 'M5 5l14 14M19 5 5 19',
-  arrow: 'M5 12h14m-6-6 6 6-6 6'
+  arrow: 'M5 12h14m-6-6 6 6-6 6',
+  sun: 'M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-15v2m0 20v-2m10-10h-2M4 12H2m15.07-7.07-1.41 1.41M6.34 17.66l-1.41 1.41m12.73 0-1.41-1.41M6.34 6.34 4.93 4.93',
+  moon: 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z',
+  display: 'M3 5h18v11H3zM8 21h8m-4-5v5',
+  search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm10 2-4.35-4.35',
+  chevron: 'm9 5 7 7-7 7',
+  panel: 'M3 4h18v16H3zM9 4v16',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-8 9v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1',
+  logout: 'M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5M9 16l-4-4 4-4m-4 4h11',
+  sparkle: 'M12 3v6m0 6v6m-9-9h6m6 0h6M7.5 7.5l2 2m5 5 2 2m0-9-2 2m-5 5-2 2'
 };
 
 export function Icon({ name, ...props }: Readonly<{ name: IconName }> & SVGProps<SVGSVGElement>) {

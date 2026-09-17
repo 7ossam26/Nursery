@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { formatDateOnly, formatEgp, piastres } from '@nursery/domain';
 import { Button, DateField, ErrorSummary, SelectField, TextField } from '../../components/controls.js';
+import { Icon } from '../../components/Icon.js';
 import { Modal } from '../../components/Modal.js';
 import { Card, ResponsiveTable, Skeleton, StatePanel, type TableColumn } from '../../components/surfaces.js';
+import { Avatar, Badge, EmptyState, StatCard, StatGrid } from '../../components/data-display.js';
 import { useLocale } from '../../i18n/LocaleProvider.js';
 import { AppShell } from '../../layout/AppShell.js';
 import type { ShellRole } from '../../layout/navigation.js';
@@ -41,6 +43,12 @@ export function ComponentPreview() {
       </SelectField>
     </header>
 
+    <StatGrid label={t('preview.metrics')}>
+      <StatCard tone="cyan" icon="children" label={t('preview.attendance')} value="18 / 20" numeric />
+      <StatCard tone="warning" icon="classroom" label={t('preview.homework')} countTo={2} value={2} numeric meta={<span className="status status--warning"><Icon name="warning" />{t('preview.pending')}</span>} />
+      <StatCard tone="magenta" icon="finance" label={t('preview.upcoming')} value={formatEgp(piastres(125050n))} numeric meta={formatDateOnly('2026-09-30')} />
+    </StatGrid>
+
     <section className="task-grid" aria-label={t('preview.components')}>
       <Card className="task-card task-card--pink"><span>{t('preview.attendance')}</span><strong>18 / 20</strong><Button variant="secondary" icon="arrow">{t('preview.attendance')}</Button></Card>
       <Card className="task-card task-card--yellow"><span>{t('preview.homework')}</span><strong>2</strong><span className="status status--warning">{t('preview.pending')}</span></Card>
@@ -60,7 +68,7 @@ export function ComponentPreview() {
           <div className="button-row"><Button type="submit" icon="check">{t('form.save')}</Button><Button variant="secondary" onClick={() => setModalOpen(true)}>{t('preview.openModal')}</Button></div>
         </form>
       </Card>
-      <Card title={t('preview.states')}><div className="state-stack"><Skeleton label={t('state.loading')} /><StatePanel tone="empty" title={t('state.emptyTitle')} body={t('state.emptyBody')} /><StatePanel tone="error" title={t('state.errorTitle')} body={t('state.errorBody')} actionLabel={t('state.retry')} /></div></Card>
+      <Card title={t('preview.states')}><div className="state-stack"><Skeleton label={t('state.loading')} /><StatePanel tone="empty" title={t('state.emptyTitle')} body={t('state.emptyBody')} /><StatePanel tone="error" title={t('state.errorTitle')} body={t('state.errorBody')} actionLabel={t('state.retry')} /><EmptyState title={t('preview.emptyTitle')} body={t('preview.emptyBody')} /><div className="button-row"><Button loading>{t('auth.working')}</Button><Button variant="secondary" settled icon="check">{t('form.save')}</Button><Button variant="danger">{t('form.cancel')}</Button></div><div className="button-row"><Avatar name={samples.childOne} /><Badge>{t('preview.classroom')}</Badge><Badge tone="count">2</Badge><span className="status status--success"><Icon name="check" />{t('preview.present')}</span></div></div></Card>
     </div>
 
     <Card title={t('preview.table')}><ResponsiveTable caption={t('preview.table')} columns={columns} rows={rows} rowKey={(row) => row.id} /></Card>

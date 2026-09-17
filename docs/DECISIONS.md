@@ -259,3 +259,31 @@ R11/R16/U03, D05/D06/D11/D13/D19: collection controls use canonical installment 
 Private bilingual A4 PDFs print immutable receipt snapshots, nursery name/contact/theme accent, and the current permitted child-account balance with its Cairo balance date (available credit for a credit receipt). Generated PDFs have zero retention: memory only, no public file or bearer link, and current permission/link/session/module checks on every request. Bundled OFL Noto Sans Arabic is shaped with Pango at 300 dpi and raster-embedded for consistent Arabic printing; text is not searchable. No remote or caller-selected logo file is fetched; technical audit timestamps are omitted.
 
 The pg-boss finance-reminders-v1 queue reconciles every Cairo minute and at startup, inserting at most 200 new initial installment/recipient witnesses per batch. An installment is overdue strictly after its due date while canonical remaining is positive. Explicit billing.manage resend drains batches under one scoped idempotent operation. Staff recipients need current finance.read and branch/classroom scope; guardians need active read/finance/notify links. Blocked recipients may retain pending witnesses but cannot read the app. Receipt notifications require permission over every included child. Parent payment views show allowed child totals, without a combined family balance. No reminder changes account status, reservations, billing, debt or cash; manual blocking remains the existing independent administration action.
+
+## Frontend appearance system and collapsible navigation (UI redesign)
+
+Dark mode could not be implemented by redefining `--color-*` per theme: `BrandingProvider` writes those
+properties as inline styles on the root element, and an inline declaration outranks every stylesheet
+rule. Three alternatives were considered — moving the branding writer to a `--brand-*` namespace,
+computing theme-aware values in JavaScript, and `!important` overrides. All three were rejected in favour
+of adding a derived Layer 2 (`--surface-*`, `--ink-*`, `--line-*`, `--accent-*`, `--state-*`) that
+`BrandingProvider` never writes. The branding writer, `themeVariables()` and the server contrast gate are
+therefore untouched, and a branding fetch failure still leaves a fully themed application.
+
+Dark-mode neutrals and semantic inks are fixed values held in `packages/ui` as `nurseryTokens.dark`
+rather than derived from the stored brand. The end-to-end suites run axe with the `color-contrast` rule
+disabled, so a dark-mode contrast regression could not be caught automatically; fixing the palette makes
+the guarantee structural instead. All 24 dark text pairs were verified at or above 4.5:1.
+
+First paint is pure CSS (`@media (prefers-color-scheme: dark)` plus `:root[data-theme="dark"]`). The
+usual inline anti-flash script is impossible here: `apps/api/src/static.ts` serves HTML with
+`script-src 'self'` and no `'unsafe-inline'`, and that header is asserted by `static.unit.test.ts`.
+Changing it would be a security change, which is out of scope for a visual redesign.
+
+`docs/UX_AND_BRANDING.md` says not to reproduce icon-only navigation and to label every icon. The
+collapsible sidebar is a deliberate, documented exception: it ships expanded, collapsing is an explicit
+and persisted user action, and a collapsed item keeps a visible tooltip plus its accessible name, so no
+icon is ever unlabelled. `shell.unit.test.tsx` asserts that every collapsed destination keeps a name.
+
+The Superadmin logo (`branding.logoPath`) is still not rendered. It is a stored string with no serving
+endpoint in the API, so displaying it would mean inventing an API contract.

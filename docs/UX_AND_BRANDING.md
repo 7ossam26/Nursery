@@ -51,6 +51,34 @@ Normal text target is at least 4.5:1 contrast; large text and essential nontext 
 
 Never communicate status by color alone. Include text/icon state, visible keyboard focus, and screen-reader labels.
 
+## Appearance: light and dark
+
+Two intentionally designed themes, not an inversion. The stylesheet has two token layers.
+
+Layer 1 is the existing `--color-*` brand palette. `BrandingProvider` still writes it as inline custom
+properties on `<html>`, unchanged, so Superadmin customization and the server-side contrast gate behave
+exactly as before. Because an inline style outranks every stylesheet rule, a theme must never redefine
+this layer.
+
+Layer 2 is a derived semantic set — `--surface-*`, `--ink-*`, `--line-*`, `--accent-*`, `--state-*`,
+`--elevation-*`. Components consume only this layer, and each theme defines it independently. Light mode
+maps it onto the brand tokens, so branding still drives the product. Dark mode uses fixed midnight-navy
+neutrals and semantic inks (mirrored in `packages/ui` as `nurseryTokens.dark`) so a branding change can
+never push dark-mode text below the 4.5:1 target. The brand still reaches dark mode through the
+atmospheric gradients, the brand mark and the primary action, whose foreground is already derived
+against the button itself rather than against the page.
+
+Resolution order is an explicit stored choice (`nursery.theme`), then the operating system, then light.
+The first paint is handled entirely in CSS — `@media (prefers-color-scheme: dark)` plus
+`:root[data-theme="dark"]` — because the application is served with `script-src 'self'` and no
+`'unsafe-inline'`, so a pre-paint inline script would be blocked. `ThemeProvider` only sets `data-theme`
+for an explicit choice, and removes it when the user returns to the device setting.
+
+Navigation may be collapsed to an icon rail, but never starts that way: the sidebar ships expanded, the
+collapse is an explicit and persisted user action, and a collapsed item keeps both a visible tooltip and
+its accessible name. This is a deliberate, reversible exception to the icon-only guidance above; every
+icon remains labelled for assistive technology.
+
 ## Motion and progress
 
 Icons must have short purposeful animation on completion, interaction, or navigation. Typical durations 150–250ms; use opacity/transform and avoid continuous bouncing or distracting loops. Respect reduced-motion preferences.
