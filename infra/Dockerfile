@@ -38,4 +38,4 @@ USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/v1/readiness').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
-CMD ["sh", "-c", "node --import tsx packages/db/scripts/migrate.ts && node --import tsx apps/api/src/server.ts"]
+CMD ["sh", "-c", "node --import tsx packages/db/scripts/migrate.ts && node --import tsx apps/api/src/seed-superadmin.ts && node --import tsx apps/api/src/server.ts"]
