@@ -17,7 +17,7 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "test:release": "vitest run --config vitest.release.config.ts",
     "db:migrate": "npm run db:migrate -w @nursery/db",
-    "db:seed:demo": "npm run db:seed:demo -w @nursery/db",
+    "db:seed:demo": "tsx apps/api/src/seed-demo.ts",
     "db:seed:superadmin": "tsx apps/api/src/seed-superadmin.ts",
     "auth:bootstrap": "tsx apps/api/src/auth-command.ts bootstrap",
     "auth:recover-system": "tsx apps/api/src/auth-command.ts recover-system",
