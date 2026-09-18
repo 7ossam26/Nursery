@@ -7,7 +7,7 @@
   "engines": { "node": "24.19.0", "npm": "11.1.0" },
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
+    "dev": "tsx infra/scripts/dev.ts",
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present && tsc -p infra/tsconfig.json",
