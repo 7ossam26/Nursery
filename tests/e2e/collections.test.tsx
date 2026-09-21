@@ -49,7 +49,7 @@ describe('Phase 15 collection UI with real HTTP/PostgreSQL',()=>{
   await screen.findAllByText('EGP 75.00',{},{timeout:15000});expect(screen.queryByText(/FOREIGNUI/)).toBeNull();expect(screen.queryByRole('button',{name:t('collections.collect')})).toBeNull();
   // The PDF button uses the authenticated client (no bare href). Rendering itself is verified in the node-environment receipts suite: vitest's jsdom realm breaks pdf-lib's Uint8Array check.
   expect((await screen.findByRole('button',{name:t('collections.download')})).hasAttribute('disabled')).toBe(false);
-  await waitFor(()=>expect(within(screen.getByRole('navigation',{name:t('nav.main')})).getAllByRole('link')).toHaveLength(5));
+  await waitFor(()=>expect(within(screen.getByRole('navigation',{name:t('nav.mobile')})).getAllByRole('link')).toHaveLength(5));
   expect((await axe.run(view.container,{rules:{'color-contrast':{enabled:false}}})).violations).toEqual([]);
   await f.database.pool.query('update guardian_child_links set can_finance=false where guardian_id=$1',[c.guardianIds[0]]);
   await waitFor(()=>expect(screen.queryAllByText('EGP 75.00')).toHaveLength(0),{timeout:15000});expect(screen.queryByRole('button',{name:t('collections.download')})).toBeNull();

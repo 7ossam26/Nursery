@@ -42,7 +42,7 @@ it.each(['en','ar-EG'] as const)('real HTTP bilingual template download, upload 
 },90000);
 it('the import page and every import endpoint are unavailable without imports.commit',async()=>{
  f=await importFixture(false);const actor=await f.financeStaff([f.a.id],[],'BRANCH',['children.read','children.manage','guardians.manage','users.create_parent','finance.read']),origin=await f.app.listen({host:'127.0.0.1',port:0}),client=httpClient(origin,f.config.appOrigin);await client.login(actor.username,actor.password);
- render(<MemoryRouter initialEntries={['/account']}><LocaleProvider userLocale="en"><App authClient={client}/></LocaleProvider></MemoryRouter>);await screen.findByText('Children and families',{},{timeout:15000});expect(screen.queryByText('Excel imports')).toBeNull();
+ render(<MemoryRouter initialEntries={['/']}><LocaleProvider userLocale="en"><App authClient={client}/></LocaleProvider></MemoryRouter>);await screen.findByText('Children and families',{},{timeout:15000});expect(screen.queryByText('Excel imports')).toBeNull();
  await expect(client.business('imports/options')).rejects.toMatchObject({detail:{code:'FORBIDDEN'}});await expect(client.downloadFile('imports/templates/PARENTS_CHILDREN')).rejects.toMatchObject({detail:{code:'FORBIDDEN'}});
  await expect(client.business('imports','POST',{kind:'PARENTS_CHILDREN',fileName:'x.xlsx',contentBase64:'UEsDBA=='})).rejects.toMatchObject({detail:{code:'FORBIDDEN'}});
  await waitFor(()=>expect(screen.queryByText('Excel imports')).toBeNull());

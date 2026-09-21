@@ -1,5 +1,9 @@
 # Project state
 
+## ERP-V2-inspired frontend layout change (2026-09-21)
+
+COMPLETE. The user-authorized post-Phase-25 frontend change adapts the referenced ERP-V2 layout while retaining Nursery branding, bilingual copy, themes, routes, capabilities and business behavior. The standard desktop sidebar is now a centered top-header shell; `/support/*` alone selects the dark responsive support sidebar/drawer; parent/teacher mobile bottom navigation remains; and the signed-in staff/system Home dashboard is separate from the profile/security Account screen. No API, database, permission predicate, dependency or migration changed. Canonical UX, PWA/navigation, decision and role-guide documentation was updated. Final verification: unit **33 files / 153 tests**, serial real-HTTP/PostgreSQL DOM **24 files / 62 tests**, workspace typecheck, workspace lint, production build and `git diff --check` passed. The first full DOM run was **58/62** because four parent-flow assertions still searched for the removed `nav.main` landmark; after updating those assertions to the preserved `nav.mobile` landmark, the focused rerun passed **7/7** and the clean full rerun passed **62/62**. Build retains the existing 904.58 kB chunk-size advisory. No browser automation or physical visual check was performed; the standing manual 360px/RTL/theme/keyboard review remains.
+
 Baseline: 2026-09-13. Phase 25 complete (2026-09-15). Post-Phase-25 release-closure work completed in the same session (2026-09-15): N25-01 fixed, Phase 12 screenshot conflict analyzed (still BLOCKED, manual), the user acceptance walkthrough actually executed (88 PASS/0 FAIL/5 manual-only), and every final local gate re-run with none regressed. Remaining work is explicitly manual/environmental (see docs/HANDOFF.md).
 
 ## UI consistency follow-up (2026-09-17–18)

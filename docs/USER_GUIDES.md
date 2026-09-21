@@ -47,9 +47,11 @@ Deployment, upgrade, backup and restore steps are operator actions, not in-app s
 
 ## Nursery administration and finance
 
-Signs in as a branch-wide or system-scoped staff account. The left/bottom navigation groups into **Daily work**,
-**Finance**, **Nursery management**, and (only with support capabilities) a separately labeled **Support & setup**
-group (`apps/web/src/layout/navigation.ts`).
+Signs in as a branch-wide or system-scoped staff account. `/` opens the capability-filtered module dashboard in the
+top-header layout. The header provides Back, Home and Account actions, and the dashboard groups permitted work into
+**Daily work**, **Finance**, **Nursery management**, and (only with support capabilities) **Support & setup**
+destinations (`apps/web/src/layout/navigation.ts`). Opening `/support/*` switches to the separate dark support
+workspace; ordinary administration screens never show that sidebar.
 
 **Onboarding**
 
@@ -95,7 +97,9 @@ group (`apps/web/src/layout/navigation.ts`).
 ## Teacher
 
 Signs in as a classroom-scoped staff account; the navigation shows only **Today, Learning, Homework, Exams, More**
-(`shellRoleFor` assigns the teacher shell to any `STAFF` account whose scope is `CLASSROOM`).
+(`shellRoleFor` assigns the teacher shell to any `STAFF` account whose scope is `CLASSROOM`). These destinations use
+the top-header layout on wide screens and the labeled five-item bottom navigation below 768px. `/` opens the
+teacher's permitted module dashboard; `/account` contains language, appearance and security controls.
 
 | Task | Where |
 |---|---|
@@ -112,7 +116,9 @@ checkpoint is immediate and immutable — a correction appends a new reasoned ve
 ## Parent
 
 Signs in as a guardian account; navigation is **Home (Today), My children, Payments (when permitted), Notifications,
-More**. `/` redirects a guardian straight to `/parent/today`.
+More**. `/` redirects a guardian straight to `/parent/today`. Parent pages use the top-header layout on wide screens
+and the labeled five-item bottom navigation below 768px; **More** opens `/account` for language, appearance and
+security controls.
 
 | Task | Where |
 |---|---|

@@ -1,5 +1,21 @@
 # Decisions and explicit defaults
 
+### 2026-09-21 — ERP-V2-inspired role-based frontend layout
+
+The user selected [`7ossam26/ERP-V2`](https://github.com/7ossam26/ERP-V2) as a layout reference for the whole
+frontend. Nursery borrows only its shell geometry: ordinary parent, teacher and administration routes use a compact
+centered top header, constrained content width and icon-led module cards, while the dark sidebar is reserved for the
+separate `/support/*` workspace. Below 1024px that support sidebar is an accessible drawer. Parent and teacher retain
+their labeled five-item bottom navigation below 768px. Nursery branding, semantic tokens, light/dark themes,
+Egyptian Arabic/English copy and illustrations remain authoritative; no ERP-V2 assets, font/icon packages, Tailwind
+configuration, branch switcher or vendor footer were imported.
+
+The route split is intentional: `/` is the capability-filtered staff/admin module dashboard, `/account` is profile,
+language, theme and security, and guardians still redirect from `/` to `/parent/today`. Support mode is selected only
+by the `/support` path prefix, not merely by possessing support capabilities. Existing `navigation.ts` predicates,
+API permission enforcement and business behavior are unchanged. The older 2026-09-17 collapsible-sidebar decision
+below remains historical evidence of that pass but is superseded for current shell geometry.
+
 ### 2026-09-17 — Existing-screen UI consistency
 
 The user requested a presentation-only follow-up across all existing frontend routes and nested panels, using the redesigned dashboard as the visual reference. Preserve functionality, API payloads, permissions, routes, financial rules, and all loading/performance architecture. Extend shared primitives rather than adding page-specific visual systems. Keep English/ar-EG, light/dark, responsive layouts and reduced motion. User explicitly permitted browser automation for this pass's visual checks; functional tests remain repository scripts and real PostgreSQL. This limited exception does not retrospectively close older visual-evidence gaps. Preserve existing uncommitted illustration/dashboard work. See [UI_CONSISTENCY.md](UI_CONSISTENCY.md) for actual coverage and evidence.

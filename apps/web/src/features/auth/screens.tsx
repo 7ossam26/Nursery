@@ -45,7 +45,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 export function LoginScreen({ expired = false }: { expired?: boolean }) {
   const auth = useAuth(); const { t } = useLocale();
   const [username, setUsername] = useState(''); const [password, setPassword] = useState(''); const [busy, setBusy] = useState(false); const [error, setError] = useState<MessageKey | null>(null); const [publicMessage, setPublicMessage] = useState('');
-  if (auth.session) return <Navigate to="/account" replace />;
+  if (auth.session) return <Navigate to={auth.session.account.mustChangePassword ? '/account' : '/'} replace />;
   async function submit(event: FormEvent) {
     event.preventDefault(); setBusy(true); setError(null); setPublicMessage('');
     try { auth.accept(await auth.client.login(username, password)); }
@@ -104,27 +104,19 @@ function ResetForm() {
     </form>{temporary && <div role="status"><p>{t('auth.temporaryWarning')}</p><code className="auth-temporary" dir="ltr">{temporary}</code><Button variant="secondary" onClick={() => setTemporary('')}>{t('auth.dismissSecret')}</Button></div>}
   </section>;
 }
-export function AccountScreen() {
-  const auth = useAuth(); const { t, setLocale } = useLocale(); const [error, setError] = useState<MessageKey | null>(null); const [busy, setBusy] = useState(false);
-  // The capability expressions below are the ones this screen already used, kept verbatim: this is a
-  // presentation change only, so the set of destinations an account can see is exactly as before.
+function GraceNotice({ status }: Readonly<{ status: string | undefined }>) {
+  const { t } = useLocale();
+  return status === 'GRACE' ? <p className="stale-notice" role="status"><Icon name="warning" />{t('licensing.graceWarning')}</p> : null;
+}
+
+export function DashboardScreen() {
+  const auth = useAuth(); const { t } = useLocale();
+  // These capability expressions come unchanged from the former combined account hub. The layout
+  // moves them to Home without changing which destinations any account is allowed to discover.
   const account = auth.session!.account; const capabilities = account.capabilities;
   const branchWideFinance = capabilities.includes('finance.read') && (account.kind === 'SYSTEM' || account.scope?.mode === 'BRANCH');
-  return <Frame title="auth.account" wide lead={<><p className="hero__lead">{t('home.welcome', { name: account.username })}</p><p>{t('home.subtitle')}</p></>}>
-    {account.licenseStatus === 'GRACE' && <p className="stale-notice" role="status"><Icon name="warning" />{t('licensing.graceWarning')}</p>}
-
-    <section className="hub-section" aria-labelledby="hub-account">
-      <h2 id="hub-account">{t('home.account')}</h2>
-      <p>{account.username}</p><p>{t('auth.accountReady')}</p>
-      {error && <p role="alert">{t(error)}</p>}
-      <SelectField label={t('auth.savedLanguage')} disabled={busy} value={account.locale} onChange={async (event) => {
-        const locale = event.target.value as 'en' | 'ar-EG'; setBusy(true); setError(null);
-        try { await auth.client.locale(locale); auth.accept(await auth.client.current()); setLocale(locale); }
-        catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } finally { setBusy(false); }
-      }}><option value="en">English</option><option value="ar-EG">العربية</option></SelectField>
-      <div className="button-row"><Link className="button button--secondary" to="/change-password">{t('auth.changePassword')}</Link><LogoutButton /></div>
-    </section>
-
+  return <Frame title="home.dashboardTitle" wide lead={<><p className="hero__lead">{t('home.welcome', { name: account.username })}</p><p>{t('home.subtitle')}</p></>}>
+    <GraceNotice status={account.licenseStatus} />
     <section className="hub-section" aria-labelledby="hub-sections">
       <h2 id="hub-sections">{t('home.quickActions')}</h2>
       <p className="hub-section__help">{t('home.quickActionsHelp')}</p>
@@ -148,7 +140,27 @@ export function AccountScreen() {
       </div>
     </section>
 
-    {capabilities.includes('accounts.reset_password') && <ResetForm />}
+  </Frame>;
+}
+
+export function AccountScreen() {
+  const auth = useAuth(); const { t, setLocale } = useLocale(); const [error, setError] = useState<MessageKey | null>(null); const [busy, setBusy] = useState(false);
+  const account = auth.session!.account;
+  return <Frame title="auth.account">
+    <GraceNotice status={account.licenseStatus} />
+    <section className="hub-section hub-section--account" aria-labelledby="hub-account">
+      <h2 id="hub-account">{t('home.account')}</h2>
+      <p className="account-identity"><Icon name="user" />{account.username}</p><p>{t('auth.accountReady')}</p>
+      {error && <p role="alert">{t(error)}</p>}
+      <SelectField label={t('auth.savedLanguage')} disabled={busy} value={account.locale} onChange={async (event) => {
+        const locale = event.target.value as 'en' | 'ar-EG'; setBusy(true); setError(null);
+        try { await auth.client.locale(locale); auth.accept(await auth.client.current()); setLocale(locale); }
+        catch (caught) { auth.handleError(caught); setError(errorKey(caught)); } finally { setBusy(false); }
+      }}><option value="en">English</option><option value="ar-EG">العربية</option></SelectField>
+      <div className="account-preferences"><ThemeSwitcher /></div>
+      <div className="button-row"><Link className="button button--secondary" to="/change-password">{t('auth.changePassword')}</Link><LogoutButton /></div>
+    </section>
+    {account.capabilities.includes('accounts.reset_password') && <ResetForm />}
   </Frame>;
 }
 export function UnavailableScreen() { const { t } = useLocale(); return <Frame title="state.noPermissionTitle"><p>{t('state.noPermissionBody')}</p><Link className="button button--secondary" to="/account">{t('auth.account')}</Link></Frame>; }

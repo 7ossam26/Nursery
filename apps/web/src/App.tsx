@@ -14,7 +14,7 @@ import { lazy, Suspense, useEffect } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router';
 import { useLocale } from './i18n/LocaleProvider.js';
 import { AuthProvider, useAuth } from './features/auth/AuthProvider.js';
-import { AccountScreen, AuthGate, LoginScreen, PasswordScreen, UnavailableScreen } from './features/auth/screens.js';
+import { AccountScreen, AuthGate, DashboardScreen, LoginScreen, PasswordScreen, UnavailableScreen } from './features/auth/screens.js';
 import type { AuthClient } from './features/auth/client.js';
 import { OrganizationScreen } from './features/organization/screen.js';
 import { BrandingProvider } from './features/licensing/BrandingProvider.js';
@@ -62,7 +62,7 @@ function AuthRoutes() {
     <Route path="/administration/transport" element={<AuthGate><TransportScreen/></AuthGate>} />
     <Route path="/administration/payroll" element={<AuthGate><PayrollScreen/></AuthGate>} />
     <Route path="/session-expired" element={<LoginScreen expired />} />
-    <Route path="/" element={<AuthGate>{session?.account.kind==='GUARDIAN' ? <Navigate to="/parent/today" replace /> : <AccountScreen />}</AuthGate>} />
+    <Route path="/" element={<AuthGate>{session?.account.kind==='GUARDIAN' ? <Navigate to="/parent/today" replace /> : <DashboardScreen />}</AuthGate>} />
     <Route path="/account" element={<AuthGate><AccountScreen /></AuthGate>} />
     <Route path="/change-password" element={<AuthGate><PasswordScreen /></AuthGate>} />
     <Route path="/administration/organization" element={<AuthGate><OrganizationScreen /></AuthGate>} />

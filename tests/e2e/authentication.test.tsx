@@ -43,7 +43,12 @@ describe('scripted bilingual authentication flows against the real API', () => {
     const client = httpClient(origin, fixture.config.appOrigin);
     const view = mount(client, locale);
     await signIn(user, locale, 'system-operator', rootPassword);
+    await screen.findByRole('heading', { name: t('home.dashboardTitle'), exact: true });
+    expect(screen.getByRole('heading', { name: t('home.quickActions') })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: t('auth.account'), exact: true })).toBeNull();
+    await user.click(screen.getByRole('link', { name: t('shell.account') }));
     await screen.findByRole('heading', { name: t('auth.account'), exact: true });
+    expect(screen.queryByRole('heading', { name: t('home.quickActions') })).toBeNull();
     expect(document.documentElement.dir).toBe(locale === 'en' ? 'ltr' : 'rtl');
     expect((await axe.run(view.container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
     await user.type(screen.getByLabelText(t('auth.accountId'), { exact: false }), guardian.id);

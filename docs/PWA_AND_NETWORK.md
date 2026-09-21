@@ -32,7 +32,7 @@ Phase 22 implements R04/R16 (installable PWA, online-only operation with safe re
 
 ## Layout and navigation
 
-`AuthGate` wraps every authenticated screen in `SessionShell`, which picks the persona from the account (`GUARDIAN` → parent; `STAFF` with `CLASSROOM` scope → teacher; branch-wide staff and `SYSTEM` → administration with a separately styled support group). `navigation.ts` items carry `when` predicates over the session capabilities/scope; the parent **Payments** item follows the server's `parent/payment-options`. Hidden destinations are a convenience only — routes and APIs enforce the same rules. Parent and teacher keep five labeled destinations (sidebar on wide screens, fixed bottom strip under 768px); administration uses grouped sidebar sections that become a horizontally scrollable strip on phones. Screens no longer repeat language switchers or account links; the header carries branding, language and the account link. Frames rendered inside the shell use an embedded card variant.
+`AuthGate` wraps every authenticated screen in `SessionShell`, which picks the persona from the account (`GUARDIAN` → parent; `STAFF` with `CLASSROOM` scope → teacher; branch-wide staff and `SYSTEM` → administration). `navigation.ts` items carry `when` predicates over the session capabilities/scope; the parent **Payments** item follows the server's `parent/payment-options`. Hidden destinations are a convenience only — routes and APIs enforce the same rules. Parent, teacher and administration routes use the centered top-header shell, with `/` as the staff/admin module dashboard and `/account` as profile/security. Parent and teacher keep five labeled destinations in a fixed bottom strip under 768px. Only `/support/*` uses the dark support sidebar; below 1024px it becomes a modal-style drawer with Escape, focus return and keyboard containment. The header carries branding, language, theme and the account link on wider screens; language and theme remain available on `/account` at every width. Frames rendered inside the shell use an embedded card variant.
 
 ## Theme validation
 
@@ -44,6 +44,6 @@ Commands, results and remaining limits are recorded in PROJECT_STATE.md and HAND
 
 ## Remaining usability items
 
-- The account page doubles as the **More** destination and still lists every reachable screen as plain links.
+- The account page is the **More** destination for parent/teacher navigation and contains profile, appearance and security controls; permitted work destinations are shown on `/` or the persona-specific home.
 - Tables/cards from earlier phases keep their own copy; no visual pass on a physical 360px device was run.
 - Update checks depend on browser navigation/foreground heuristics; there is no push-based version signal.

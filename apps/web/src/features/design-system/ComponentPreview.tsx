@@ -35,7 +35,7 @@ export function ComponentPreview() {
     { key: 'status', heading: t('preview.status'), cell: (row) => <span className={`status status--${row.statusKey === 'preview.present' ? 'success' : 'warning'}`}>{t(row.statusKey)}</span> }
   ];
 
-  return <AppShell role={role} pathPrefix="/__preview"><main>
+  return <AppShell role={role} mode={role === 'support' ? 'support' : 'standard'} pathPrefix="/__preview"><main>
     <div className="preview-notice" role="note">{t('shell.previewNotice')}</div>
     <header className="page-header"><div><span className="eyebrow">{t('preview.phase')}</span><h1>{t('preview.title')}</h1><p>{t('preview.description')}</p></div>
       <SelectField label={t('preview.persona')} value={role} onChange={(event) => setRole(event.target.value as ShellRole)}>

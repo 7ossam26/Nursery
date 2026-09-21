@@ -83,8 +83,8 @@ describe('component accessibility and interaction', () => {
   });
 
   it.each([
-    { locale: 'en', direction: 'ltr', heading: 'Design system preview', field: /Display name/, navigation: 'Main navigation', table: 'Accessible roster' },
-    { locale: 'ar-EG', direction: 'rtl', heading: 'معاينة نظام التصميم', field: /الاسم الظاهر/, navigation: 'التنقل الرئيسي', table: 'كشف أطفال سهل الاستخدام' }
+    { locale: 'en', direction: 'ltr', heading: 'Design system preview', field: /Display name/, navigation: 'Mobile navigation', table: 'Accessible roster' },
+    { locale: 'ar-EG', direction: 'rtl', heading: 'معاينة نظام التصميم', field: /الاسم الظاهر/, navigation: 'التنقل على الموبايل', table: 'كشف أطفال سهل الاستخدام' }
   ] as const)('renders the $direction representative preview without automated accessibility violations', async ({ locale, direction, heading, field, navigation, table }) => {
     const { container } = render(<MemoryRouter initialEntries={['/__preview/parent/home']}><LocaleProvider userLocale={locale}><ComponentPreview /></LocaleProvider></MemoryRouter>);
     expect(document.documentElement.dir).toBe(direction);

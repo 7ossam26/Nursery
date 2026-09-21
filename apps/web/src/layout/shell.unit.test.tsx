@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import axe from 'axe-core';
 import { LocaleProvider } from '../i18n/LocaleProvider.js';
 import { translate, type Locale } from '../i18n/catalogs.js';
-import { AppShell, SIDEBAR_STORAGE_KEY } from './AppShell.js';
+import { AppShell, type ShellMode } from './AppShell.js';
 import { ThemeProvider, THEME_STORAGE_KEY, resolveTheme } from './ThemeProvider.js';
 import type { SessionAccount } from './navigation.js';
 
@@ -16,12 +16,12 @@ const account = (overrides: Partial<SessionAccount> = {}): SessionAccount => ({
   scope: { revision: 1, mode: 'CLASSROOM', branchIds: [], classroomIds: [] }, ...overrides
 });
 
-function mount(path: string, locale: Locale = 'en') {
+function mount(path: string, locale: Locale = 'en', mode: ShellMode = 'standard', sessionAccount = account()) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <LocaleProvider userLocale={locale}>
         <ThemeProvider>
-          <AppShell role="teacher" context={{ account: account(), parentFinance: false }}>
+          <AppShell role="teacher" mode={mode} context={{ account: sessionAccount, parentFinance: false }}>
             <main><h1>Screen</h1></main>
           </AppShell>
         </ThemeProvider>
@@ -33,6 +33,7 @@ function mount(path: string, locale: Locale = 'en') {
 beforeEach(() => {
   window.localStorage.clear();
   document.documentElement.removeAttribute('data-theme');
+  Reflect.deleteProperty(window, 'matchMedia');
 });
 afterEach(cleanup);
 
@@ -46,7 +47,6 @@ describe('appearance preference', () => {
   });
 
   it('renders without matchMedia and leaves the attribute off until the user chooses', async () => {
-    // jsdom does not implement matchMedia. An unguarded read here would break every scripted render.
     expect(typeof window.matchMedia).toBe('undefined');
     const user = userEvent.setup();
     mount('/teacher/today');
@@ -56,7 +56,6 @@ describe('appearance preference', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
 
-    // Returning to the device setting hands appearance back to the pure-CSS media query.
     await user.click(screen.getByRole('button', { name: translate('en', 'theme.system') }));
     expect(document.documentElement.hasAttribute('data-theme')).toBe(false);
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('system');
@@ -64,29 +63,40 @@ describe('appearance preference', () => {
 });
 
 describe('shell chrome', () => {
-  it('keeps the five labelled destinations in both the main and mobile navigation', () => {
+  it('keeps the five labelled destinations in the parent/teacher mobile navigation', () => {
     mount('/teacher/today');
-    for (const label of ['nav.main', 'nav.mobile'] as const) {
-      const navigation = screen.getByRole('navigation', { name: translate('en', label) });
-      expect(within(navigation).getAllByRole('link')).toHaveLength(5);
-    }
+    expect(screen.queryByRole('navigation', { name: translate('en', 'nav.main') })).toBeNull();
+    const navigation = screen.getByRole('navigation', { name: translate('en', 'nav.mobile') });
+    expect(within(navigation).getAllByRole('link')).toHaveLength(5);
   });
 
-  it('collapses the sidebar on request, persists it, and keeps every item named', async () => {
-    const user = userEvent.setup();
+  it('uses the centered top-header layout without a standard desktop sidebar', () => {
     mount('/teacher/today');
-    const navigation = screen.getByRole('navigation', { name: translate('en', 'nav.main') });
-    await user.click(screen.getByRole('button', { name: translate('en', 'shell.collapse') }));
+    const header = screen.getByRole('banner');
+    expect(within(header).getByRole('button', { name: translate('en', 'shell.back') })).toBeTruthy();
+    expect(within(header).getByRole('link', { name: translate('en', 'shell.home') }).getAttribute('href')).toBe('/');
+    expect(within(header).getByRole('link', { name: translate('en', 'shell.account') }).getAttribute('href')).toBe('/account');
+    expect(document.querySelector('.app-shell--standard')).toBeTruthy();
+    expect(document.querySelector('.shell-sidebar')).toBeNull();
+  });
 
-    expect(window.localStorage.getItem(SIDEBAR_STORAGE_KEY)).toBe('collapsed');
-    expect(document.querySelector('.app-shell--collapsed')).toBeTruthy();
-    // The rail is icon-only visually, but no destination loses its accessible name.
-    for (const link of within(navigation).getAllByRole('link')) {
-      expect(link.textContent?.trim()).toBeTruthy();
-      expect(link.getAttribute('data-label')).toBeTruthy();
-    }
-    await user.click(screen.getByRole('button', { name: translate('en', 'shell.expand') }));
-    expect(window.localStorage.getItem(SIDEBAR_STORAGE_KEY)).toBe('expanded');
+  it('opens the support sidebar as a narrow-screen drawer, closes on Escape, and restores focus', async () => {
+    Object.defineProperty(window, 'matchMedia', { configurable: true, value: () => ({
+      matches: true, media: '(max-width: 1023px)', onchange: null,
+      addEventListener: () => undefined, removeEventListener: () => undefined,
+      addListener: () => undefined, removeListener: () => undefined, dispatchEvent: () => true
+    }) });
+    const user = userEvent.setup();
+    mount('/support/licenses', 'en', 'support', account({ kind: 'SYSTEM', capabilities: ['licensing.manage', 'support.access'] }));
+    const trigger = screen.getByRole('button', { name: translate('en', 'shell.openSupportMenu') });
+    await waitFor(() => expect(document.querySelector('aside.support-sidebar')?.getAttribute('aria-hidden')).toBe('true'));
+    await user.click(trigger);
+    const sidebar = screen.getByLabelText(translate('en', 'nav.support'), { selector: 'aside' });
+    expect(sidebar.hasAttribute('aria-hidden')).toBe(false);
+    expect(within(sidebar).getByRole('link', { name: translate('en', 'nav.licenses') })).toBeTruthy();
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(sidebar.getAttribute('aria-hidden')).toBe('true'));
+    expect(document.activeElement).toBe(trigger);
   });
 
   it('opens destination search with the keyboard and only offers permitted destinations', async () => {
@@ -96,7 +106,6 @@ describe('shell chrome', () => {
 
     const search = screen.getByRole('textbox', { name: translate('en', 'search.placeholder') });
     const results = () => within(screen.getByRole('list', { name: translate('en', 'search.results') })).getAllByRole('button');
-    // A classroom-scoped teacher sees exactly the destinations its own navigation already shows.
     expect(results()).toHaveLength(5);
 
     await user.type(search, translate('en', 'nav.exams'));

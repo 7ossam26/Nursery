@@ -4,9 +4,21 @@ Implements R04. Target parents and busy nursery staff; simplicity is a product r
 
 ## Reference interpretation
 
-The supplied desktop references use a short sidebar, a clear page title, spacious cards, and grouped recent activity. The mobile reference uses large cards, a short bottom navigation, and clear primary actions. Reuse these layout principles with nursery content. Do not reproduce the hotel/parking imagery, tiny secondary text, or icon-only navigation.
+The current shell takes its layout geometry from
+[`7ossam26/ERP-V2`](https://github.com/7ossam26/ERP-V2): a compact centered top header, a constrained content
+column, and spacious icon-led destination cards for ordinary work. It deliberately keeps Nursery's own branding,
+semantic tokens, bilingual copy, illustrations, themes, routes and permission model. It does not import ERP-V2
+assets or dependencies and does not reproduce its global branch switcher, vendor footer or business content.
 
-Reference filenames: cb981921-4eef-456c-a1a8-32e2a261ad0d.png; 2e1e749d-b733-4008-8060-863db11876d5.png; 1fc0eed2-c207-4088-808b-cc3b04315e3f.png. Palette reference: 440905a2-184c-49fa-91fe-4c9e347b9903.png. This document includes sufficient written direction if those attachments are unavailable in a later Codex session.
+The reference's dark sidebar is used only for `/support/*`, where it gives Superadmin operations a clearly
+separate workspace. Parent, teacher and nursery-administration routes use the top-header layout. Parent and teacher
+retain the five-item mobile bottom navigation; the support sidebar becomes a labeled, keyboard-contained drawer on
+narrow screens.
+
+Earlier supplied screenshots remain useful for readability and mobile interaction: large cards, a short bottom
+navigation, clear primary actions and no tiny secondary text or unexplained icon-only navigation. Reference
+filenames: cb981921-4eef-456c-a1a8-32e2a261ad0d.png; 2e1e749d-b733-4008-8060-863db11876d5.png;
+1fc0eed2-c207-4088-808b-cc3b04315e3f.png. Palette reference: 440905a2-184c-49fa-91fe-4c9e347b9903.png.
 
 ## Navigation
 
@@ -74,10 +86,11 @@ The first paint is handled entirely in CSS — `@media (prefers-color-scheme: da
 `'unsafe-inline'`, so a pre-paint inline script would be blocked. `ThemeProvider` only sets `data-theme`
 for an explicit choice, and removes it when the user returns to the device setting.
 
-Navigation may be collapsed to an icon rail, but never starts that way: the sidebar ships expanded, the
-collapse is an explicit and persisted user action, and a collapsed item keeps both a visible tooltip and
-its accessible name. This is a deliberate, reversible exception to the icon-only guidance above; every
-icon remains labelled for assistive technology.
+Ordinary work uses a compact top header with visible Back, Home and Account actions and a centered Nursery identity.
+Language and theme controls remain in the header on wider screens and are always available on `/account`. The
+support workspace uses a permanently labeled sidebar on desktop and an explicit Menu drawer below 1024px; opening
+the drawer moves focus into it, Escape closes it and returns focus, and keyboard focus is contained while open.
+Every navigation icon retains a visible or assistive label.
 
 ## Nursery illustration system
 
@@ -118,4 +131,10 @@ Financial submit buttons remain disabled during an operation and offer status re
 
 Keep authenticated data out of PWA caches. On blocking/logout/scope loss clear in-memory child queries and close live subscriptions before showing the access message.
 
-Phase22 implementation: the session shell (`apps/web/src/layout/SessionShell.tsx`) applies the persona navigation above with capability/scope filtering (parent: Today, My children, Payments when permitted, Notifications, More; teacher: Today, Learning, Homework, Exams, More; administration: Daily work, Finance, Nursery management and a separate Support & setup group). Connection problem, stale data, update-available and uncertain-outcome states are implemented in `features/connectivity` and `pwa`; derived theme foregrounds in `features/licensing/theme.ts`. See [PWA_AND_NETWORK.md](PWA_AND_NETWORK.md).
+Current implementation: the session shell (`apps/web/src/layout/SessionShell.tsx`) applies the persona navigation
+above with capability/scope filtering (parent: Today, My children, Payments when permitted, Notifications, More;
+teacher: Today, Learning, Homework, Exams, More; administration: the permitted module cards on `/`). Only
+`/support/*` selects the support-sidebar shell. `/account` contains profile, language, theme and security controls;
+it is no longer the staff/admin dashboard. Connection problem, stale data, update-available and uncertain-outcome
+states are implemented in `features/connectivity` and `pwa`; derived theme foregrounds in
+`features/licensing/theme.ts`. See [PWA_AND_NETWORK.md](PWA_AND_NETWORK.md).
